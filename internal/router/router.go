@@ -40,9 +40,14 @@ func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB, tplEngine *template
 		return c.Next()
 	})
 
-	// 数据库未就绪时只注册安装路由
+	// 数据库未就绪时提前返回，仅保留安装路由
+	// 首页访问由上方中间件统一处理（已安装时放行，未安装时跳转 /install）
 	if db == nil {
+		// 注册兜底：访问 / 且已安装时提示重启
 		app.Get("/", func(c *fiber.Ctx) error {
+			if installH.IsInstalled() {
+				return c.JSON(fiber.Map{"code": 1, "msg": "已安装成功，请重启服务以加载完整功能"})
+			}
 			return c.Redirect("/install")
 		})
 		return
