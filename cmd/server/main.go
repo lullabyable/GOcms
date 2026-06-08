@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,9 +11,11 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"gorm.io/gorm"
 
 	"gocms/internal/config"
 	"gocms/internal/database"
+	"gocms/internal/handler/admin"
 	"gocms/internal/middleware"
 	"gocms/internal/router"
 	"gocms/internal/session"
@@ -22,29 +23,49 @@ import (
 )
 
 func main() {
-	// 加载配置
+	// 加载配置（如果不存在则使用空配置，等待 /install 安装）
 	cfg, err := config.Load("")
 	if err != nil {
-		log.Fatalf("加载配置失败: %v", err)
+		// 配置文件不存在，使用默认配置
+		cfg = &config.Config{}
+		cfg.Server.Host = "0.0.0.0"
+		cfg.Server.Port = 8080
+		cfg.Server.ReadTimeout = 30
+		cfg.Server.WriteTimeout = 30
+		cfg.Template.Dir = "./web/templates"
+		cfg.Template.Theme = "default"
+		cfg.Cache.Type = "file"
+		cfg.Cache.FileDir = "./runtime/cache"
+		cfg.Log.Level = "info"
+		cfg.Log.File = "./runtime/logs/gocms.log"
 	}
 
 	// 初始化日志
 	logger := initLogger(cfg.Log)
 	defer logger.Sync()
 
-	// 连接数据库
-	db, err := database.Connect(cfg.DB)
-	if err != nil {
-		logger.Fatal("数据库连接失败", zap.Error(err))
-	}
-	sqlDB, _ := db.DB()
-	defer sqlDB.Close()
-	logger.Info("数据库连接成功")
+	// 连接数据库（失败不退出，等待 /install 安装）
+	var db *gorm.DB
+	installH := admin.NewInstallHandler()
 
-	// 数据库迁移
-	migrator := database.NewMigrator(db)
-	if err := migrator.Migrate(); err != nil {
-		logger.Warn("数据库迁移提示", zap.Error(err))
+	db, err = database.Connect(cfg.DB)
+	if err != nil {
+		logger.Warn("数据库未就绪，等待安装", zap.Error(err))
+	} else {
+		sqlDB, _ := db.DB()
+		defer sqlDB.Close()
+		logger.Info("数据库连接成功")
+
+		// 数据库迁移
+		migrator := database.NewMigrator(db)
+		if err := migrator.Migrate(); err != nil {
+			logger.Warn("数据库迁移提示", zap.Error(err))
+		}
+
+		// 检查是否已安装
+		if db.Migrator().HasTable("mac_admin") {
+			installH.SetInstalled(true)
+		}
 	}
 
 	// 初始化 Session
@@ -76,7 +97,7 @@ func main() {
 	middleware.Setup(app, logger)
 
 	// 注册路由
-	router.Setup(app, sm, db, tplEngine)
+	router.Setup(app, sm, db, tplEngine, installH)
 
 	// 静态文件
 	app.Static("/static", "./web/static")

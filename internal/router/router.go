@@ -2,6 +2,7 @@ package router
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -22,7 +23,31 @@ import (
 )
 
 // Setup 注册所有路由
-func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB, tplEngine *template.Engine) {
+func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB, tplEngine *template.Engine, installH *admin.InstallHandler) {
+
+	// 安装路由（无需认证，必须最先注册）
+	app.Get("/install", installH.Page)
+	app.Post("/install/test-db", installH.TestDB)
+	app.Post("/install/submit", installH.Submit)
+
+	// 安装检测中间件：未安装时跳转 /install
+	app.Use(func(c *fiber.Ctx) error {
+		if !installH.IsInstalled() && c.Path() != "/install" &&
+			c.Path() != "/install/test-db" && c.Path() != "/install/submit" &&
+			!strings.HasPrefix(c.Path(), "/static") {
+			return c.Redirect("/install")
+		}
+		return c.Next()
+	})
+
+	// 数据库未就绪时只注册安装路由
+	if db == nil {
+		app.Get("/", func(c *fiber.Ctx) error {
+			return c.Redirect("/install")
+		})
+		return
+	}
+
 	// Phase 4 服务
 	analyticsSvc := analytics.NewService(db)
 	schedulerSvc := scheduler.NewScheduler(db)

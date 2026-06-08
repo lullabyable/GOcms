@@ -7,15 +7,12 @@ server:
   write_timeout: 30
 
 database:
-  driver: "sqlite"        # mysql | sqlite
-  # SQLite 配置
-  database: "./runtime/gocms.db"
-  # MySQL 配置（driver: mysql 时生效）
-  # host: "127.0.0.1"
-  # port: 3306
-  # user: "root"
-  # password: ""
-  # database: "gocms"
+  driver: "mysql"         # mysql | sqlite
+  host: "127.0.0.1"
+  port: 3306
+  user: "root"
+  password: ""
+  database: "gocms"
   charset: "utf8mb4"
   max_open_conns: 100
   max_idle_conns: 10
