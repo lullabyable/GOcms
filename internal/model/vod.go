@@ -1,0 +1,75 @@
+package model
+
+// Vod 视频模型
+type Vod struct {
+	ID               int       `gorm:"primaryKey;column:vod_id" json:"vod_id"`
+	TypeID           int       `gorm:"column:type_id" json:"type_id"`
+	TypeID1          int       `gorm:"column:type_id_1" json:"type_id_1"`
+	GroupID          int       `gorm:"column:group_id" json:"group_id"`
+	VodName          string    `gorm:"column:vod_name" json:"vod_name"`
+	VodSub           string    `gorm:"column:vod_sub" json:"vod_sub"`
+	VodEn            string    `gorm:"column:vod_en" json:"vod_en"`
+	VodTime          string    `gorm:"column:vod_time" json:"vod_time"`
+	VodClass         string    `gorm:"column:vod_class" json:"vod_class"`
+	VodTag           string    `gorm:"column:vod_tag" json:"vod_tag"`
+	VodPic           string    `gorm:"column:vod_pic" json:"vod_pic"`
+	VodPicThumb      string    `gorm:"column:vod_pic_thumb" json:"vod_pic_thumb"`
+	VodPicSlide      string    `gorm:"column:vod_pic_slide" json:"vod_pic_slide"`
+	VodPicScreenshot string    `gorm:"column:vod_pic_screenshot" json:"vod_pic_screenshot"`
+	VodActor         string    `gorm:"column:vod_actor" json:"vod_actor"`
+	VodDirector      string    `gorm:"column:vod_director" json:"vod_director"`
+	VodWriter        string    `gorm:"column:vod_writer" json:"vod_writer"`
+	VodBlurb         string    `gorm:"column:vod_blurb" json:"vod_blurb"`
+	VodRemarks       string    `gorm:"column:vod_remarks" json:"vod_remarks"`
+	VodPubdate       string    `gorm:"column:vod_pubdate" json:"vod_pubdate"`
+	VodArea          string    `gorm:"column:vod_area" json:"vod_area"`
+	VodLang          string    `gorm:"column:vod_lang" json:"vod_lang"`
+	VodYear          string    `gorm:"column:vod_year" json:"vod_year"`
+	VodVersion       string    `gorm:"column:vod_version" json:"vod_version"`
+	VodState         string    `gorm:"column:vod_state" json:"vod_state"`
+	VodAuthor        string    `gorm:"column:vod_author" json:"vod_author"`
+	VodJumpurl       string    `gorm:"column:vod_jumpurl" json:"vod_jumpurl"`
+	VodLetter        string    `gorm:"column:vod_letter" json:"vod_letter"`
+	VodColor         string    `gorm:"column:vod_color" json:"vod_color"`
+	VodLock          int       `gorm:"column:vod_lock" json:"vod_lock"`
+	VodLevel         int       `gorm:"column:vod_level" json:"vod_level"`
+	VodPoints        int       `gorm:"column:vod_points" json:"vod_points"`
+	VodPointsPlay    int       `gorm:"column:vod_points_play" json:"vod_points_play"`
+	VodPointsDown    int       `gorm:"column:vod_points_down" json:"vod_points_down"`
+	VodHits          int       `gorm:"column:vod_hits" json:"vod_hits"`
+	VodHitsDay       int       `gorm:"column:vod_hits_day" json:"vod_hits_day"`
+	VodHitsWeek      int       `gorm:"column:vod_hits_week" json:"vod_hits_week"`
+	VodHitsMonth     int       `gorm:"column:vod_hits_month" json:"vod_hits_month"`
+	VodDuration      string    `gorm:"column:vod_duration" json:"vod_duration"`
+	VodUp            int       `gorm:"column:vod_up" json:"vod_up"`
+	VodDown          int       `gorm:"column:vod_down" json:"vod_down"`
+	VodScore         string    `gorm:"column:vod_score" json:"vod_score"`
+	VodScoreAll      int       `gorm:"column:vod_score_all" json:"vod_score_all"`
+	VodScoreNum      int       `gorm:"column:vod_score_num" json:"vod_score_num"`
+	VodContent       string    `gorm:"column:vod_content;type:text" json:"vod_content"`
+	VodPlayFrom      string    `gorm:"column:vod_play_from" json:"vod_play_from"`
+	VodPlayServer    string    `gorm:"column:vod_play_server" json:"vod_play_server"`
+	VodPlayNote      string    `gorm:"column:vod_play_note" json:"vod_play_note"`
+	VodPlayURL       string    `gorm:"column:vod_play_url;type:text" json:"vod_play_url"`
+	VodDownFrom      string    `gorm:"column:vod_down_from" json:"vod_down_from"`
+	VodDownServer    string    `gorm:"column:vod_down_server" json:"vod_down_server"`
+	VodDownNote      string    `gorm:"column:vod_down_note" json:"vod_down_note"`
+	VodDownURL       string    `gorm:"column:vod_down_url;type:text" json:"vod_down_url"`
+	VodPlot          int       `gorm:"column:vod_plot" json:"vod_plot"`
+	VodPlotName      string    `gorm:"column:vod_plot_name" json:"vod_plot_name"`
+	VodPlotDetail    string    `gorm:"column:vod_plot_detail;type:text" json:"vod_plot_detail"`
+	VodStatus        int       `gorm:"column:vod_status" json:"vod_status"`
+	VodTimeAdd       int64     `gorm:"column:vod_time_add" json:"vod_time_add"`
+	VodTimeHits      int64     `gorm:"column:vod_time_hits" json:"vod_time_hits"`
+	VodTimeMake      int64     `gorm:"column:vod_time_make" json:"vod_time_make"`
+	VodTrysee        int       `gorm:"column:vod_trysee" json:"vod_trysee"`
+	VodCopyright     int       `gorm:"column:vod_copyright" json:"vod_copyright"`
+	VodRelArt        string    `gorm:"column:vod_rel_art" json:"vod_rel_art"`
+	VodRelVod        string    `gorm:"column:vod_rel_vod" json:"vod_rel_vod"`
+	VodPwd           string    `gorm:"column:vod_pwd" json:"vod_pwd"`
+	VodPwdURL        string    `gorm:"column:vod_pwd_url" json:"vod_pwd_url"`
+	VodPwdPlay       string    `gorm:"column:vod_pwd_play" json:"vod_pwd_play"`
+	VodPwdDown       string    `gorm:"column:vod_pwd_down" json:"vod_pwd_down"`
+}
+
+func (Vod) TableName() string { return "mac_vod" }

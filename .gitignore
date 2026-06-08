@@ -1,0 +1,58 @@
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime
+runtime/
+*.log
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Vendor (if using go mod vendor)
+# vendor/
+
+# Compiled
+/dist/
+/build/
+
+# Uploads (user content)
+web/uploads/
+
+# Cache
+cache/
+
+# Temp
+*.tmp
+*.bak
+maccms-go/maccms
+
+# OpenClaw workspace files (个人配置，不入仓库)
+.openclaw/
+AGENTS.md
+BOOTSTRAP.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md

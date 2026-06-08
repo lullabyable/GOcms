@@ -1,0 +1,50 @@
+# GoCMS Go 配置文件
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: 30
+  write_timeout: 30
+
+database:
+  host: "127.0.0.1"
+  port: 3306
+  user: "root"
+  password: ""
+  database: "gocms"
+  charset: "utf8mb4"
+  max_open_conns: 100
+  max_idle_conns: 10
+  max_lifetime: 3600
+
+cache:
+  type: "file"           # file | redis
+  flag: "gocms"         # 缓存键前缀
+  core: 1                # 核心缓存开关
+  time: 3600             # 默认过期秒数
+  page: 1                # 页面缓存开关
+  time_page: 3600        # 页面缓存过期秒数
+  file_dir: "./runtime/cache"
+  # Redis（可选，type=redis 时生效）
+  # host: "127.0.0.1"
+  # port: "6379"
+  # password: ""
+  # db: 0
+
+session:
+  type: "cookie"         # cookie | redis
+  name: "gocms_session"
+  max_age: 86400         # 秒
+  secret: "change-me-to-random-string"
+
+log:
+  level: "info"
+  file: "./runtime/logs/gocms.log"
+  max_size: 100          # MB
+  max_backups: 5
+  max_age: 30            # 天
+
+upload:
+  dir: "./web/uploads"
+  max_size: 10           # MB
+  allowed_ext: ".jpg,.jpeg,.png,.gif,.webp,.mp4,.mp3"
