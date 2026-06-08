@@ -31,7 +31,7 @@
   {/maccms:foreach}
 </div>
 
-<div style="display:flex;gap:16px;margin-bottom:24px">
+<div style="display:flex;gap:16px;margin-bottom:24px" class="btn-row">
   <a href="/voddetail/{$vod.vod_id}" class="btn btn-outline" style="font-size:13px">← 返回详情</a>
   <button class="btn btn-outline" style="font-size:13px" onclick="toggleDanmaku()">弹幕开关</button>
 </div>
@@ -41,7 +41,7 @@
   <div id="danmaku-messages" style="max-height:200px;overflow-y:auto;font-size:13px">
     连接弹幕服务器...
   </div>
-  <div style="display:flex;gap:8px;margin-top:12px">
+  <div style="display:flex;gap:8px;margin-top:12px" class="source-row">
     <input id="dm-input" type="text" placeholder="发弹幕..." style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text);font-size:13px;outline:none" />
     <button onclick="sendDm()" class="btn btn-primary" style="padding:8px 16px;font-size:13px">发送</button>
   </div>

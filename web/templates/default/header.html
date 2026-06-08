@@ -100,16 +100,110 @@
   .rank-list li:nth-child(3) .rank{background:#f1c40f;color:#333}
   .rank-list a{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
   /* Responsive */
+  /* ===== 响应式：平板 (≤1024px) ===== */
+  @media(max-width:1024px){
+    .container{padding:0 20px}
+    .video-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .sidebar{width:260px}
+    .detail-header{gap:20px}
+    .detail-poster{width:200px}
+    .hero-banner .slide-title{font-size:28px}
+    .feature-list{grid-template-columns:repeat(2,1fr)}
+  }
+
+  /* ===== 响应式：手机 (≤768px) ===== */
   @media(max-width:768px){
-    .header-inner{flex-wrap:wrap;height:auto;padding:12px 0;gap:8px}
-    .nav{order:3;width:100%;overflow-x:auto;white-space:nowrap}
-    .search-box{order:2;flex:1}
+    .container{padding:0 12px}
+    /* 导航 */
+    .header-inner{flex-wrap:wrap;height:auto;padding:10px 0;gap:6px}
+    .logo{font-size:18px}
+    .nav{order:3;width:100%;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;gap:2px;padding-bottom:4px}
+    .nav a{padding:6px 10px;font-size:12px;flex-shrink:0}
+    .search-box{order:2;flex:1;min-width:0}
+    .search-box input{width:100%;font-size:14px;padding:10px 0}
+    .search-box button{padding:8px 14px}
     .user-area{display:none}
-    .video-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
-    .detail-header{flex-direction:column}
-    .detail-poster{width:160px}
-    .main-layout{flex-direction:column}
+    /* 视频网格：手机2列 */
+    .video-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+    .video-card .info{padding:8px}
+    .video-card .info h3{font-size:12px}
+    .video-card .info .meta{font-size:10px;margin-top:4px}
+    .video-card .thumb .badge{font-size:9px;padding:1px 4px;top:4px;left:4px}
+    .video-card .thumb .score{font-size:10px;padding:1px 6px;bottom:4px;right:4px}
+    .video-card .thumb .play-icon{width:36px;height:36px}
+    .video-card .thumb .play-icon::after{border-left-width:12px;border-top-width:8px;border-bottom-width:8px}
+    /* Section标题 */
+    .section-title{margin:20px 0 10px}
+    .section-title h2{font-size:15px;padding-left:10px}
+    /* 详情页 */
+    .detail-header{flex-direction:column;gap:16px}
+    .detail-poster{width:140px}
+    .detail-info h1{font-size:18px}
+    .detail-info .meta-list{font-size:12px;gap:6px 12px}
+    .detail-info .btn-group{flex-wrap:wrap}
+    .btn{padding:8px 20px;font-size:13px}
+    .btn-group .btn{flex:1;text-align:center}
+    /* 播放源 */
+    .play-sources{gap:6px}
+    .play-sources a{padding:6px 12px;font-size:12px}
+    /* 播放器 */
+    .player-wrap{border-radius:6px}
+    /* 侧栏 */
+    .main-layout{flex-direction:column;gap:16px}
     .sidebar{width:100%}
+    .sidebar-widget{padding:12px}
+    .sidebar-widget h3{font-size:13px}
+    .rank-list a{font-size:12px}
+    /* 分页 */
+    .pagination{gap:4px;flex-wrap:wrap}
+    .pagination a,.pagination span{padding:6px 10px;font-size:12px}
+    /* 筛选 */
+    .filter-bar{padding:12px;font-size:12px}
+    .filter-bar .filter-row{flex-wrap:wrap;gap:4px}
+    .filter-bar .filter-row a{padding:4px 10px;font-size:11px}
+    /* Tabs */
+    .tabs a{padding:10px 14px;font-size:13px}
+    /* 弹幕输入 */
+    #danmaku-input,#dm-input{font-size:14px;padding:10px 12px}
+    /* 资讯卡片 */
+    .art-card{flex-direction:column}
+    .art-card img{width:100%;height:120px}
+    /* 弹幕列表 */
+    #danmaku-list,#danmaku-overlay{max-height:200px}
+    /* 分类筛选 */
+    .filter-section{padding:12px}
+    .filter-section .filter-row{margin-bottom:8px}
+    /* Footer */
+    .site-footer{padding:24px 0;margin-top:40px}
+    .footer-links{flex-wrap:wrap;gap:12px}
+    /* 面包屑 */
+    .breadcrumb{font-size:11px;margin-bottom:12px}
+  }
+
+  /* ===== 响应式：小手机 (≤480px) ===== */
+  @media(max-width:480px){
+    .video-grid{grid-template-columns:repeat(2,1fr);gap:6px}
+    .video-card .info h3{font-size:11px}
+    .video-card .thumb .play-icon{width:30px;height:30px}
+    .video-card .thumb .play-icon::after{border-left-width:10px;border-top-width:6px;border-bottom-width:6px}
+    .detail-poster{width:120px}
+    .detail-info h1{font-size:16px}
+    .detail-info .tags span{padding:3px 8px;font-size:10px}
+    .section-title h2{font-size:14px}
+    .play-sources a{padding:5px 10px;font-size:11px}
+    .nav a{padding:5px 8px;font-size:11px}
+    .btn{padding:8px 16px;font-size:12px}
+  }
+
+  /* ===== 响应式覆盖内联样式 ===== */
+  @media(max-width:768px){
+    .video-grid[style*="minmax(220px"]{grid-template-columns:repeat(2,1fr) !important}
+    .art-grid{grid-template-columns:1fr !important}
+    .art-grid a{flex-direction:column !important}
+    .art-grid a img{width:100% !important;height:140px !important}
+    .btn-row{flex-direction:column !important}
+    .btn-row .btn{width:100% !important}
+    .source-row{flex-wrap:wrap !important;gap:8px !important}
   }
 </style>
 </head>

@@ -3,8 +3,8 @@
 <main class="container">
 
 <!-- 分类筛选 -->
-<div style="background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:24px">
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+<div style="background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:24px" class="filter-section">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px" class="filter-row">
     <span style="color:var(--muted);font-size:13px;line-height:32px;width:50px">类型：</span>
     <a href="/vodtype/{$type_info.type_id}" style="padding:4px 14px;border-radius:4px;font-size:13px;background:var(--primary);color:#fff">全部</a>
     {maccms:type parent="'.$type_info['type_id'].'" order="sort_asc" by="sort"}
