@@ -1,0 +1,25 @@
+/* Theme: Warm Gold (亮色主题) */
+:root{--primary:#d97706;--primary-dark:#b45309;--bg:#faf8f5;--surface:#ffffff;--surface2:#f5f0eb;--text:#1a1a1a;--muted:#8a7e72;--border:#e5ddd3;--radius:8px}
+body{background:var(--bg);color:var(--text)}
+a{color:var(--text)}
+.video-card{box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.video-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.1)}
+.video-card .thumb .badge{background:var(--primary);color:#fff}
+.video-card .thumb .score{background:rgba(255,255,255,.9);color:var(--primary)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{border-color:var(--border);color:var(--text)}
+.section-title h2::before{background:var(--primary)}
+.pagination a,.pagination span{background:var(--surface);border:1px solid var(--border)}
+.pagination a:hover,.pagination span.current{background:var(--primary);color:#fff;border-color:var(--primary)}
+.site-header{background:rgba(255,255,255,.95);border-color:var(--border)}
+.nav a:hover,.nav a.active{background:rgba(217,119,6,.08);color:var(--primary)}
+.search-box{background:var(--surface2);border-color:var(--border)}
+.search-box input{color:var(--text)}
+.search-box input::placeholder{color:var(--muted)}
+.sidebar-widget{background:var(--surface);border:1px solid var(--border)}
+.detail-info .tags span{background:var(--surface2);color:var(--text)}
+.play-sources a{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+.play-sources a:hover,.play-sources a.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.rank-list li{border-color:var(--border)}
+.site-footer{border-color:var(--border);color:var(--muted)}

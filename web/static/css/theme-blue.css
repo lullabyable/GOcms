@@ -1,0 +1,10 @@
+/* Theme: Ocean Blue */
+:root{--primary:#3498db;--primary-dark:#2980b9;--bg:#0a1628;--surface:#0f1d32;--surface2:#162440;--text:#e8f0fe;--muted:#6b8bb5;--border:#1e3a5f;--radius:10px}
+body{font-family:'Segoe UI','PingFang SC',sans-serif}
+.video-card .thumb .badge{background:var(--primary)}
+.video-card .thumb .score{color:#5dade2}
+.btn-primary{background:linear-gradient(135deg,#3498db,#2ecc71)}
+.btn-primary:hover{background:linear-gradient(135deg,#2980b9,#27ae60)}
+.site-header{background:linear-gradient(180deg,var(--surface),transparent)}
+.section-title h2::before{background:linear-gradient(180deg,#3498db,#2ecc71)}
+.pagination a:hover,.pagination span.current{background:linear-gradient(135deg,#3498db,#2ecc71)}

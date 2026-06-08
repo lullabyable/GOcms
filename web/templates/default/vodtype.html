@@ -1,0 +1,84 @@
+{include file="header" /}
+
+<main class="container">
+
+<!-- 分类筛选 -->
+<div style="background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:24px">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <span style="color:var(--muted);font-size:13px;line-height:32px;width:50px">类型：</span>
+    <a href="/vodtype/{$type_info.type_id}" style="padding:4px 14px;border-radius:4px;font-size:13px;background:var(--primary);color:#fff">全部</a>
+    {maccms:type parent="'.$type_info['type_id'].'" order="sort_asc" by="sort"}
+    <a href="/vodtype/{$vo.type_id}" style="padding:4px 14px;border-radius:4px;font-size:13px;background:var(--surface2);color:var(--muted)">{$vo.type_name}</a>
+    {/maccms:type}
+  </div>
+</div>
+
+<div class="main-layout">
+<div class="main-content">
+
+<!-- 排序 -->
+<div style="display:flex;gap:16px;margin-bottom:16px;font-size:13px">
+  <a href="#" style="color:var(--primary);font-weight:600">最新</a>
+  <a href="#" style="color:var(--muted)">最热</a>
+  <a href="#" style="color:var(--muted)">评分</a>
+</div>
+
+<!-- 视频列表 -->
+<div class="video-grid">
+  {maccms:vod type="'.$type_info['type_id'].'" num="20" order="vod_time desc" by="time" paging="yes"}
+  <div class="video-card">
+    <a href="/voddetail/{$vo.vod_id}">
+      <div class="thumb">
+        <img src="{$vo.vod_pic}" alt="{$vo.vod_name}" loading="lazy" />
+        <span class="badge">{$vo.vod_remarks}</span>
+        <span class="score">{$vo.vod_score}</span>
+        <div class="play-icon"></div>
+      </div>
+      <div class="info">
+        <h3>{$vo.vod_name}</h3>
+        <div class="meta">{$vo.vod_year} · {$vo.vod_area} · {$vo.vod_class}</div>
+      </div>
+    </a>
+  </div>
+  {/maccms:vod}
+</div>
+
+<!-- 分页 -->
+<div class="pagination">
+  {maccms:page style="all" /}
+</div>
+
+</div>
+
+<aside class="sidebar">
+  <!-- 热门排行 -->
+  <div class="sidebar-widget">
+    <h3>🔥 {$type_info.type_name}热播</h3>
+    <ul class="rank-list">
+      {maccms:vod type="'.$type_info['type_id'].'" num="10" order="vod_hits desc" by="hits"}
+      <li>
+        <span class="rank">{$key}</span>
+        <a href="/voddetail/{$vo.vod_id}">{$vo.vod_name}</a>
+      </li>
+      {/maccms:vod}
+    </ul>
+  </div>
+
+  <!-- 最新更新 -->
+  <div class="sidebar-widget">
+    <h3>⏰ 最近更新</h3>
+    <ul class="rank-list">
+      {maccms:vod type="'.$type_info['type_id'].'" num="10" order="vod_time desc" by="time"}
+      <li>
+        <span class="rank">{$key}</span>
+        <a href="/voddetail/{$vo.vod_id}">{$vo.vod_name}</a>
+      </li>
+      {/maccms:vod}
+    </ul>
+  </div>
+</aside>
+</div>
+
+</main>
+
+{include file="footer" /}

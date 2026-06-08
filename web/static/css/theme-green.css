@@ -1,0 +1,13 @@
+/* Theme: Emerald Green */
+:root{--primary:#10b981;--primary-dark:#059669;--bg:#0a1a14;--surface:#0f2518;--surface2:#143020;--text:#e6faf2;--muted:#6baa8a;--border:#1a4030;--radius:6px}
+body{font-family:'Noto Sans SC','PingFang SC',sans-serif;letter-spacing:.3px}
+.video-card .thumb .badge{background:var(--primary)}
+.video-card .thumb .score{color:#34d399}
+.btn-primary{background:linear-gradient(135deg,#10b981,#06b6d4)}
+.btn-primary:hover{background:linear-gradient(135deg,#059669,#0891b2)}
+.section-title h2::before{background:linear-gradient(180deg,#10b981,#06b6d4)}
+.pagination a:hover,.pagination span.current{background:var(--primary)}
+.video-card{border:1px solid rgba(16,185,129,.08)}
+.video-card:hover{border-color:rgba(16,185,129,.3)}
+.detail-info .tags span{background:rgba(16,185,129,.1);color:#34d399}
+.play-sources a.active{background:linear-gradient(135deg,#10b981,#06b6d4)}

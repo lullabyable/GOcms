@@ -1,0 +1,13 @@
+/* Theme: Neon Purple */
+:root{--primary:#a855f7;--primary-dark:#9333ea;--bg:#0c0015;--surface:#150025;--surface2:#1e0035;--text:#f0e6ff;--muted:#8b6caf;--border:#2d0050;--radius:12px}
+body{font-family:'Inter','PingFang SC',sans-serif}
+.video-card .thumb .badge{background:linear-gradient(135deg,#a855f7,#ec4899)}
+.video-card .thumb .score{color:#c084fc}
+.btn-primary{background:linear-gradient(135deg,#a855f7,#ec4899)}
+.btn-primary:hover{background:linear-gradient(135deg,#9333ea,#db2777)}
+.section-title h2::before{background:linear-gradient(180deg,#a855f7,#ec4899)}
+.video-card{box-shadow:0 0 0 1px rgba(168,85,247,.1)}
+.video-card:hover{box-shadow:0 8px 32px rgba(168,85,247,.3)}
+.pagination a:hover,.pagination span.current{background:linear-gradient(135deg,#a855f7,#ec4899)}
+.search-box{border-color:rgba(168,85,247,.3)}
+.search-box:focus-within{border-color:var(--primary);box-shadow:0 0 12px rgba(168,85,247,.2)}
