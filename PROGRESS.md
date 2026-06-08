@@ -91,6 +91,31 @@ Phase 6: 测试与优化        [██████████] 100% ✅
 
 ## 变更日志
 
+### 2026-06-09 (续6)
+- **环境配置与部署优化**
+  - Go 1.24.4 环境配置 + GOPROXY (goproxy.cn)
+  - SSH Key (ed25519) 生成并配置 GitHub 权限
+  - Go 版本兼容性修复：go.mod 降级 + 依赖版本调整
+  - Git 缓存问题修复：`go clean -modcache` + `go env -w GOPROXY`
+- **模板引擎多主题支持**
+  - 模板目录结构：`web/templates/{themeName}/`
+  - 每个主题独立目录 + `partials/` 子目录
+  - `config.yaml` 新增 `template.dir` / `template.theme` 配置
+  - Engine 支持 `SetTheme()` 热切换、`ListThemes()` 列出可用主题
+  - header/footer 移入 `partials/` 子目录
+- **SQLite 支持**
+  - `database.go` 支持 mysql / sqlite 双驱动
+  - `migrate.go` MySQL DDL 自动转换为 SQLite 兼容语法
+  - 补充 10 张缺失表：mac_task / mac_plugin / mac_visit / mac_visit_stat / mac_order / mac_card / mac_payment / mac_chat_room / mac_chat_msg / mac_url_push_log
+- **/install 安装向导**
+  - 首次访问自动跳转 `/install`
+  - 支持 MySQL / SQLite 数据库选择
+  - 测试数据库连接
+  - 自动创建管理员账号
+  - 自动写入 `config.yaml`
+  - db 为 nil 时优雅降级
+- `go build` 编译通过 ✅ | 服务启动正常 ✅ | 已推送 GitHub ✅
+
 ### 2026-06-09 (续5)
 - **Phase 6 完成：测试与优化** ✅
   - 单元测试：47 个测试用例，全部通过

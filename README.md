@@ -18,8 +18,8 @@
 
 ### 环境要求
 
-- Go 1.22+
-- MySQL 5.7+ 或 SQLite
+- Go 1.24+
+- MySQL 5.7+（可选，也支持 SQLite）
 
 ### 安装
 
@@ -30,7 +30,21 @@ go mod tidy
 go build -o gocms ./cmd/server
 ```
 
-### 配置
+### 运行
+
+```bash
+./gocms
+```
+
+首次启动后访问 `http://localhost:8080`，自动跳转安装向导：
+
+1. 选择数据库类型（MySQL / SQLite）
+2. 填写数据库连接信息，点击「测试连接」
+3. 设置管理员账号密码
+4. 点击「开始安装」，自动建表、写入配置
+5. 安装完成自动跳转首页
+
+### 手动配置（可选）
 
 编辑 `config/config.yaml`：
 
@@ -40,25 +54,20 @@ server:
   port: 8080
 
 database:
+  driver: "mysql"      # mysql | sqlite
   host: "127.0.0.1"
   port: 3306
   user: "root"
   password: "your_password"
   database: "gocms"
 
+template:
+  dir: "./web/templates"
+  theme: "default"
+
 session:
   secret: "your-random-secret-key"
 ```
-
-### 运行
-
-```bash
-./gocms
-# 或
-go run ./cmd/server
-```
-
-访问 `http://localhost:8080` 查看前台，`http://localhost:8080/admin` 进入后台。
 
 ## 项目结构
 
@@ -68,30 +77,29 @@ GOcms/
 ├── config/              # 配置文件
 ├── internal/
 │   ├── config/          # 配置加载
-│   ├── database/        # 数据库连接 + 迁移
+│   ├── database/        # 数据库连接 + 迁移 (MySQL/SQLite)
 │   ├── handler/
-│   │   ├── admin/       # 后台 API
+│   │   ├── admin/       # 后台 API + 安装向导
 │   │   ├── api/         # 公开 API
 │   │   └── frontend/    # 前台页面 + WebSocket
 │   ├── middleware/       # 中间件（认证/安全/日志）
 │   ├── model/           # 数据模型
 │   ├── router/          # 路由注册
-│   ├── service/
-│   │   ├── aicontent/   # AI 内容生成
-│   │   ├── analytics/   # 数据分析
-│   │   ├── chat/        # 聊天服务
-│   │   ├── collect/     # 采集引擎
-│   │   ├── payment/     # 支付服务
-│   │   ├── plugin/      # 插件系统
-│   │   ├── scheduler/   # 定时任务
-│   │   ├── search/      # 搜索引擎
-│   │   └── urlpush/     # URL 推送
+│   ├── service/         # 业务服务
 │   ├── session/         # 会话管理
-│   ├── template/        # 模板引擎
+│   ├── template/        # 模板引擎（多主题支持）
 │   └── testutil/        # 测试工具
+├── web/
+│   ├── static/          # 静态资源
+│   ├── templates/       # 前台模板
+│   │   └── default/     # 默认主题
+│   │       ├── *.html   # 页面模板
+│   │       └── partials/# 公共组件 (header/footer)
+│   └── uploads/         # 上传文件
+├── runtime/             # 运行时（缓存/日志/SQLite）
 ├── Dockerfile
 ├── Makefile
-└── PROGRESS.md
+└── README.md
 ```
 
 ## API 概览
