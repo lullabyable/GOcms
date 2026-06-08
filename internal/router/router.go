@@ -1,10 +1,12 @@
 package router
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"gocms/internal/handler/admin"
 	"gocms/internal/handler/api"
@@ -129,8 +131,19 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 		name := c.FormValue("admin_name")
 		pwd := c.FormValue("admin_pwd")
 		var adm model.Admin
-		if err := db.Where("admin_name = ? AND admin_pwd = ?", name, pwd).First(&adm).Error; err != nil {
+		if err := db.Where("admin_name = ?", name).First(&adm).Error; err != nil {
 			return c.JSON(fiber.Map{"code": 0, "msg": "用户名或密码错误"})
+		}
+		// bcrypt 密码校验（兼容旧的 hex 格式）
+		if err := bcrypt.CompareHashAndPassword([]byte(adm.AdminPwd), []byte(pwd)); err != nil {
+			// 降级：兼容旧版 hex 编码密码
+			if adm.AdminPwd != fmt.Sprintf("%x", []byte(pwd)) {
+				return c.JSON(fiber.Map{"code": 0, "msg": "用户名或密码错误"})
+			}
+			// 旧密码验证通过，自动升级为 bcrypt
+			if newHash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost); err == nil {
+				db.Model(&adm).Update("admin_pwd", string(newHash))
+			}
 		}
 		if adm.AdminStatus != 1 {
 			return c.JSON(fiber.Map{"code": 0, "msg": "账号已被禁用"})

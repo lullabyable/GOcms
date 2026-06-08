@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
@@ -18,7 +19,18 @@ type InstallHandler struct {
 }
 
 func NewInstallHandler() *InstallHandler {
-	return &InstallHandler{}
+	h := &InstallHandler{}
+	// 启动时检查是否已安装（持久化检测，不依赖内存状态）
+	h.checkPersistent()
+	return h
+}
+
+// checkPersistent 持久化安装检测：config.yaml 存在即视为已安装
+// 防止删除 config.yaml + 重启后绕过安装检查
+func (h *InstallHandler) checkPersistent() {
+	if _, err := os.Stat("config/config.yaml"); err == nil {
+		h.installed = true
+	}
 }
 
 // CheckInstall 检查是否已安装（中间件用）
@@ -294,17 +306,18 @@ func (h *InstallHandler) Submit(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("数据库迁移失败: %v", err)})
 	}
 
-	// 3. 创建管理员
-	adminPwd := req.AdminPwd
-	// 简单 hash（生产环境应用 bcrypt）
-	hashedPwd := fmt.Sprintf("%x", []byte(adminPwd))
+	// 3. 创建管理员（bcrypt 哈希）
+	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(req.AdminPwd), bcrypt.DefaultCost)
+	if err != nil {
+		return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("密码加密失败: %v", err)})
+	}
 
 	result := db.Exec("INSERT INTO mac_admin (admin_name, admin_pwd, admin_status, admin_role) VALUES (?, ?, 1, 1) ON DUPLICATE KEY UPDATE admin_pwd = VALUES(admin_pwd)",
-		req.AdminUser, hashedPwd)
+		req.AdminUser, string(hashedPwd))
 	if result.Error != nil {
 		// SQLite 不支持 ON DUPLICATE KEY，用 INSERT OR REPLACE
 		result = db.Exec("INSERT OR REPLACE INTO mac_admin (admin_name, admin_pwd, admin_status, admin_role) VALUES (?, ?, 1, 1)",
-			req.AdminUser, hashedPwd)
+			req.AdminUser, string(hashedPwd))
 		if result.Error != nil {
 			return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("创建管理员失败: %v", result.Error)})
 		}
