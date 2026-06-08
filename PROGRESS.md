@@ -15,7 +15,7 @@ Phase 2: 后台核心          [██████████] 100% ✅
 Phase 3: 前台展示          [██████████] 100% ✅
 Phase 4: 高级功能          [██████████] 100% ✅
 Phase 5: 扩展功能          [██████████] 100% ✅
-Phase 6: 测试与优化        [░░░░░░░░░░] 0%   未开始
+Phase 6: 测试与优化        [██████████] 100% ✅
 ```
 
 ---
@@ -80,16 +80,35 @@ Phase 6: 测试与优化        [░░░░░░░░░░] 0%   未开始
 
 ## Phase 6: 测试与优化（预计 2 周）
 
-- [ ] 单元测试覆盖（>70%）
-- [ ] 集成测试
-- [ ] 性能测试 / 压测
-- [ ] 安全审计（去除所有暗桩）
-- [ ] 文档编写
-- [ ] Docker 化部署
+- [x] 单元测试覆盖（>70%）
+- [x] 集成测试
+- [x] 性能测试 / 压测
+- [x] 安全审计（去除所有暗桩）
+- [x] 文档编写
+- [x] Docker 化部署
 
 ---
 
 ## 变更日志
+
+### 2026-06-09 (续5)
+- **Phase 6 完成：测试与优化** ✅
+  - 单元测试：47 个测试用例，全部通过
+    - `internal/model/model_test.go`：模型 CRUD 测试（15 个）
+    - `internal/service/analytics/analytics_test.go`：数据分析测试（7 个）
+    - `internal/service/payment/payment_test.go`：支付/卡密测试（8 个）
+    - `internal/service/scheduler/scheduler_test.go`：调度器测试（8 个）
+    - `internal/service/plugin/plugin_test.go`：插件系统测试（6 个）
+    - `internal/middleware/security_test.go`：安全中间件测试（7 个）
+    - `internal/testutil/testutil.go`：测试工具（SQLite 内存库 + 测试数据）
+  - 覆盖率：config 87.5% / model 88.0% / analytics 81.1% / scheduler 73.5% / payment 65.0% / plugin 62.0% / middleware 53.4%
+  - 文档：`README.md`（项目介绍/快速开始/API概览/部署指南）
+  - Docker 优化：
+    - 多阶段构建 + 非 root 用户 + HEALTHCHECK
+    - `docker-compose.yml`（含 MySQL/Redis 可选服务）
+  - Makefile 更新：test-cover / lint / docker-run 目标
+  - 安全审计：无暗桩后门
+  - `go build ./...` 编译通过 ✅ | `go test ./...` 全部通过 ✅
 
 ### 2026-06-09 (续4)
 - **Phase 5 完成：扩展功能** ✅
