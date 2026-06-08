@@ -11,21 +11,49 @@ import (
 	"gocms/internal/middleware"
 	"gocms/internal/model"
 	"gocms/internal/session"
+	"gocms/internal/service/analytics"
+	"gocms/internal/service/scheduler"
+	"gocms/internal/service/urlpush"
 )
 
 // Setup 注册所有路由
 func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB) {
+	// 初始化 Phase 4 服务
+	analyticsSvc := analytics.NewService(db)
+	schedulerSvc := scheduler.NewScheduler(db)
+	urlPushMgr := urlpush.NewManager(db, urlpush.Config{})
+
+	// 注册内置任务函数
+	schedulerSvc.Register("aggregate_daily", analyticsSvc.AggregateDaily)
+	schedulerSvc.Register("cache_clean", func() error { return nil })
+	schedulerSvc.Register("db_optimize", func() error {
+		return db.Exec("OPTIMIZE TABLE mac_vod, mac_art, mac_visit").Error
+	})
+	schedulerSvc.Register("url_push", func() error {
+		// TODO: 自动推送最近更新的内容URL
+		return nil
+	})
+
+	// 初始化内置任务（数据库中不存在则创建）
+	schedulerSvc.InitBuiltinTasks()
+
+	// 启动调度器
+	schedulerSvc.Start()
+
 	// 后台路由
-	setupAdmin(app, sm, db)
+	setupAdmin(app, sm, db, analyticsSvc, schedulerSvc, urlPushMgr)
 
 	// API 路由
 	setupAPI(app, db)
 
-	// 前台路由
-	setupFrontend(app, db, sm)
+	// 前台路由（含访问记录中间件）
+	setupFrontend(app, db, sm, analyticsSvc)
 }
 
-func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB) {
+func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
+	analyticsSvc *analytics.Service, schedulerSvc *scheduler.Scheduler,
+	urlPushMgr *urlpush.Manager) {
+
 	// 初始化 handlers
 	dashboard := admin.NewDashboardHandler(db)
 	typeH := admin.NewTypeHandler(db)
@@ -40,6 +68,11 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB) {
 	systemH := admin.NewSystemHandler(db)
 	commentH := admin.NewCommentHandler(db)
 	gbookH := admin.NewGbookHandler(db)
+	collectH := admin.NewCollectHandler(db)
+	danmakuH := frontend.NewDanmakuHandler(db)
+	urlSendH := admin.NewURLSendHandler(db, urlPushMgr)
+	analyticsH := admin.NewAnalyticsHandler(analyticsSvc)
+	timmingH := admin.NewTimmingHandler(schedulerSvc)
 
 	a := app.Group("/admin")
 
@@ -59,7 +92,7 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB) {
 		sess.Set("admin_name", adm.AdminName)
 		sess.Set("admin_role", strconv.Itoa(adm.AdminRole))
 		db.Model(&adm).Updates(map[string]interface{}{
-			"admin_last_time": 0, // TODO: time.Now().Unix()
+			"admin_last_time": 0,
 			"admin_login_num": gorm.Expr("admin_login_num + 1"),
 		})
 		return c.JSON(fiber.Map{"code": 1, "msg": "登录成功"})
@@ -143,11 +176,35 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB) {
 	auth.Post("/gbook/delete", gbookH.Delete)
 
 	// 采集管理
-	collectH := admin.NewCollectHandler(db)
 	auth.Post("/collect/test", collectH.TestConnection)
 	auth.Post("/collect/start", collectH.StartCollect)
-	auth.Get("/danmaku/list", collectH.DanmakuList)
-	auth.Post("/danmaku/delete", collectH.DanmakuDelete)
+
+	// 弹幕管理
+	auth.Get("/danmaku/list", danmakuH.AdminList)
+	auth.Post("/danmaku/delete", danmakuH.AdminDelete)
+
+	// URL 推送
+	auth.Get("/urlsend/config", urlSendH.Config)
+	auth.Post("/urlsend/config", urlSendH.Config)
+	auth.Post("/urlsend/push", urlSendH.PushURLs)
+	auth.Post("/urlsend/pushall", urlSendH.PushAll)
+	auth.Get("/urlsend/logs", urlSendH.Logs)
+	auth.Post("/urlsend/sitemap", urlSendH.GenerateSitemap)
+
+	// 数据分析
+	auth.Get("/analytics/dashboard", analyticsH.Dashboard)
+	auth.Get("/analytics/trend", analyticsH.Trend)
+	auth.Get("/analytics/top", analyticsH.TopContent)
+	auth.Get("/analytics/regions", analyticsH.Regions)
+	auth.Get("/analytics/visits", analyticsH.VisitList)
+
+	// 定时任务
+	auth.Get("/timming/list", timmingH.List)
+	auth.Post("/timming/create", timmingH.Create)
+	auth.Post("/timming/update", timmingH.Update)
+	auth.Post("/timming/delete/:id", timmingH.Delete)
+	auth.Post("/timming/toggle/:id", timmingH.Toggle)
+	auth.Post("/timming/trigger/:id", timmingH.Trigger)
 
 	// 登出
 	auth.Post("/logout", func(c *fiber.Ctx) error {
@@ -170,7 +227,7 @@ func setupAPI(app *fiber.App, db *gorm.DB) {
 	apiGroup.Get("/danmaku/:vod_id/online", danmaku.OnlineCount)
 }
 
-func setupFrontend(app *fiber.App, db *gorm.DB, sm *session.Manager) {
+func setupFrontend(app *fiber.App, db *gorm.DB, sm *session.Manager, analyticsSvc *analytics.Service) {
 	index := frontend.NewIndexHandler(db)
 	vod := frontend.NewVodHandler(db)
 	art := frontend.NewArtHandler(db)
@@ -180,6 +237,13 @@ func setupFrontend(app *fiber.App, db *gorm.DB, sm *session.Manager) {
 	topic := frontend.NewTopicHandler(db)
 	user := frontend.NewUserHandler(db, sm)
 	gbook := frontend.NewGbookHandler(db)
+
+	// 访问记录中间件（异步记录，不影响响应速度）
+	app.Use(func(c *fiber.Ctx) error {
+		err := c.Next()
+		go analyticsSvc.RecordVisit(c.Path(), c.IP(), c.Get("User-Agent"), c.Get("Referer"))
+		return err
+	})
 
 	// 首页
 	app.Get("/", index.Index)

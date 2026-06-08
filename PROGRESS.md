@@ -91,6 +91,21 @@ Phase 6: 测试与优化        [░░░░░░░░░░] 0%   未开始
 
 ## 变更日志
 
+### 2026-06-09 (续3)
+- **Phase 4 路由完整集成**
+  - 路由注册：`internal/router/router.go` 更新
+    - 后台弹幕管理：`GET /admin/danmaku/list`、`POST /admin/danmaku/delete`
+    - URL 推送：`GET/POST /admin/urlsend/config`、`POST /admin/urlsend/push`、`POST /admin/urlsend/pushall`、`GET /admin/urlsend/logs`、`POST /admin/urlsend/sitemap`
+    - 数据分析：`GET /admin/analytics/dashboard`、`GET /admin/analytics/trend`、`GET /admin/analytics/top`、`GET /admin/analytics/regions`、`GET /admin/analytics/visits`
+    - 定时任务：`GET /admin/timming/list`、`POST /admin/timming/create`、`POST /admin/timming/update`、`POST /admin/timming/delete/:id`、`POST /admin/timming/toggle/:id`、`POST /admin/timming/trigger/:id`
+  - 服务初始化：analytics.Service / scheduler.Scheduler / urlpush.Manager 在 router.Setup 中初始化
+  - 内置任务注册：aggregate_daily / cache_clean / db_optimize / url_push
+  - 调度器自动启动
+  - 访问记录中间件：前台所有请求异步记录到 mac_visit 表
+  - WebSocket 弹幕路由：`GET /ws/danmaku/:vod_id`
+  - 弹幕 API：`POST /api/danmaku/:vod_id/send`、`GET /api/danmaku/:vod_id/history`、`GET /api/danmaku/:vod_id/online`
+  - `go build ./...` 编译通过 ✅
+
 ### 2026-06-09 (续2)
 - **Phase 3 完成：旁路缓存系统** ✅
   - `internal/cache/cache.go`: CacheManager 统一缓存管理器（文件/Redis双驱动）
