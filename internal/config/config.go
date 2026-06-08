@@ -8,12 +8,18 @@ import (
 )
 
 type Config struct {
-	Server  ServerConfig  `mapstructure:"server"`
-	DB      DBConfig      `mapstructure:"database"`
-	Cache   CacheConfig   `mapstructure:"cache"`
-	Session SessionConfig `mapstructure:"session"`
-	Log     LogConfig     `mapstructure:"log"`
-	Upload  UploadConfig  `mapstructure:"upload"`
+	Server   ServerConfig   `mapstructure:"server"`
+	DB       DBConfig       `mapstructure:"database"`
+	Cache    CacheConfig    `mapstructure:"cache"`
+	Session  SessionConfig  `mapstructure:"session"`
+	Log      LogConfig      `mapstructure:"log"`
+	Upload   UploadConfig   `mapstructure:"upload"`
+	Template TemplateConfig `mapstructure:"template"`
+}
+
+type TemplateConfig struct {
+	Dir   string `mapstructure:"dir"`   // 模板根目录
+	Theme string `mapstructure:"theme"` // 当前主题名
 }
 
 type ServerConfig struct {
@@ -138,5 +144,11 @@ func setDefaults(cfg *Config) {
 	}
 	if cfg.Upload.Dir == "" {
 		cfg.Upload.Dir = "./web/uploads"
+	}
+	if cfg.Template.Dir == "" {
+		cfg.Template.Dir = "./web/templates"
+	}
+	if cfg.Template.Theme == "" {
+		cfg.Template.Theme = "default"
 	}
 }

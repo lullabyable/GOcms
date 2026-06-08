@@ -48,3 +48,7 @@ upload:
   dir: "./web/uploads"
   max_size: 10           # MB
   allowed_ext: ".jpg,.jpeg,.png,.gif,.webp,.mp4,.mp3"
+
+template:
+  dir: "./web/templates" # 模板根目录
+  theme: "default"       # 当前主题名

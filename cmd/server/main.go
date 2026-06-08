@@ -18,6 +18,7 @@ import (
 	"gocms/internal/middleware"
 	"gocms/internal/router"
 	"gocms/internal/session"
+	"gocms/internal/template"
 )
 
 func main() {
@@ -61,11 +62,21 @@ func main() {
 		WriteTimeout: time.Duration(cfg.Server.WriteTimeout) * time.Second,
 	})
 
+	// 初始化模板引擎
+	tplEngine := template.NewEngine(cfg.Template.Dir, cfg.Template.Theme)
+	if err := tplEngine.Load(); err != nil {
+		logger.Warn("模板加载提示", zap.Error(err))
+	} else {
+		logger.Info("模板加载成功",
+			zap.String("theme", tplEngine.Theme()),
+			zap.String("dir", tplEngine.ThemeDir()))
+	}
+
 	// 注册中间件
 	middleware.Setup(app, logger)
 
 	// 注册路由
-	router.Setup(app, sm, db)
+	router.Setup(app, sm, db, tplEngine)
 
 	// 静态文件
 	app.Static("/static", "./web/static")

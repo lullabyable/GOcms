@@ -11,6 +11,7 @@ import (
 	"gocms/internal/middleware"
 	"gocms/internal/model"
 	"gocms/internal/session"
+	"gocms/internal/template"
 	"gocms/internal/service/aicontent"
 	"gocms/internal/service/analytics"
 	"gocms/internal/service/chat"
@@ -21,7 +22,7 @@ import (
 )
 
 // Setup 注册所有路由
-func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB) {
+func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB, tplEngine *template.Engine) {
 	// Phase 4 服务
 	analyticsSvc := analytics.NewService(db)
 	schedulerSvc := scheduler.NewScheduler(db)
@@ -53,7 +54,7 @@ func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB) {
 	setupAPI(app, db, chatSvc)
 
 	// 前台路由
-	setupFrontend(app, db, sm, analyticsSvc, chatSvc)
+	setupFrontend(app, db, sm, analyticsSvc, chatSvc, tplEngine)
 }
 
 func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
@@ -253,7 +254,7 @@ func setupAPI(app *fiber.App, db *gorm.DB, chatSvc *chat.Service) {
 }
 
 func setupFrontend(app *fiber.App, db *gorm.DB, sm *session.Manager,
-	analyticsSvc *analytics.Service, chatSvc *chat.Service) {
+	analyticsSvc *analytics.Service, chatSvc *chat.Service, tplEngine *template.Engine) {
 
 	index := frontend.NewIndexHandler(db)
 	vod := frontend.NewVodHandler(db)
