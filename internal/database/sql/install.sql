@@ -392,3 +392,139 @@ CREATE TABLE IF NOT EXISTS `mac_danmaku` (
   PRIMARY KEY (`danmaku_id`),
   KEY `idx_rid` (`danmaku_rid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_task` (
+  `task_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL DEFAULT '',
+  `schedule` varchar(50) NOT NULL DEFAULT '',
+  `command` varchar(200) NOT NULL DEFAULT '',
+  `status` tinyint NOT NULL DEFAULT 1,
+  `last_run` bigint NOT NULL DEFAULT 0,
+  `next_run` bigint NOT NULL DEFAULT 0,
+  `run_count` int NOT NULL DEFAULT 0,
+  `last_error` text,
+  `created_at` bigint NOT NULL DEFAULT 0,
+  `updated_at` bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`task_id`),
+  KEY `idx_command` (`command`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_plugin` (
+  `plugin_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL DEFAULT '',
+  `title` varchar(200) NOT NULL DEFAULT '',
+  `version` varchar(20) NOT NULL DEFAULT '',
+  `author` varchar(100) NOT NULL DEFAULT '',
+  `desc` text,
+  `config` text,
+  `status` tinyint NOT NULL DEFAULT 0,
+  `installed_at` bigint NOT NULL DEFAULT 0,
+  `updated_at` bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`plugin_id`),
+  UNIQUE KEY `uk_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_visit` (
+  `visit_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `url` varchar(500) NOT NULL DEFAULT '',
+  `ip` varchar(45) NOT NULL DEFAULT '',
+  `user_agent` varchar(500) NOT NULL DEFAULT '',
+  `referer` varchar(500) NOT NULL DEFAULT '',
+  `visit_time` bigint NOT NULL DEFAULT 0,
+  `date` varchar(10) NOT NULL DEFAULT '',
+  `is_unique` tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`visit_id`),
+  KEY `idx_time` (`visit_time`),
+  KEY `idx_date` (`date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_visit_stat` (
+  `stat_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `date` varchar(10) NOT NULL DEFAULT '',
+  `pv` int NOT NULL DEFAULT 0,
+  `uv` int NOT NULL DEFAULT 0,
+  `ip` int NOT NULL DEFAULT 0,
+  `new_users` int NOT NULL DEFAULT 0,
+  PRIMARY KEY (`stat_id`),
+  UNIQUE KEY `uk_date` (`date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_order` (
+  `order_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `order_no` varchar(50) NOT NULL DEFAULT '',
+  `user_id` int unsigned NOT NULL DEFAULT 0,
+  `product_type` tinyint NOT NULL DEFAULT 0,
+  `product_name` varchar(200) NOT NULL DEFAULT '',
+  `amount` int NOT NULL DEFAULT 0,
+  `points` int NOT NULL DEFAULT 0,
+  `days` int NOT NULL DEFAULT 0,
+  `group_id` int NOT NULL DEFAULT 0,
+  `pay_type` varchar(20) NOT NULL DEFAULT '',
+  `status` tinyint NOT NULL DEFAULT 0,
+  `pay_time` bigint NOT NULL DEFAULT 0,
+  `created_at` bigint NOT NULL DEFAULT 0,
+  `updated_at` bigint NOT NULL DEFAULT 0,
+  `extra` text,
+  PRIMARY KEY (`order_id`),
+  UNIQUE KEY `uk_order_no` (`order_no`),
+  KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_card` (
+  `card_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `card_code` varchar(50) NOT NULL DEFAULT '',
+  `group_id` int NOT NULL DEFAULT 0,
+  `points` int NOT NULL DEFAULT 0,
+  `days` int NOT NULL DEFAULT 0,
+  `status` tinyint NOT NULL DEFAULT 0,
+  `user_id` int unsigned NOT NULL DEFAULT 0,
+  `used_time` bigint NOT NULL DEFAULT 0,
+  `created_at` bigint NOT NULL DEFAULT 0,
+  `batch_no` varchar(50) NOT NULL DEFAULT '',
+  PRIMARY KEY (`card_id`),
+  UNIQUE KEY `uk_code` (`card_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_payment` (
+  `pay_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `pay_type` varchar(20) NOT NULL DEFAULT '',
+  `pay_name` varchar(50) NOT NULL DEFAULT '',
+  `config` text,
+  `status` tinyint NOT NULL DEFAULT 0,
+  `sort` int NOT NULL DEFAULT 0,
+  PRIMARY KEY (`pay_id`),
+  UNIQUE KEY `uk_type` (`pay_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_chat_room` (
+  `room_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL DEFAULT '',
+  `desc` text,
+  `max_users` int NOT NULL DEFAULT 0,
+  `status` tinyint NOT NULL DEFAULT 1,
+  `created_at` bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`room_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_chat_msg` (
+  `msg_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `room_id` int unsigned NOT NULL DEFAULT 0,
+  `user_id` int unsigned NOT NULL DEFAULT 0,
+  `user_name` varchar(50) NOT NULL DEFAULT '',
+  `content` text,
+  `msg_type` tinyint NOT NULL DEFAULT 0,
+  `created_at` bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`msg_id`),
+  KEY `idx_room` (`room_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_url_push_log` (
+  `log_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `platform` varchar(20) NOT NULL DEFAULT '',
+  `urls` text,
+  `status` tinyint NOT NULL DEFAULT 0,
+  `response` text,
+  `created_at` bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`log_id`),
+  KEY `idx_platform` (`platform`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

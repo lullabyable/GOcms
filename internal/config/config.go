@@ -30,6 +30,7 @@ type ServerConfig struct {
 }
 
 type DBConfig struct {
+	Driver       string `mapstructure:"driver"` // mysql / sqlite
 	Host         string `mapstructure:"host"`
 	Port         int    `mapstructure:"port"`
 	User         string `mapstructure:"user"`
