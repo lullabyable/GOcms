@@ -14,7 +14,7 @@ Phase 1: 基础框架          [██████████] 100% ✅
 Phase 2: 后台核心          [██████████] 100% ✅
 Phase 3: 前台展示          [██████████] 100% ✅
 Phase 4: 高级功能          [██████████] 100% ✅
-Phase 5: 扩展功能          [░░░░░░░░░░] 0%   未开始
+Phase 5: 扩展功能          [██████████] 100% ✅
 Phase 6: 测试与优化        [░░░░░░░░░░] 0%   未开始
 ```
 
@@ -71,12 +71,12 @@ Phase 6: 测试与优化        [░░░░░░░░░░] 0%   未开始
 
 ## Phase 5: 扩展功能（预计 2-3 周）
 
-- [ ] 插件系统
-- [ ] AI 内容生成模块
-- [ ] 卡密 / 订单 / 支付系统
-- [ ] 直播管理
-- [ ] 聊天室
-- [ ] 安全加固
+- [x] 插件系统
+- [x] AI 内容生成模块
+- [x] 卡密 / 订单 / 支付系统
+- [x] 直播管理
+- [x] 聊天室
+- [x] 安全加固
 
 ## Phase 6: 测试与优化（预计 2 周）
 
@@ -90,6 +90,43 @@ Phase 6: 测试与优化        [░░░░░░░░░░] 0%   未开始
 ---
 
 ## 变更日志
+
+### 2026-06-09 (续4)
+- **Phase 5 完成：扩展功能** ✅
+  - 插件系统：`internal/service/plugin/plugin.go` + `internal/handler/admin/plugin.go`
+    - Plugin 接口（Init/Enable/Disable/OnHook）
+    - Manager：注册/安装/卸载/启用/禁用/配置管理
+    - 后台路由：`/admin/plugin/*`（6个接口）
+  - AI 内容生成：`internal/service/aicontent/aicontent.go` + `internal/handler/admin/aicontent.go`
+    - 支持 OpenAI 兼容 API（可配置 endpoint/model）
+    - 生成类型：标题/内容/摘要/标签/描述
+    - 后台路由：`/admin/ai/*`（5个接口）
+  - 卡密/订单/支付：`internal/service/payment/payment.go` + `internal/handler/admin/order.go`
+    - 订单系统：创建/支付/取消/查询
+    - 卡密系统：批量生成/使用/查询
+    - 支付配置：多支付方式管理
+    - 模型：`internal/model/order.go`（CardKey/Order/Payment）
+    - 后台路由：`/admin/order/*`（7个接口）
+  - 直播管理：`internal/handler/admin/live.go`
+    - CRUD + 状态切换
+    - 后台路由：`/admin/live/*`（5个接口）
+  - 聊天室：`internal/service/chat/chat.go` + `internal/handler/admin/chat.go` + `internal/handler/frontend/chat.go`
+    - WebSocket 实时聊天（按房间分组）
+    - 历史消息持久化
+    - 后台管理：房间 CRUD + 聊天记录 + 在线人数
+    - 前台 WebSocket：`/ws/chat`
+    - 模型：`internal/model/chat.go`（ChatMessage/ChatRoom）
+  - 安全加固：`internal/middleware/security.go`
+    - RateLimitMiddleware：IP 限流（可配置速率/窗口）
+    - CSRFProtection：Referer/Origin 校验
+    - XSSProtection：安全响应头
+    - SQLInjectionCheck：SQL 注入检测
+    - IPWhitelist：IP 白名单
+    - RequestSizeLimit：请求体大小限制
+    - SecurityHeaders：HSTS/CSP/X-Frame-Options
+  - 新增模型：plugin.go, order.go, chat.go
+  - 路由更新：注册所有 Phase 5 后台路由 + 安全中间件
+  - `go build ./...` 编译通过 ✅
 
 ### 2026-06-09 (续3)
 - **Phase 4 路由完整集成**
