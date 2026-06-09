@@ -23,6 +23,9 @@ jobs:
           go mod download
           go build -o gocms ./cmd/server
 
+      - name: Test connection
+        run: timeout 10 bash -c "echo > /dev/tcp/${{ secrets.DEPLOY_HOST }}/729 && echo OK" || echo "FAILED"
+
       - name: Deploy binary
         uses: appleboy/scp-action@v0.1.7
         with:
