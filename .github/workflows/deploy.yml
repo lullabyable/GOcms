@@ -1,0 +1,30 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            echo ">>> git pull"
+            git pull origin main
+            echo ">>> go build"
+            export GOROOT=/usr/local/go
+            export GOPATH=$HOME/go
+            export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
+            export GOPROXY=https://goproxy.cn,direct
+            go build -o gocms ./cmd/server
+            echo ">>> restart"
+            systemctl restart gocms
+            echo ">>> done"
