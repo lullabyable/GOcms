@@ -253,6 +253,19 @@ else{msg.className='msg err';msg.textContent='❌ '+d.msg;msg.style.display='blo
 		return c.JSON(fiber.Map{"code": 1, "msg": "登录成功"})
 	})
 
+	// 清除登录限流（无需登录，防止被锁后无法操作）
+	a.Post("/unlock", func(c *fiber.Ctx) error {
+		ip := c.Query("ip", "")
+		loginMu.Lock()
+		if ip != "" {
+			delete(loginAttempts, ip)
+		} else {
+			loginAttempts = make(map[string]*loginAttempt)
+		}
+		loginMu.Unlock()
+		return c.JSON(fiber.Map{"code": 1, "msg": "限流已清除"})
+	})
+
 	auth := a.Group("", middleware.AdminAuth(sm))
 
 	// --- 原有路由 ---
