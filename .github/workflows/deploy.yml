@@ -8,23 +8,35 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to server
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - name: Build
+        env:
+          GOOS: linux
+          GOARCH: amd64
+          CGO_ENABLED: 0
+        run: |
+          go mod download
+          go build -o gocms ./cmd/server
+
+      - name: Deploy binary
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          source: "gocms"
+          target: ${{ secrets.DEPLOY_PATH }}
+          strip_components: 0
+
+      - name: Restart service
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            set -e
-            cd ${{ secrets.DEPLOY_PATH }}
-            echo ">>> git pull"
-            git pull origin main
-            echo ">>> go build"
-            export GOROOT=/usr/local/go
-            export GOPATH=$HOME/go
-            export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
-            export GOPROXY=https://goproxy.cn,direct
-            go build -o gocms ./cmd/server
-            echo ">>> restart"
-            systemctl restart gocms
-            echo ">>> done"
+          script: systemctl restart gocms
