@@ -17,6 +17,7 @@ import (
 	"gocms/internal/database"
 	"gocms/internal/handler/admin"
 	"gocms/internal/middleware"
+	"gocms/internal/model"
 	"gocms/internal/router"
 	"gocms/internal/session"
 	"gocms/internal/template"
@@ -61,6 +62,9 @@ func main() {
 		if err := migrator.Migrate(); err != nil {
 			logger.Warn("数据库迁移提示", zap.Error(err))
 		}
+
+		// 自动迁移登录封禁表
+		db.AutoMigrate(&model.LoginBan{})
 
 		// 检查是否已安装
 		if db.Migrator().HasTable("mac_admin") {

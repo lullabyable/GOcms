@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -128,14 +127,6 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 
 	a := app.Group("/admin")
 
-	// 登录限流器：3次失败锁定60分钟
-	type loginAttempt struct {
-		count    int
-		lastTime time.Time
-	}
-	loginAttempts := make(map[string]*loginAttempt)
-	var loginMu sync.Mutex
-
 	// 后台首页 → 重定向到 dashboard（中间件会拦截未登录）
 	a.Get("/", func(c *fiber.Ctx) error {
 		return c.Redirect("/admin/dashboard")
@@ -183,53 +174,48 @@ else{msg.className='msg err';msg.textContent='❌ '+d.msg;msg.style.display='blo
 </script></body></html>`)
 	})
 
-	// 登录接口（带限流）
+	// 登录接口（数据库限流，3次失败锁定60分钟）
 	a.Post("/login", func(c *fiber.Ctx) error {
 		ip := c.IP()
 
-		// 检查限流
-		loginMu.Lock()
-		if att, ok := loginAttempts[ip]; ok {
-			if att.count >= 3 && time.Since(att.lastTime) < 60*time.Minute {
-				remaining := int((60*time.Minute - time.Since(att.lastTime)).Minutes()) + 1
-				loginMu.Unlock()
-				return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("登录失败次数过多，请 %d 分钟后重试", remaining)})
+		// 查询封禁记录
+		var ban model.LoginBan
+		result := db.Where("ip = ?", ip).First(&ban)
+		if result.Error == nil && ban.BanUntil > time.Now().Unix() {
+			remaining := (ban.BanUntil - time.Now().Unix()) / 60
+			if remaining < 1 {
+				remaining = 1
 			}
-			if time.Since(att.lastTime) >= 60*time.Minute {
-				delete(loginAttempts, ip)
-			}
+			return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("登录失败次数过多，请 %d 分钟后重试", remaining)})
 		}
-		loginMu.Unlock()
 
 		name := c.FormValue("admin_name")
 		pwd := c.FormValue("admin_pwd")
 		var adm model.Admin
 		if err := db.Where("admin_name = ?", name).First(&adm).Error; err != nil {
 			// 记录失败
-			loginMu.Lock()
-			if loginAttempts[ip] == nil {
-				loginAttempts[ip] = &loginAttempt{}
+			ban.IP = ip
+			ban.Failures++
+			ban.LastFail = time.Now().Unix()
+			if ban.Failures >= 3 {
+				ban.BanUntil = time.Now().Add(60 * time.Minute).Unix()
 			}
-			loginAttempts[ip].count++
-			loginAttempts[ip].lastTime = time.Now()
-			loginMu.Unlock()
+			db.Save(&ban)
 			return c.JSON(fiber.Map{"code": 0, "msg": "用户名或密码错误"})
 		}
 		// bcrypt 密码校验（兼容旧的 hex 格式）
 		if err := bcrypt.CompareHashAndPassword([]byte(adm.AdminPwd), []byte(pwd)); err != nil {
-			// 降级：兼容旧版 hex 编码密码
 			if adm.AdminPwd != fmt.Sprintf("%x", []byte(pwd)) {
 				// 记录失败
-				loginMu.Lock()
-				if loginAttempts[ip] == nil {
-					loginAttempts[ip] = &loginAttempt{}
+				ban.IP = ip
+				ban.Failures++
+				ban.LastFail = time.Now().Unix()
+				if ban.Failures >= 3 {
+					ban.BanUntil = time.Now().Add(60 * time.Minute).Unix()
 				}
-				loginAttempts[ip].count++
-				loginAttempts[ip].lastTime = time.Now()
-				loginMu.Unlock()
+				db.Save(&ban)
 				return c.JSON(fiber.Map{"code": 0, "msg": "用户名或密码错误"})
 			}
-			// 旧密码验证通过，自动升级为 bcrypt
 			if newHash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost); err == nil {
 				db.Model(&adm).Update("admin_pwd", string(newHash))
 			}
@@ -237,10 +223,8 @@ else{msg.className='msg err';msg.textContent='❌ '+d.msg;msg.style.display='blo
 		if adm.AdminStatus != 1 {
 			return c.JSON(fiber.Map{"code": 0, "msg": "账号已被禁用"})
 		}
-		// 登录成功，清除限流
-		loginMu.Lock()
-		delete(loginAttempts, ip)
-		loginMu.Unlock()
+		// 登录成功，清除封禁
+		db.Where("ip = ?", ip).Delete(&model.LoginBan{})
 
 		sess := sm.Regenerate(c)
 		sess.Set("admin_id", strconv.Itoa(adm.AdminID))
@@ -251,19 +235,6 @@ else{msg.className='msg err';msg.textContent='❌ '+d.msg;msg.style.display='blo
 			"admin_login_num": gorm.Expr("admin_login_num + 1"),
 		})
 		return c.JSON(fiber.Map{"code": 1, "msg": "登录成功"})
-	})
-
-	// 清除登录限流（无需登录，防止被锁后无法操作）
-	a.Post("/unlock", func(c *fiber.Ctx) error {
-		ip := c.Query("ip", "")
-		loginMu.Lock()
-		if ip != "" {
-			delete(loginAttempts, ip)
-		} else {
-			loginAttempts = make(map[string]*loginAttempt)
-		}
-		loginMu.Unlock()
-		return c.JSON(fiber.Map{"code": 1, "msg": "限流已清除"})
 	})
 
 	auth := a.Group("", middleware.AdminAuth(sm))
