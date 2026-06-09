@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
@@ -15,9 +15,30 @@ jobs:
           go-version: '1.26'
 
       - name: Build
+        env:
+          GOOS: linux
+          GOARCH: amd64
+          CGO_ENABLED: 0
         run: |
           go mod download
           go build -o gocms ./cmd/server
 
-      - name: Restart
-        run: sudo systemctl restart gocms
+      - name: Deploy binary
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: 729
+          source: "gocms"
+          target: ${{ secrets.DEPLOY_PATH }}
+          strip_components: 0
+
+      - name: Restart service
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: 729
+          script: systemctl restart gocms
