@@ -6,7 +6,18 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Trigger deploy
-        run: curl -s --max-time 15 "http://${{ secrets.DEPLOY_HOST }}:8080/deploy?token=gocms-deploy-2026"
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26'
+
+      - name: Build
+        run: |
+          go mod download
+          go build -o gocms ./cmd/server
+
+      - name: Restart
+        run: sudo systemctl restart gocms
