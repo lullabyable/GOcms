@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -462,8 +463,22 @@ func setupFrontend(app *fiber.App, db *gorm.DB, sm *session.Manager,
 		return nil
 	})
 
+	// 自动部署 webhook
+	app.Get("/deploy", func(c *fiber.Ctx) error {
+		token := c.Query("token")
+		expected := "gocms-deploy-2026"
+		if token == "" || token != expected {
+			return c.Status(403).JSON(fiber.Map{"code": 0, "msg": "forbidden"})
+		}
+		go func() {
+			exec.Command("sh", "-c", "cd /www/wwwroot/gocms/GOcms && git pull origin main && /usr/local/go/bin/go build -o gocms ./cmd/server && systemctl restart gocms").Run()
+		}()
+		return c.JSON(fiber.Map{"code": 1, "msg": "deploy started"})
+	})
+
 	// Catch-All
 	app.Get("/*", func(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"code": 404, "msg": "页面不存在"})
 	})
 }
+
