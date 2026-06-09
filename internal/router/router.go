@@ -299,7 +299,7 @@ func setupAPI(app *fiber.App, db *gorm.DB, chatSvc *chat.Service) {
 func setupFrontend(app *fiber.App, db *gorm.DB, sm *session.Manager,
 	analyticsSvc *analytics.Service, chatSvc *chat.Service, tplEngine *template.Engine) {
 
-	index := frontend.NewIndexHandler(db)
+	index := frontend.NewIndexHandler(db, tplEngine)
 	vod := frontend.NewVodHandler(db)
 	art := frontend.NewArtHandler(db)
 	manga := frontend.NewMangaHandler(db)

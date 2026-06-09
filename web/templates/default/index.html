@@ -1,96 +1,99 @@
-{include file="header" /}
+{{template "partials/header.html" .}}
 
 <main class="container">
 
-<!-- 轮播推荐 -->
+<!-- 精选推荐 -->
+{{if .rec_vods}}
 <section class="section-title">
   <h2>精选推荐</h2>
 </section>
 <div class="video-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
-  {maccms:vod num="6" level="9" order="vod_hits_month desc" by="hits"}
+  {{range .rec_vods}}
   <div class="video-card">
-    <a href="/voddetail/{$vo.vod_id}">
+    <a href="/voddetail/{{.ID}}">
       <div class="thumb">
-        <img src="{$vo.vod_pic}" alt="{$vo.vod_name}" loading="lazy" />
-        <span class="badge">{$vo.vod_remarks}</span>
-        <span class="score">{$vo.vod_score}</span>
+        <img src="{{.VodPic}}" alt="{{.VodName}}" loading="lazy" />
+        <span class="badge">{{.VodRemarks}}</span>
+        <span class="score">{{.VodScore}}</span>
         <div class="play-icon"></div>
       </div>
       <div class="info">
-        <h3>{$vo.vod_name}</h3>
-        <div class="meta">{$vo.vod_year} · {$vo.vod_area}</div>
+        <h3>{{.VodName}}</h3>
+        <div class="meta">{{.VodYear}} · {{.VodArea}}</div>
       </div>
     </a>
   </div>
-  {/maccms:vod}
+  {{end}}
 </div>
+{{end}}
 
-<!-- 各分类推荐 -->
-{maccms:type parent="0" order="sort_asc" by="sort"}
-<section class="section-title">
-  <h2>{$vo.type_name}</h2>
-  <a href="/vodtype/{$vo.type_id}">更多 &raquo;</a>
-</section>
-<div class="video-grid">
-  {maccms:vod type="'.$vo['type_id'].'" num="6" order="vod_time desc" by="time"}
-  <div class="video-card">
-    <a href="/voddetail/{$vo.vod_id}">
-      <div class="thumb">
-        <img src="{$vo.vod_pic}" alt="{$vo.vod_name}" loading="lazy" />
-        <span class="badge">{$vo.vod_remarks}</span>
-        <div class="play-icon"></div>
-      </div>
-      <div class="info">
-        <h3>{$vo.vod_name}</h3>
-        <div class="meta">{$vo.vod_actor}</div>
-      </div>
-    </a>
-  </div>
-  {/maccms:vod}
-</div>
-{/maccms:type}
-
-<!-- 最新更新 -->
+<!-- 最近更新 -->
 <section class="section-title">
   <h2>最近更新</h2>
 </section>
 <div class="video-grid">
-  {maccms:vod num="12" order="vod_time desc" by="time"}
+  {{range .latest_vods}}
   <div class="video-card">
-    <a href="/voddetail/{$vo.vod_id}">
+    <a href="/voddetail/{{.ID}}">
       <div class="thumb">
-        <img src="{$vo.vod_pic}" alt="{$vo.vod_name}" loading="lazy" />
-        <span class="badge">{$vo.vod_remarks}</span>
+        <img src="{{.VodPic}}" alt="{{.VodName}}" loading="lazy" />
+        <span class="badge">{{.VodRemarks}}</span>
         <div class="play-icon"></div>
       </div>
       <div class="info">
-        <h3>{$vo.vod_name}</h3>
-        <div class="meta">{$vo.vod_class} · {$vo.vod_year}</div>
+        <h3>{{.VodName}}</h3>
+        <div class="meta">{{.VodClass}} · {{.VodYear}}</div>
       </div>
     </a>
   </div>
-  {/maccms:vod}
+  {{end}}
 </div>
 
+<!-- 热门排行 -->
+{{if .hot_vods}}
+<section class="section-title">
+  <h2>热门排行</h2>
+</section>
+<div class="video-grid">
+  {{range .hot_vods}}
+  <div class="video-card">
+    <a href="/voddetail/{{.ID}}">
+      <div class="thumb">
+        <img src="{{.VodPic}}" alt="{{.VodName}}" loading="lazy" />
+        <span class="badge">{{.VodRemarks}}</span>
+        <div class="play-icon"></div>
+      </div>
+      <div class="info">
+        <h3>{{.VodName}}</h3>
+        <div class="meta">{{.VodActor}}</div>
+      </div>
+    </a>
+  </div>
+  {{end}}
+</div>
+{{end}}
+
 <!-- 最新文章 -->
+{{if .latest_arts}}
 <section class="section-title">
   <h2>最新资讯</h2>
   <a href="/arttype/1">更多 &raquo;</a>
 </section>
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px" class="art-grid">
-  {maccms:art num="4" order="art_time desc" by="time"}
-  <a href="/artdetail/{$vo.art_id}" style="display:flex;gap:12px;background:var(--surface);border-radius:var(--radius);padding:12px;transition:background .2s">
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+  {{range .latest_arts}}
+  <a href="/artdetail/{{.ID}}" style="display:flex;gap:12px;background:var(--surface);border-radius:var(--radius);padding:12px;transition:background .2s">
     <div style="width:100px;height:70px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#222">
-      <img src="{$vo.art_pic}" style="width:100%;height:100%;object-fit:cover" loading="lazy" />
+      <img src="{{.ArtPic}}" style="width:100%;height:100%;object-fit:cover" loading="lazy" />
     </div>
     <div style="flex:1;min-width:0">
-      <h3 style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{$vo.art_name}</h3>
-      <p style="font-size:12px;color:var(--muted);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{$vo.art_blurb}</p>
+      <h3 style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{.ArtName}}</h3>
+      <p style="font-size:12px;color:var(--muted);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{.ArtBlurb}}</p>
     </div>
   </a>
-  {/maccms:art}
+  {{end}}
 </div>
+{{end}}
 
 </main>
 
-{include file="footer" /}
+{{template "partials/footer.html" .}}
