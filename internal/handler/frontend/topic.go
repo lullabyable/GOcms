@@ -2,71 +2,79 @@ package frontend
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"gocms/internal/model"
+	"gocms/internal/template"
 )
 
 type TopicHandler struct {
-	db *gorm.DB
+	db       *gorm.DB
+	tplEngine *template.Engine
 }
 
-func NewTopicHandler(db *gorm.DB) *TopicHandler {
-	return &TopicHandler{db: db}
+func NewTopicHandler(db *gorm.DB, tplEngine *template.Engine) *TopicHandler {
+	return &TopicHandler{db: db, tplEngine: tplEngine}
 }
 
-// Index 专题列表页
+// Index 专题列表
 func (h *TopicHandler) Index(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Params("page", "1"))
-	if page < 1 {
-		page = 1
-	}
 	pageSize := 12
 
+	var topics []model.Topic
 	var total int64
-	h.db.Model(&model.Topic{}).Where("topic_status = 1").Count(&total)
+	query := h.db.Where("topic_status = 1")
+	query.Count(&total)
+	query.Order("topic_sort ASC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&topics)
 
-	var list []model.Topic
-	h.db.Where("topic_status = 1").
-		Order("topic_sort ASC, topic_id DESC").
-		Offset((page - 1) * pageSize).
-		Limit(pageSize).
-		Find(&list)
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize > 0 {
+		totalPages++
+	}
 
-	return c.JSON(fiber.Map{
-		"code": 1,
-		"data": fiber.Map{
-			"list":      list,
-			"page":      page,
-			"total":     total,
-			"page_size": pageSize,
-		},
+	return h.tplEngine.FiberRenderer(c, "topiclist.html", fiber.Map{
+		"site_name":   "GOcms",
+		"type_info":   model.Type{TypeName: "专题"},
+		"list":        topics,
+		"total":       total,
+		"page":        page,
+		"total_pages": totalPages,
+		"base_url":    "/topic",
+		"is_topic":    true,
 	})
 }
 
-// Detail 专题详情页
+// Detail 专题详情
 func (h *TopicHandler) Detail(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
-
 	var topic model.Topic
-	if err := h.db.Where("topic_id = ?", id).First(&topic).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"code": 404, "msg": "专题不存在"})
+	if err := h.db.First(&topic, id).Error; err != nil {
+		return c.Status(404).SendString("专题不存在")
 	}
 
-	// 专题关联的视频（通过 vod_topic 或直接查询）
+	// 解析关联视频ID
 	var vods []model.Vod
 	if topic.TopicVodID != "" {
-		// 解析关联的视频ID列表
-		h.db.Where("FIND_IN_SET(vod_id, ?) AND vod_status = 1", topic.TopicVodID).
-			Order("vod_time DESC").Find(&vods)
+		ids := strings.Split(topic.TopicVodID, ",")
+		var intIDs []int
+		for _, idStr := range ids {
+			if id, err := strconv.Atoi(strings.TrimSpace(idStr)); err == nil {
+				intIDs = append(intIDs, id)
+			}
+		}
+		if len(intIDs) > 0 {
+			h.db.Where("vod_id IN ? AND vod_status = 1", intIDs).Find(&vods)
+		}
 	}
 
-	return c.JSON(fiber.Map{
-		"code": 1,
-		"data": fiber.Map{
-			"info": topic,
-			"vods": vods,
-		},
+	return h.tplEngine.FiberRenderer(c, "topicdetail.html", fiber.Map{
+		"site_name": "GOcms",
+		"vod":       topic,
+		"type_name": "专题",
+		"related":   vods,
+		"is_topic":  true,
 	})
 }

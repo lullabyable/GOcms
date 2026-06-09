@@ -1,11 +1,11 @@
-{include file="header" /}
+{{template "partials/header.html" .}}
 
 <main class="container" style="margin-top:24px">
 
 <!-- 搜索信息 -->
 <div style="margin-bottom:24px">
-  <h1 style="font-size:20px;font-weight:600">搜索 " {$wd} " 的结果</h1>
-  <p class="search-result-count">共找到 {$total} 个结果</p>
+  <h1 style="font-size:20px;font-weight:600">搜索 "{{.keyword}}" 的结果</h1>
+  <p class="search-result-count">共找到 {{.total}} 个结果</p>
 </div>
 
 <div class="main-layout">
@@ -13,28 +13,38 @@
 
 <!-- 搜索结果列表 -->
 <div class="video-grid">
-  {maccms:vod num="20" order="vod_time desc" by="time" paging="yes"}
+  {{range .list}}
   <div class="video-card">
-    <a href="/voddetail/{$vo.vod_id}">
+    <a href="/voddetail/{{.ID}}">
       <div class="thumb">
-        <img src="{$vo.vod_pic}" alt="{$vo.vod_name}" loading="lazy" />
-        <span class="badge">{$vo.vod_remarks}</span>
-        <span class="score">{$vo.vod_score}</span>
+        <img src="{{.VodPic}}" alt="{{.VodName}}" loading="lazy" />
+        <span class="badge">{{.VodRemarks}}</span>
+        <span class="score">{{.VodScore}}</span>
         <div class="play-icon"></div>
       </div>
       <div class="info">
-        <h3>{$vo.vod_name}</h3>
-        <div class="meta">{$vo.vod_year} · {$vo.vod_area} · {$vo.vod_class}</div>
+        <h3>{{.VodName}}</h3>
+        <div class="meta">{{.VodYear}} · {{.VodArea}} · {{.VodClass}}</div>
       </div>
     </a>
   </div>
-  {/maccms:vod}
+  {{end}}
 </div>
 
 <!-- 分页 -->
+{{if gt .total_pages 1}}
 <div class="pagination">
-  {maccms:page style="all" /}
+  {{if gt .page 1}}<a href="{{.base_url}}&page={{minus .page 1}}">上一页</a>{{end}}
+  {{range $i := .page_range}}
+    {{if eq $i $.page}}
+      <span class="current">{{$i}}</span>
+    {{else}}
+      <a href="{{$.base_url}}&page={{$i}}">{{$i}}</a>
+    {{end}}
+  {{end}}
+  {{if lt .page .total_pages}}<a href="{{.base_url}}&page={{plus .page 1}}">下一页</a>{{end}}
 </div>
+{{end}}
 
 </div>
 
@@ -42,12 +52,12 @@
   <div class="sidebar-widget">
     <h3>🔥 热门搜索</h3>
     <ul class="rank-list">
-      {maccms:vod num="10" order="vod_hits desc" by="hits"}
+      {{range $i, $v := .hot_vods}}
       <li>
-        <span class="rank">{$key}</span>
-        <a href="/voddetail/{$vo.vod_id}">{$vo.vod_name}</a>
+        <span class="rank">{{plus $i 1}}</span>
+        <a href="/voddetail/{{$v.ID}}">{{$v.VodName}}</a>
       </li>
-      {/maccms:vod}
+      {{end}}
     </ul>
   </div>
 </aside>
@@ -55,4 +65,4 @@
 
 </main>
 
-{include file="footer" /}
+{{template "partials/footer.html" .}}

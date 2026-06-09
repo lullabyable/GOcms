@@ -300,14 +300,14 @@ func setupFrontend(app *fiber.App, db *gorm.DB, sm *session.Manager,
 	analyticsSvc *analytics.Service, chatSvc *chat.Service, tplEngine *template.Engine) {
 
 	index := frontend.NewIndexHandler(db, tplEngine)
-	vod := frontend.NewVodHandler(db)
-	art := frontend.NewArtHandler(db)
-	manga := frontend.NewMangaHandler(db)
-	actor := frontend.NewActorHandler(db)
-	role := frontend.NewRoleHandler(db)
-	topic := frontend.NewTopicHandler(db)
+	vod := frontend.NewVodHandler(db, tplEngine)
+	art := frontend.NewArtHandler(db, tplEngine)
+	manga := frontend.NewMangaHandler(db, tplEngine)
+	actor := frontend.NewActorHandler(db, tplEngine)
+	role := frontend.NewRoleHandler(db, tplEngine)
+	topic := frontend.NewTopicHandler(db, tplEngine)
 	user := frontend.NewUserHandler(db, sm)
-	gbook := frontend.NewGbookHandler(db)
+	gbook := frontend.NewGbookHandler(db, tplEngine)
 	chatH := frontend.NewChatHandler(chatSvc)
 	danmaku := frontend.NewDanmakuHandler(db)
 

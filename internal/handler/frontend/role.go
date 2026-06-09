@@ -6,104 +6,86 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"gocms/internal/model"
+	"gocms/internal/template"
 )
 
 type RoleHandler struct {
-	db *gorm.DB
+	db       *gorm.DB
+	tplEngine *template.Engine
 }
 
-func NewRoleHandler(db *gorm.DB) *RoleHandler {
-	return &RoleHandler{db: db}
+func NewRoleHandler(db *gorm.DB, tplEngine *template.Engine) *RoleHandler {
+	return &RoleHandler{db: db, tplEngine: tplEngine}
 }
 
-// Index 角色列表页
+// Index 角色列表
 func (h *RoleHandler) Index(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Params("page", "1"))
-	if page < 1 {
-		page = 1
-	}
 	pageSize := 24
 
+	var roles []model.Role
 	var total int64
-	h.db.Model(&model.Role{}).Where("role_status = 1").Count(&total)
+	query := h.db.Where("role_status = 1")
+	query.Count(&total)
+	query.Order("role_id DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&roles)
 
-	var list []model.Role
-	h.db.Where("role_status = 1").
-		Order("role_id DESC").
-		Offset((page - 1) * pageSize).
-		Limit(pageSize).
-		Find(&list)
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize > 0 {
+		totalPages++
+	}
 
-	return c.JSON(fiber.Map{
-		"code": 1,
-		"data": fiber.Map{
-			"list":      list,
-			"page":      page,
-			"total":     total,
-			"page_size": pageSize,
-		},
+	return h.tplEngine.FiberRenderer(c, "rolelist.html", fiber.Map{
+		"site_name":   "GOcms",
+		"type_info":   model.Type{TypeName: "角色"},
+		"list":        roles,
+		"total":       total,
+		"page":        page,
+		"total_pages": totalPages,
+		"base_url":    "/role",
+		"is_role":     true,
 	})
 }
 
-// Detail 角色详情页
+// Detail 角色详情
 func (h *RoleHandler) Detail(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
-
 	var role model.Role
-	if err := h.db.Where("role_id = ?", id).First(&role).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"code": 404, "msg": "角色不存在"})
+	if err := h.db.First(&role, id).Error; err != nil {
+		return c.Status(404).SendString("角色不存在")
 	}
 
-	// 关联视频
-	var vods []model.Vod
-	h.db.Where("vod_name LIKE ? AND vod_status = 1", "%"+role.RoleName+"%").
-		Order("vod_time DESC").Limit(12).Find(&vods)
-
-	return c.JSON(fiber.Map{
-		"code": 1,
-		"data": fiber.Map{
-			"info": role,
-			"vods": vods,
-		},
+	return h.tplEngine.FiberRenderer(c, "roledetail.html", fiber.Map{
+		"site_name": "GOcms",
+		"vod":       role,
+		"type_name": "角色",
+		"is_role":   true,
 	})
 }
 
-// Show 角色筛选页
+// Show 角色筛选
 func (h *RoleHandler) Show(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
-	letter := c.Query("letter")
-	order := c.Query("order", "time")
-	if page < 1 {
-		page = 1
-	}
 	pageSize := 24
 
-	query := h.db.Model(&model.Role{}).Where("role_status = 1")
-	if letter != "" {
-		query = query.Where("role_letter = ?", letter)
-	}
-
+	var roles []model.Role
 	var total int64
+	query := h.db.Where("role_status = 1")
 	query.Count(&total)
+	query.Order("role_id DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&roles)
 
-	orderClause := "role_id DESC"
-	switch order {
-	case "hits":
-		orderClause = "role_hits DESC"
-	case "name":
-		orderClause = "role_name ASC"
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize > 0 {
+		totalPages++
 	}
 
-	var list []model.Role
-	query.Order(orderClause).Offset((page - 1) * pageSize).Limit(pageSize).Find(&list)
-
-	return c.JSON(fiber.Map{
-		"code": 1,
-		"data": fiber.Map{
-			"list":      list,
-			"page":      page,
-			"total":     total,
-			"page_size": pageSize,
-		},
+	return h.tplEngine.FiberRenderer(c, "rolelist.html", fiber.Map{
+		"site_name":   "GOcms",
+		"type_info":   model.Type{TypeName: "角色"},
+		"list":        roles,
+		"total":       total,
+		"page":        page,
+		"total_pages": totalPages,
+		"base_url":    "/roleshow",
+		"is_role":     true,
 	})
 }

@@ -1,0 +1,46 @@
+{{template "partials/header.html" .}}
+
+<main class="container" style="margin-top:24px">
+
+<div class="detail-header">
+  <div class="detail-poster">
+    <img src="{{.role.RolePic}}" alt="{{.role.RoleName}}" />
+  </div>
+  <div class="detail-info">
+    <h1>{{.role.RoleName}}</h1>
+  </div>
+</div>
+
+{{if .role.RoleContent}}
+<div style="background:var(--surface);border-radius:var(--radius);padding:20px;margin-bottom:24px">
+  <h3 style="font-size:15px;font-weight:600;margin-bottom:12px">角色简介</h3>
+  <div style="font-size:13px;color:var(--muted);line-height:2">{{.role.RoleContent}}</div>
+</div>
+{{end}}
+
+{{if .vods}}
+<section class="section-title">
+  <h2>相关作品</h2>
+</section>
+<div class="video-grid">
+  {{range .vods}}
+  <div class="video-card">
+    <a href="/voddetail/{{.ID}}">
+      <div class="thumb">
+        <img src="{{.VodPic}}" alt="{{.VodName}}" loading="lazy" />
+        <span class="badge">{{.VodRemarks}}</span>
+        <div class="play-icon"></div>
+      </div>
+      <div class="info">
+        <h3>{{.VodName}}</h3>
+        <div class="meta">{{.VodYear}} · {{.VodArea}}</div>
+      </div>
+    </a>
+  </div>
+  {{end}}
+</div>
+{{end}}
+
+</main>
+
+{{template "partials/footer.html" .}}

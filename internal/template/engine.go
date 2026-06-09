@@ -244,6 +244,27 @@ func defaultFuncMap() template.FuncMap {
 			}
 			return time.Unix(ts, 0).Format("2006-01-02 15:04:05")
 		},
+		"plus": func(a, b int) int { return a + b },
+		"minus": func(a, b int) int { return a - b },
+		"page_range": func(page, totalPages int) []int {
+			start := page - 2
+			if start < 1 {
+				start = 1
+			}
+			end := start + 4
+			if end > totalPages {
+				end = totalPages
+			}
+			start = end - 4
+			if start < 1 {
+				start = 1
+			}
+			var nums []int
+			for i := start; i <= end; i++ {
+				nums = append(nums, i)
+			}
+			return nums
+		},
 		"mac_url_vod_detail": func(info map[string]interface{}) string {
 			if id, ok := info["vod_id"]; ok {
 				return "/voddetail/" + fmt.Sprintf("%v", id) + ".html"

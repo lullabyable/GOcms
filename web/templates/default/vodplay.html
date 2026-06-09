@@ -1,4 +1,4 @@
-{include file="header" /}
+{{template "partials/header.html" .}}
 
 <main class="container" style="margin-top:24px">
 
@@ -6,33 +6,37 @@
 <div style="font-size:12px;color:var(--muted);margin-bottom:16px">
   <a href="/" style="color:var(--muted)">首页</a>
   <span style="margin:0 8px">/</span>
-  <a href="/voddetail/{$vod.vod_id}" style="color:var(--muted)">{$vod.vod_name}</a>
+  <a href="/voddetail/{{.vod.ID}}" style="color:var(--muted)">{{.vod.VodName}}</a>
   <span style="margin:0 8px">/</span>
-  <span style="color:var(--text)">{$play_name}</span>
+  <span style="color:var(--text)">{{.play_name}}</span>
 </div>
 
 <!-- 播放器 -->
 <div class="player-wrap">
-  <iframe src="{$play_url}" allowfullscreen></iframe>
+  <iframe src="{{.play_url}}" allowfullscreen></iframe>
 </div>
 
 <!-- 剧集列表 -->
 <div style="background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:16px">
-  <h3 style="font-size:14px;margin-bottom:12px">{$vod.vod_name} - {$play_name}</h3>
-  {maccms:foreach name="$vod_play_from" key="k1" value="v1"}
+  <h3 style="font-size:14px;margin-bottom:12px">{{.vod.VodName}} - {{.play_name}}</h3>
+  {{range $k1, $src := .play_sources}}
   <div style="margin-bottom:12px">
-    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">{$v1}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">{{$src.Name}}</div>
     <div class="play-sources">
-      {maccms:foreach name="$vod_play_url[$k1]" key="k2" value="v2"}
-      <a href="/vodplay/{$vod.vod_id}/{$k1+1}/{$k2+1}" class="{if condition="$k1+1==$play_from && $k2+1==$play_nid"}active{/if}">{$v2.name}</a>
-      {/maccms:foreach}
+      {{range $k2, $ep := $src.Episodes}}
+      {{if and (eq (plus $k1 1) $.play_from) (eq (plus $k2 1) $.play_nid)}}
+      <a href="/vodplay/{{$.vod.ID}}/{{plus $k1 1}}/{{plus $k2 1}}" class="active">{{$ep.Name}}</a>
+      {{else}}
+      <a href="/vodplay/{{$.vod.ID}}/{{plus $k1 1}}/{{plus $k2 1}}">{{$ep.Name}}</a>
+      {{end}}
+      {{end}}
     </div>
   </div>
-  {/maccms:foreach}
+  {{end}}
 </div>
 
 <div style="display:flex;gap:16px;margin-bottom:24px" class="btn-row">
-  <a href="/voddetail/{$vod.vod_id}" class="btn btn-outline" style="font-size:13px">← 返回详情</a>
+  <a href="/voddetail/{{.vod.ID}}" class="btn btn-outline" style="font-size:13px">← 返回详情</a>
   <button class="btn btn-outline" style="font-size:13px" onclick="toggleDanmaku()">弹幕开关</button>
 </div>
 
@@ -49,8 +53,8 @@
 
 <!-- 剧情简介 -->
 <div style="background:var(--surface);border-radius:var(--radius);padding:20px;margin-bottom:24px">
-  <h3 style="font-size:15px;font-weight:600;margin-bottom:12px">{$vod.vod_name}</h3>
-  <p style="font-size:13px;color:var(--muted);line-height:2">{$vod.vod_content}</p>
+  <h3 style="font-size:15px;font-weight:600;margin-bottom:12px">{{.vod.VodName}}</h3>
+  <p style="font-size:13px;color:var(--muted);line-height:2">{{.vod.VodContent}}</p>
 </div>
 
 <!-- 猜你喜欢 -->
@@ -58,28 +62,27 @@
   <h2>猜你喜欢</h2>
 </section>
 <div class="video-grid">
-  {maccms:vod num="6" order="rand" by="rand"}
+  {{range .guess_like}}
   <div class="video-card">
-    <a href="/voddetail/{$vo.vod_id}">
+    <a href="/voddetail/{{.ID}}">
       <div class="thumb">
-        <img src="{$vo.vod_pic}" alt="{$vo.vod_name}" loading="lazy" />
-        <span class="badge">{$vo.vod_remarks}</span>
+        <img src="{{.VodPic}}" alt="{{.VodName}}" loading="lazy" />
+        <span class="badge">{{.VodRemarks}}</span>
         <div class="play-icon"></div>
       </div>
       <div class="info">
-        <h3>{$vo.vod_name}</h3>
-        <div class="meta">{$vo.vod_class} · {$vo.vod_year}</div>
+        <h3>{{.VodName}}</h3>
+        <div class="meta">{{.VodClass}} · {{.VodYear}}</div>
       </div>
     </a>
   </div>
-  {/maccms:vod}
+  {{end}}
 </div>
 
 </main>
 
 <script>
-const vodId={$vod.vod_id};
-// WebSocket 弹幕
+const vodId={{.vod.ID}};
 let ws;
 let dmOn=true;
 function connectWs(){
@@ -109,10 +112,9 @@ function sendDm(){
 }
 function toggleDanmaku(){dmOn=!dmOn;document.getElementById('danmaku-overlay').style.opacity=dmOn?1:0.3}
 connectWs();
-// 加载历史
 fetch('/api/danmaku/'+vodId+'/history?page_size=50').then(r=>r.json()).then(d=>{
   if(d.data&&d.data.list)d.data.list.forEach(m=>addDm(m.content));
 });
 </script>
 
-{include file="footer" /}
+{{template "partials/footer.html" .}}

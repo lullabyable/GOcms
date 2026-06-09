@@ -1,4 +1,4 @@
-{include file="header" /}
+{{template "partials/header.html" .}}
 
 <main class="container" style="margin-top:24px">
 
@@ -6,34 +6,36 @@
 <div style="font-size:12px;color:var(--muted);margin-bottom:20px">
   <a href="/" style="color:var(--muted)">首页</a>
   <span style="margin:0 8px">/</span>
-  <a href="/vodtype/{$vod.type_id}" style="color:var(--muted)">{$type_name}</a>
+  <a href="/vodtype/{{.vod.TypeID}}" style="color:var(--muted)">{{.type_name}}</a>
   <span style="margin:0 8px">/</span>
-  <span style="color:var(--text)">{$vod.vod_name}</span>
+  <span style="color:var(--text)">{{.vod.VodName}}</span>
 </div>
 
 <div class="detail-header">
   <div class="detail-poster">
-    <img src="{$vod.vod_pic}" alt="{$vod.vod_name}" />
+    <img src="{{.vod.VodPic}}" alt="{{.vod.VodName}}" />
   </div>
   <div class="detail-info">
-    <h1>{$vod.vod_name}</h1>
+    <h1>{{.vod.VodName}}</h1>
     <div class="tags">
-      <span>{$vod.vod_class}</span>
-      <span>{$vod.vod_area}</span>
-      <span>{$vod.vod_year}</span>
-      <span>{$vod.vod_lang}</span>
+      <span>{{.vod.VodClass}}</span>
+      <span>{{.vod.VodArea}}</span>
+      <span>{{.vod.VodYear}}</span>
+      <span>{{.vod.VodLang}}</span>
     </div>
     <dl class="meta-list">
-      <dt>导演</dt><dd>{$vod.vod_director}</dd>
-      <dt>主演</dt><dd>{$vod.vod_actor}</dd>
-      <dt>状态</dt><dd>{$vod.vod_remarks}</dd>
-      <dt>更新</dt><dd>{$vod.vod_time}</dd>
-      <dt>人气</dt><dd>{$vod.vod_hits}</dd>
-      <dt>评分</dt><dd style="color:#ffd700;font-weight:700">{$vod.vod_score}</dd>
+      <dt>导演</dt><dd>{{.vod.VodDirector}}</dd>
+      <dt>主演</dt><dd>{{.vod.VodActor}}</dd>
+      <dt>状态</dt><dd>{{.vod.VodRemarks}}</dd>
+      <dt>更新</dt><dd>{{.vod.VodTime}}</dd>
+      <dt>人气</dt><dd>{{.vod.VodHits}}</dd>
+      <dt>评分</dt><dd style="color:#ffd700;font-weight:700">{{.vod.VodScore}}</dd>
     </dl>
     <div class="btn-group btn-row">
-      <a href="/vodplay/{$vod.vod_id}/1/1" class="btn btn-primary">▶ 立即播放</a>
-      <button class="btn btn-outline" onclick="addFavorite({$vod.vod_id})">☆ 收藏</button>
+      {{if .play_sources}}
+      <a href="/vodplay/{{.vod.ID}}/1/1" class="btn btn-primary">▶ 立即播放</a>
+      {{end}}
+      <button class="btn btn-outline" onclick="addFavorite({{.vod.ID}})">☆ 收藏</button>
     </div>
   </div>
 </div>
@@ -46,23 +48,23 @@
 </div>
 
 <div id="play" style="margin-bottom:24px">
-  {maccms:foreach name="$vod_play_from" key="k1" value="v1"}
+  {{range $k1, $src := .play_sources}}
   <div style="margin-bottom:16px">
-    <h3 style="font-size:14px;color:var(--muted);margin-bottom:10px">播放源 {$k1+1}：{$v1}</h3>
+    <h3 style="font-size:14px;color:var(--muted);margin-bottom:10px">播放源 {{plus $k1 1}}：{{$src.Name}}</h3>
     <div class="play-sources">
-      {maccms:foreach name="$vod_play_url[$k1]" key="k2" value="v2"}
-      <a href="/vodplay/{$vod.vod_id}/{$k1+1}/{$k2+1}">{$v2.name}</a>
-      {/maccms:foreach}
+      {{range $k2, $ep := $src.Episodes}}
+      <a href="/vodplay/{{$.vod.ID}}/{{plus $k1 1}}/{{plus $k2 1}}">{{$ep.Name}}</a>
+      {{end}}
     </div>
   </div>
-  {/maccms:foreach}
+  {{end}}
 </div>
 
 <!-- 剧情介绍 -->
 <div id="info" style="margin-bottom:32px">
   <h3 style="font-size:15px;font-weight:600;margin-bottom:12px">剧情介绍</h3>
   <div style="font-size:13px;color:var(--muted);line-height:2;background:var(--surface);padding:20px;border-radius:var(--radius)">
-    {$vod.vod_content}
+    {{.vod.VodContent}}
   </div>
 </div>
 
@@ -72,21 +74,21 @@
     <h2>相关推荐</h2>
   </section>
   <div class="video-grid">
-    {maccms:vod type="'.$vod['type_id'].'" num="6" order="vod_hits desc" by="hits"}
+    {{range .related}}
     <div class="video-card">
-      <a href="/voddetail/{$vo.vod_id}">
+      <a href="/voddetail/{{.ID}}">
         <div class="thumb">
-          <img src="{$vo.vod_pic}" alt="{$vo.vod_name}" loading="lazy" />
-          <span class="badge">{$vo.vod_remarks}</span>
+          <img src="{{.VodPic}}" alt="{{.VodName}}" loading="lazy" />
+          <span class="badge">{{.VodRemarks}}</span>
           <div class="play-icon"></div>
         </div>
         <div class="info">
-          <h3>{$vo.vod_name}</h3>
-          <div class="meta">{$vo.vod_year} · {$vo.vod_area}</div>
+          <h3>{{.VodName}}</h3>
+          <div class="meta">{{.VodYear}} · {{.VodArea}}</div>
         </div>
       </a>
     </div>
-    {/maccms:vod}
+    {{end}}
   </div>
 </div>
 
@@ -107,8 +109,7 @@
 </main>
 
 <script>
-const vodId = {$vod.vod_id};
-// 加载弹幕历史
+const vodId = {{.vod.ID}};
 fetch('/api/danmaku/'+vodId+'/history?page_size=100')
   .then(r=>r.json())
   .then(d=>{
@@ -129,4 +130,4 @@ function sendDanmaku(){
 function addFavorite(id){alert('收藏功能需要登录')}
 </script>
 
-{include file="footer" /}
+{{template "partials/footer.html" .}}

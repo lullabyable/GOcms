@@ -1,17 +1,19 @@
-{include file="header" /}
+{{template "partials/header.html" .}}
 
 <main class="container">
 
 <!-- 分类筛选 -->
+{{if .child_types}}
 <div style="background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:24px" class="filter-section">
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px" class="filter-row">
     <span style="color:var(--muted);font-size:13px;line-height:32px;width:50px">类型：</span>
-    <a href="/vodtype/{$type_info.type_id}" style="padding:4px 14px;border-radius:4px;font-size:13px;background:var(--primary);color:#fff">全部</a>
-    {maccms:type parent="'.$type_info['type_id'].'" order="sort_asc" by="sort"}
-    <a href="/vodtype/{$vo.type_id}" style="padding:4px 14px;border-radius:4px;font-size:13px;background:var(--surface2);color:var(--muted)">{$vo.type_name}</a>
-    {/maccms:type}
+    <a href="/vodtype/{{.type_info.TypeID}}" style="padding:4px 14px;border-radius:4px;font-size:13px;background:var(--primary);color:#fff">全部</a>
+    {{range .child_types}}
+    <a href="/vodtype/{{.TypeID}}" style="padding:4px 14px;border-radius:4px;font-size:13px;background:var(--surface2);color:var(--muted)">{{.TypeName}}</a>
+    {{end}}
   </div>
 </div>
+{{end}}
 
 <div class="main-layout">
 <div class="main-content">
@@ -25,42 +27,52 @@
 
 <!-- 视频列表 -->
 <div class="video-grid">
-  {maccms:vod type="'.$type_info['type_id'].'" num="20" order="vod_time desc" by="time" paging="yes"}
+  {{range .list}}
   <div class="video-card">
-    <a href="/voddetail/{$vo.vod_id}">
+    <a href="/voddetail/{{.ID}}">
       <div class="thumb">
-        <img src="{$vo.vod_pic}" alt="{$vo.vod_name}" loading="lazy" />
-        <span class="badge">{$vo.vod_remarks}</span>
-        <span class="score">{$vo.vod_score}</span>
+        <img src="{{.VodPic}}" alt="{{.VodName}}" loading="lazy" />
+        <span class="badge">{{.VodRemarks}}</span>
+        <span class="score">{{.VodScore}}</span>
         <div class="play-icon"></div>
       </div>
       <div class="info">
-        <h3>{$vo.vod_name}</h3>
-        <div class="meta">{$vo.vod_year} · {$vo.vod_area} · {$vo.vod_class}</div>
+        <h3>{{.VodName}}</h3>
+        <div class="meta">{{.VodYear}} · {{.VodArea}} · {{.VodClass}}</div>
       </div>
     </a>
   </div>
-  {/maccms:vod}
+  {{end}}
 </div>
 
 <!-- 分页 -->
+{{if gt .total_pages 1}}
 <div class="pagination">
-  {maccms:page style="all" /}
+  {{if gt .page 1}}<a href="{{.base_url}}/{{minus .page 1}}">上一页</a>{{end}}
+  {{range $i := .page_range}}
+    {{if eq $i $.page}}
+      <span class="current">{{$i}}</span>
+    {{else}}
+      <a href="{{$.base_url}}/{{$i}}">{{$i}}</a>
+    {{end}}
+  {{end}}
+  {{if lt .page .total_pages}}<a href="{{.base_url}}/{{plus .page 1}}">下一页</a>{{end}}
 </div>
+{{end}}
 
 </div>
 
 <aside class="sidebar">
   <!-- 热门排行 -->
   <div class="sidebar-widget">
-    <h3>🔥 {$type_info.type_name}热播</h3>
+    <h3>🔥 {{.type_info.TypeName}}热播</h3>
     <ul class="rank-list">
-      {maccms:vod type="'.$type_info['type_id'].'" num="10" order="vod_hits desc" by="hits"}
+      {{range $i, $v := .hot_vods}}
       <li>
-        <span class="rank">{$key}</span>
-        <a href="/voddetail/{$vo.vod_id}">{$vo.vod_name}</a>
+        <span class="rank">{{plus $i 1}}</span>
+        <a href="/voddetail/{{$v.ID}}">{{$v.VodName}}</a>
       </li>
-      {/maccms:vod}
+      {{end}}
     </ul>
   </div>
 
@@ -68,12 +80,12 @@
   <div class="sidebar-widget">
     <h3>⏰ 最近更新</h3>
     <ul class="rank-list">
-      {maccms:vod type="'.$type_info['type_id'].'" num="10" order="vod_time desc" by="time"}
+      {{range $i, $v := .new_vods}}
       <li>
-        <span class="rank">{$key}</span>
-        <a href="/voddetail/{$vo.vod_id}">{$vo.vod_name}</a>
+        <span class="rank">{{plus $i 1}}</span>
+        <a href="/voddetail/{{$v.ID}}">{{$v.VodName}}</a>
       </li>
-      {/maccms:vod}
+      {{end}}
     </ul>
   </div>
 </aside>
@@ -81,4 +93,4 @@
 
 </main>
 
-{include file="footer" /}
+{{template "partials/footer.html" .}}

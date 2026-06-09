@@ -2,18 +2,62 @@ package frontend
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"gocms/internal/model"
+	"gocms/internal/template"
 )
 
 type VodHandler struct {
-	db *gorm.DB
+	db       *gorm.DB
+	tplEngine *template.Engine
 }
 
-func NewVodHandler(db *gorm.DB) *VodHandler {
-	return &VodHandler{db: db}
+func NewVodHandler(db *gorm.DB, tplEngine *template.Engine) *VodHandler {
+	return &VodHandler{db: db, tplEngine: tplEngine}
+}
+
+type PlaySource struct {
+	Name     string
+	Episodes []PlayEpisode
+}
+
+type PlayEpisode struct {
+	Name string
+	URL  string
+}
+
+func parsePlaySources(fromStr, urlStr string) []PlaySource {
+	if fromStr == "" || urlStr == "" {
+		return nil
+	}
+	froms := strings.Split(fromStr, "$$$")
+	urls := strings.Split(urlStr, "$$$")
+	count := len(froms)
+	if len(urls) < count {
+		count = len(urls)
+	}
+	var result []PlaySource
+	for i := 0; i < count; i++ {
+		source := PlaySource{Name: strings.TrimSpace(froms[i])}
+		episodes := strings.Split(urls[i], "#")
+		for _, ep := range episodes {
+			ep = strings.TrimSpace(ep)
+			if ep == "" {
+				continue
+			}
+			parts := strings.SplitN(ep, "$", 2)
+			if len(parts) == 2 {
+				source.Episodes = append(source.Episodes, PlayEpisode{Name: parts[0], URL: parts[1]})
+			}
+		}
+		if len(source.Episodes) > 0 {
+			result = append(result, source)
+		}
+	}
+	return result
 }
 
 // Type 分类列表页
@@ -28,19 +72,27 @@ func (h *VodHandler) Type(c *fiber.Ctx) error {
 	query.Count(&total)
 	query.Order("vod_time DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&vods)
 
-	// 分类信息
 	var typeInfo model.Type
 	h.db.First(&typeInfo, typeID)
 
-	return c.JSON(fiber.Map{
-		"code": 1,
-		"data": fiber.Map{
-			"type_info": typeInfo,
-			"list":      vods,
-			"total":     total,
-			"page":      page,
-			"page_size": pageSize,
-		},
+	// 侧栏热门
+	var hotVods []model.Vod
+	h.db.Where("type_id = ? AND vod_status = 1", typeID).Order("vod_hits DESC").Limit(10).Find(&hotVods)
+
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize > 0 {
+		totalPages++
+	}
+
+	return h.tplEngine.FiberRenderer(c, "vodtype.html", fiber.Map{
+		"site_name":   "GOcms",
+		"type_info":   typeInfo,
+		"list":        vods,
+		"hot_vods":    hotVods,
+		"total":       total,
+		"page":        page,
+		"total_pages": totalPages,
+		"base_url":    "/vodtype/" + strconv.Itoa(typeID),
 	})
 }
 
@@ -49,23 +101,26 @@ func (h *VodHandler) Detail(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
 	var vod model.Vod
 	if err := h.db.First(&vod, id).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"code": 0, "msg": "视频不存在"})
+		return c.Status(404).SendString("视频不存在")
 	}
 
-	// 增加点击量
 	h.db.Model(&vod).UpdateColumn("vod_hits", gorm.Expr("vod_hits + 1"))
 
-	// 相关视频（同分类）
 	var related []model.Vod
 	h.db.Where("type_id = ? AND vod_id != ? AND vod_status = 1", vod.TypeID, vod.ID).
 		Order("vod_hits DESC").Limit(8).Find(&related)
 
-	return c.JSON(fiber.Map{
-		"code": 1,
-		"data": fiber.Map{
-			"info":    vod,
-			"related": related,
-		},
+	var typeInfo model.Type
+	h.db.First(&typeInfo, vod.TypeID)
+
+	playSources := parsePlaySources(vod.VodPlayFrom, vod.VodPlayURL)
+
+	return h.tplEngine.FiberRenderer(c, "voddetail.html", fiber.Map{
+		"site_name":    "GOcms",
+		"vod":          vod,
+		"type_name":    typeInfo.TypeName,
+		"related":      related,
+		"play_sources": playSources,
 	})
 }
 
@@ -77,19 +132,37 @@ func (h *VodHandler) Play(c *fiber.Ctx) error {
 
 	var vod model.Vod
 	if err := h.db.First(&vod, id).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"code": 0, "msg": "视频不存在"})
+		return c.Status(404).SendString("视频不存在")
 	}
 
-	// 增加点击量
 	h.db.Model(&vod).UpdateColumn("vod_hits", gorm.Expr("vod_hits + 1"))
 
-	return c.JSON(fiber.Map{
-		"code": 1,
-		"data": fiber.Map{
-			"info": vod,
-			"sid":  sid,
-			"nid":  nid,
-		},
+	playSources := parsePlaySources(vod.VodPlayFrom, vod.VodPlayURL)
+
+	// 找到当前播放地址
+	playURL := ""
+	playName := ""
+	if sid > 0 && sid <= len(playSources) {
+		source := playSources[sid-1]
+		if nid > 0 && nid <= len(source.Episodes) {
+			playURL = source.Episodes[nid-1].URL
+			playName = source.Episodes[nid-1].Name
+		}
+	}
+
+	// 随机推荐
+	var recommend []model.Vod
+	h.db.Where("vod_status = 1").Order("RAND()").Limit(6).Find(&recommend)
+
+	return h.tplEngine.FiberRenderer(c, "vodplay.html", fiber.Map{
+		"site_name":    "GOcms",
+		"vod":          vod,
+		"sid":          sid,
+		"nid":          nid,
+		"play_url":     playURL,
+		"play_name":    playName,
+		"play_sources": playSources,
+		"recommend":    recommend,
 	})
 }
 
@@ -100,7 +173,9 @@ func (h *VodHandler) Search(c *fiber.Ctx) error {
 	pageSize := 20
 
 	if keyword == "" {
-		return c.JSON(fiber.Map{"code": 1, "data": fiber.Map{"list": nil, "total": 0}})
+		return h.tplEngine.FiberRenderer(c, "vodsearch.html", fiber.Map{
+			"site_name": "GOcms", "wd": "", "list": nil, "total": 0, "page": 1, "total_pages": 0,
+		})
 	}
 
 	var vods []model.Vod
@@ -110,18 +185,28 @@ func (h *VodHandler) Search(c *fiber.Ctx) error {
 	query.Count(&total)
 	query.Order("vod_hits DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&vods)
 
-	return c.JSON(fiber.Map{
-		"code": 1,
-		"data": fiber.Map{
-			"keyword": keyword,
-			"list":    vods,
-			"total":   total,
-			"page":    page,
-		},
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize > 0 {
+		totalPages++
+	}
+
+	// 热门搜索
+	var hotVods []model.Vod
+	h.db.Where("vod_status = 1").Order("vod_hits DESC").Limit(10).Find(&hotVods)
+
+	return h.tplEngine.FiberRenderer(c, "vodsearch.html", fiber.Map{
+		"site_name":   "GOcms",
+		"wd":          keyword,
+		"list":        vods,
+		"total":       total,
+		"page":        page,
+		"total_pages": totalPages,
+		"base_url":    "/vodsearch?wd=" + keyword,
+		"hot_vods":    hotVods,
 	})
 }
 
-// Show 筛选列表
+// Show 筛选列表（复用 vodtype 模板）
 func (h *VodHandler) Show(c *fiber.Ctx) error {
 	typeID, _ := strconv.Atoi(c.Params("id"))
 	page, _ := strconv.Atoi(c.Query("page", "1"))
@@ -150,13 +235,23 @@ func (h *VodHandler) Show(c *fiber.Ctx) error {
 	var vods []model.Vod
 	query.Order(order + " DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&vods)
 
-	return c.JSON(fiber.Map{
-		"code": 1,
-		"data": fiber.Map{
-			"list":  vods,
-			"total": total,
-			"page":  page,
-			"filter": fiber.Map{"area": area, "year": year, "lang": lang},
-		},
+	var typeInfo model.Type
+	if typeID > 0 {
+		h.db.First(&typeInfo, typeID)
+	}
+
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize > 0 {
+		totalPages++
+	}
+
+	return h.tplEngine.FiberRenderer(c, "vodtype.html", fiber.Map{
+		"site_name":   "GOcms",
+		"type_info":   typeInfo,
+		"list":        vods,
+		"total":       total,
+		"page":        page,
+		"total_pages": totalPages,
+		"base_url":    "/vodshow/" + strconv.Itoa(typeID),
 	})
 }
