@@ -23,9 +23,11 @@ type Manager struct {
 	cookieName string
 	maxAge     time.Duration
 	secret     []byte
+	secure     bool
 }
 
 type ManagerConfig struct {
+	Secure     bool   // HTTPS 时设为 true，HTTP 环境必须 false
 	Type       string // cookie | redis
 	CookieName string
 	MaxAge     time.Duration
@@ -52,7 +54,7 @@ func NewManager(cfg ManagerConfig) *Manager {
 	secret := make([]byte, 32)
 	copy(secret, []byte(cfg.Secret))
 
-	return &Manager{store: store, cookieName: name, maxAge: cfg.MaxAge, secret: secret}
+	return &Manager{store: store, cookieName: name, maxAge: cfg.MaxAge, secret: secret, secure: cfg.Secure}
 }
 
 // Get 获取当前请求的会话
@@ -82,7 +84,7 @@ func (m *Manager) Destroy(c *fiber.Ctx) {
 	if sid != "" {
 		m.store.Delete(sid)
 	}
-	c.Cookie(&fiber.Cookie{Name: m.cookieName, Value: "", MaxAge: -1, HTTPOnly: true, Secure: true, SameSite: "Lax"})
+	c.Cookie(&fiber.Cookie{Name: m.cookieName, Value: "", MaxAge: -1, HTTPOnly: true, Secure: m.secure, SameSite: "Lax"})
 }
 
 func (m *Manager) setCookie(c *fiber.Ctx, sid string) {
@@ -91,7 +93,7 @@ func (m *Manager) setCookie(c *fiber.Ctx, sid string) {
 		Value:    sid,
 		MaxAge:   int(m.maxAge.Seconds()),
 		HTTPOnly: true,
-		Secure:   true,
+		Secure:   m.secure,
 		SameSite: "Lax",
 	})
 }

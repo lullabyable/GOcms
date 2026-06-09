@@ -37,6 +37,7 @@ session:
   name: "gocms_session"
   max_age: 86400         # 秒
   secret: "change-me-to-random-string"
+  secure: false             # true 时 cookie 仅 HTTPS 传输，HTTP 环境必须 false
 
 log:
   level: "info"

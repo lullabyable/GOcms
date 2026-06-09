@@ -78,6 +78,7 @@ func main() {
 		CookieName: cfg.Session.Name,
 		MaxAge:    time.Duration(cfg.Session.MaxAge) * time.Second,
 		Secret:    cfg.Session.Secret,
+		Secure:    cfg.Session.Secure,
 	})
 
 	// 创建 Fiber 应用

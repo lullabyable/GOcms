@@ -61,6 +61,7 @@ type SessionConfig struct {
 	Name    string `mapstructure:"name"`
 	MaxAge  int    `mapstructure:"max_age"`
 	Secret  string `mapstructure:"secret"`
+	Secure  bool   `mapstructure:"secure"`
 }
 
 type LogConfig struct {
