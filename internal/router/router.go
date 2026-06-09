@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -126,18 +128,105 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 
 	a := app.Group("/admin")
 
-	// 登录
+	// 登录限流器：3次失败锁定60分钟
+	type loginAttempt struct {
+		count    int
+		lastTime time.Time
+	}
+	loginAttempts := make(map[string]*loginAttempt)
+	var loginMu sync.Mutex
+
+	// 后台首页 → 重定向到 dashboard（中间件会拦截未登录）
+	a.Get("/", func(c *fiber.Ctx) error {
+		return c.Redirect("/admin/dashboard")
+	})
+
+	// 登录页面
+	a.Get("/login", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "text/html; charset=utf-8")
+		return c.SendString(`<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GOcms 后台登录</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#eee;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-card{background:#1a1a1a;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.3);width:100%;max-width:400px;padding:40px}
+h1{text-align:center;font-size:22px;margin-bottom:8px;color:#e74c3c}.sub{text-align:center;color:#888;margin-bottom:28px;font-size:13px}
+.form-group{margin-bottom:18px}label{display:block;font-weight:600;margin-bottom:6px;font-size:13px;color:#aaa}
+input{width:100%;padding:10px 14px;border:1px solid #333;border-radius:8px;font-size:14px;background:#222;color:#eee;transition:border .2s}
+input:focus{outline:none;border-color:#e74c3c;box-shadow:0 0 0 3px rgba(231,76,60,.15)}
+.btn{width:100%;padding:12px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;background:#e74c3c;color:#fff;transition:all .2s}
+.btn:hover{background:#c0392b}.btn:disabled{background:#555;cursor:not-allowed}
+.msg{padding:10px;border-radius:8px;margin-bottom:14px;font-size:13px;display:none;text-align:center}
+.msg.err{display:block;background:#2a1515;color:#e74c3c;border:1px solid #3a1a1a}
+.msg.ok{display:block;background:#152a15;color:#2ecc71;border:1px solid #1a3a1a}
+</style></head><body>
+<div class="login-card">
+<h1>🎬 GOcms</h1><p class="sub">后台管理登录</p>
+<div id="msg" class="msg"></div>
+<form id="loginForm">
+<div class="form-group"><label>用户名</label><input type="text" id="name" name="admin_name" required autofocus></div>
+<div class="form-group"><label>密码</label><input type="password" id="pwd" name="admin_pwd" required></div>
+<button type="submit" class="btn" id="btn">登 录</button>
+</form></div>
+<script>
+document.getElementById('loginForm').onsubmit=function(e){
+e.preventDefault();
+var btn=document.getElementById('btn'),msg=document.getElementById('msg');
+btn.disabled=true;btn.textContent='登录中...';msg.className='msg';msg.style.display='none';
+fetch('/admin/login',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+body:'admin_name='+encodeURIComponent(document.getElementById('name').value)+'&admin_pwd='+encodeURIComponent(document.getElementById('pwd').value)})
+.then(r=>r.json()).then(d=>{
+if(d.code===1){msg.className='msg ok';msg.textContent='✅ 登录成功，跳转中...';msg.style.display='block';setTimeout(()=>location.href='/admin/dashboard',800);}
+else{msg.className='msg err';msg.textContent='❌ '+d.msg;msg.style.display='block';btn.disabled=false;btn.textContent='登 录';}
+}).catch(()=>{msg.className='msg err';msg.textContent='请求失败';msg.style.display='block';btn.disabled=false;btn.textContent='登 录';});
+};
+</script></body></html>`)
+	})
+
+	// 登录接口（带限流）
 	a.Post("/login", func(c *fiber.Ctx) error {
+		ip := c.IP()
+
+		// 检查限流
+		loginMu.Lock()
+		if att, ok := loginAttempts[ip]; ok {
+			if att.count >= 3 && time.Since(att.lastTime) < 60*time.Minute {
+				remaining := int((60*time.Minute - time.Since(att.lastTime)).Minutes()) + 1
+				loginMu.Unlock()
+				return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("登录失败次数过多，请 %d 分钟后重试", remaining)})
+			}
+			if time.Since(att.lastTime) >= 60*time.Minute {
+				delete(loginAttempts, ip)
+			}
+		}
+		loginMu.Unlock()
+
 		name := c.FormValue("admin_name")
 		pwd := c.FormValue("admin_pwd")
 		var adm model.Admin
 		if err := db.Where("admin_name = ?", name).First(&adm).Error; err != nil {
+			// 记录失败
+			loginMu.Lock()
+			if loginAttempts[ip] == nil {
+				loginAttempts[ip] = &loginAttempt{}
+			}
+			loginAttempts[ip].count++
+			loginAttempts[ip].lastTime = time.Now()
+			loginMu.Unlock()
 			return c.JSON(fiber.Map{"code": 0, "msg": "用户名或密码错误"})
 		}
 		// bcrypt 密码校验（兼容旧的 hex 格式）
 		if err := bcrypt.CompareHashAndPassword([]byte(adm.AdminPwd), []byte(pwd)); err != nil {
 			// 降级：兼容旧版 hex 编码密码
 			if adm.AdminPwd != fmt.Sprintf("%x", []byte(pwd)) {
+				// 记录失败
+				loginMu.Lock()
+				if loginAttempts[ip] == nil {
+					loginAttempts[ip] = &loginAttempt{}
+				}
+				loginAttempts[ip].count++
+				loginAttempts[ip].lastTime = time.Now()
+				loginMu.Unlock()
 				return c.JSON(fiber.Map{"code": 0, "msg": "用户名或密码错误"})
 			}
 			// 旧密码验证通过，自动升级为 bcrypt
@@ -148,6 +237,11 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 		if adm.AdminStatus != 1 {
 			return c.JSON(fiber.Map{"code": 0, "msg": "账号已被禁用"})
 		}
+		// 登录成功，清除限流
+		loginMu.Lock()
+		delete(loginAttempts, ip)
+		loginMu.Unlock()
+
 		sess := sm.Regenerate(c)
 		sess.Set("admin_id", strconv.Itoa(adm.AdminID))
 		sess.Set("admin_name", adm.AdminName)
