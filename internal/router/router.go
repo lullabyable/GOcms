@@ -7,15 +7,11 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 	"gocms/internal/handler/admin"
 	"gocms/internal/handler/api"
 	"gocms/internal/handler/frontend"
 	"gocms/internal/middleware"
 	"gocms/internal/model"
-	"gocms/internal/session"
-	"gocms/internal/template"
 	"gocms/internal/service/aicontent"
 	"gocms/internal/service/analytics"
 	"gocms/internal/service/chat"
@@ -23,6 +19,10 @@ import (
 	"gocms/internal/service/plugin"
 	"gocms/internal/service/scheduler"
 	"gocms/internal/service/urlpush"
+	"gocms/internal/session"
+	"gocms/internal/template"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 // Setup 注册所有路由
@@ -55,6 +55,10 @@ func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB, tplEngine *template
 		})
 		return
 	}
+
+	// 业务路由通用防护
+	app.Use(middleware.SecurityHeaders())
+	app.Use(middleware.RateLimitMiddleware(100, time.Minute))
 
 	// Phase 4 服务
 	analyticsSvc := analytics.NewService(db)
@@ -389,14 +393,10 @@ func setupFrontend(app *fiber.App, db *gorm.DB, sm *session.Manager,
 	chatH := frontend.NewChatHandler(chatSvc)
 	danmaku := frontend.NewDanmakuHandler(db)
 
-	// 安全中间件
-	app.Use(middleware.SecurityHeaders())
-	app.Use(middleware.RateLimitMiddleware(100, 60)) // 每分钟100次
-
 	// 访问记录中间件
 	app.Use(func(c *fiber.Ctx) error {
 		err := c.Next()
-		go analyticsSvc.RecordVisit(c.Path(), c.IP(), c.Get("User-Agent"), c.Get("Referer"))
+		analyticsSvc.RecordVisitAsync(c.Path(), c.IP(), c.Get("User-Agent"), c.Get("Referer"))
 		return err
 	})
 
@@ -467,4 +467,3 @@ func setupFrontend(app *fiber.App, db *gorm.DB, sm *session.Manager,
 		return c.Status(404).JSON(fiber.Map{"code": 404, "msg": "页面不存在"})
 	})
 }
-

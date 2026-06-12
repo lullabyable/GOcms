@@ -4,17 +4,21 @@ import (
 	"fmt"
 	"time"
 
-	"gorm.io/gorm"
 	"gocms/internal/model"
+	"gorm.io/gorm"
 )
 
 // Service 数据分析服务
 type Service struct {
-	db *gorm.DB
+	db       *gorm.DB
+	visitSem chan struct{}
 }
 
 func NewService(db *gorm.DB) *Service {
-	return &Service{db: db}
+	return &Service{
+		db:       db,
+		visitSem: make(chan struct{}, 64),
+	}
 }
 
 // RecordVisit 记录访问
@@ -42,19 +46,33 @@ func (s *Service) RecordVisit(url, ip, userAgent, referer string) {
 	s.db.Create(&visit)
 }
 
+// RecordVisitAsync records a visit without allowing request bursts to spawn
+// unbounded goroutines and database writes.
+func (s *Service) RecordVisitAsync(url, ip, userAgent, referer string) {
+	select {
+	case s.visitSem <- struct{}{}:
+		go func() {
+			defer func() { <-s.visitSem }()
+			s.RecordVisit(url, ip, userAgent, referer)
+		}()
+	default:
+		// Drop analytics under load. Serving the request is more important.
+	}
+}
+
 // Dashboard 仪表盘数据
 type Dashboard struct {
-	TodayPV      int64            `json:"today_pv"`
-	TodayUV      int64            `json:"today_uv"`
-	TodayIP      int64            `json:"today_ip"`
-	TotalPV      int64            `json:"total_pv"`
-	TotalVod     int64            `json:"total_vod"`
-	TotalArt     int64            `json:"total_art"`
-	TotalUser    int64            `json:"total_user"`
-	WeekTrend    []DayStat        `json:"week_trend"`
-	TopVods      []TopItem        `json:"top_vods"`
-	TopArts      []TopItem        `json:"top_arts"`
-	Sources      []SourceStat     `json:"sources"`
+	TodayPV   int64        `json:"today_pv"`
+	TodayUV   int64        `json:"today_uv"`
+	TodayIP   int64        `json:"today_ip"`
+	TotalPV   int64        `json:"total_pv"`
+	TotalVod  int64        `json:"total_vod"`
+	TotalArt  int64        `json:"total_art"`
+	TotalUser int64        `json:"total_user"`
+	WeekTrend []DayStat    `json:"week_trend"`
+	TopVods   []TopItem    `json:"top_vods"`
+	TopArts   []TopItem    `json:"top_arts"`
+	Sources   []SourceStat `json:"sources"`
 }
 
 // DayStat 每日统计
