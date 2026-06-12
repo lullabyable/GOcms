@@ -5,9 +5,10 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 	"gocms/internal/model"
 	"gocms/internal/session"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type UserHandler struct {
@@ -19,26 +20,29 @@ func NewUserHandler(db *gorm.DB, sm *session.Manager) *UserHandler {
 	return &UserHandler{db: db, sm: sm}
 }
 
-// Register 注册
 func (h *UserHandler) Register(c *fiber.Ctx) error {
 	name := c.FormValue("user_name")
 	pwd := c.FormValue("user_pwd")
 	email := c.FormValue("user_email")
 
 	if name == "" || pwd == "" {
-		return c.JSON(fiber.Map{"code": 0, "msg": "用户名和密码不能为空"})
+		return c.JSON(fiber.Map{"code": 0, "msg": "username and password are required"})
 	}
 
-	// 检查重复
 	var count int64
 	h.db.Model(&model.User{}).Where("user_name = ?", name).Count(&count)
 	if count > 0 {
-		return c.JSON(fiber.Map{"code": 0, "msg": "用户名已存在"})
+		return c.JSON(fiber.Map{"code": 0, "msg": "username already exists"})
+	}
+
+	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"code": 0, "msg": "registration failed"})
 	}
 
 	user := model.User{
 		UserName:    name,
-		UserPwd:     pwd, // TODO: bcrypt 加密
+		UserPwd:     string(hashedPwd),
 		UserEmail:   email,
 		UserStatus:  1,
 		UserRegTime: time.Now().Unix(),
@@ -46,23 +50,31 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 	}
 	h.db.Create(&user)
 
-	return c.JSON(fiber.Map{"code": 1, "msg": "注册成功"})
+	return c.JSON(fiber.Map{"code": 1, "msg": "registration successful"})
 }
 
-// Login 登录
 func (h *UserHandler) Login(c *fiber.Ctx) error {
 	name := c.FormValue("user_name")
 	pwd := c.FormValue("user_pwd")
 
 	var user model.User
-	if err := h.db.Where("user_name = ? AND user_pwd = ?", name, pwd).First(&user).Error; err != nil {
-		return c.JSON(fiber.Map{"code": 0, "msg": "用户名或密码错误"})
+	if err := h.db.Where("user_name = ?", name).First(&user).Error; err != nil {
+		return c.JSON(fiber.Map{"code": 0, "msg": "invalid username or password"})
+	}
+	if !validPassword(user.UserPwd, pwd) {
+		return c.JSON(fiber.Map{"code": 0, "msg": "invalid username or password"})
 	}
 	if user.UserStatus != 1 {
-		return c.JSON(fiber.Map{"code": 0, "msg": "账号已被禁用"})
+		return c.JSON(fiber.Map{"code": 0, "msg": "account disabled"})
 	}
 
-	sess := h.sm.Get(c)
+	if needsPasswordUpgrade(user.UserPwd) {
+		if hashedPwd, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost); err == nil {
+			h.db.Model(&user).Update("user_pwd", string(hashedPwd))
+		}
+	}
+
+	sess := h.sm.Regenerate(c)
 	sess.Set("user_id", strconv.Itoa(user.UserID))
 	sess.Set("user_name", user.UserName)
 
@@ -72,15 +84,26 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 		"user_login_num":  gorm.Expr("user_login_num + 1"),
 	})
 
-	return c.JSON(fiber.Map{"code": 1, "msg": "登录成功"})
+	return c.JSON(fiber.Map{"code": 1, "msg": "login successful"})
 }
 
-// Info 用户信息
+func validPassword(stored, supplied string) bool {
+	if err := bcrypt.CompareHashAndPassword([]byte(stored), []byte(supplied)); err == nil {
+		return true
+	}
+	return stored == supplied
+}
+
+func needsPasswordUpgrade(stored string) bool {
+	_, err := bcrypt.Cost([]byte(stored))
+	return err != nil
+}
+
 func (h *UserHandler) Info(c *fiber.Ctx) error {
 	sess := h.sm.Get(c)
 	uid := sess.Get("user_id")
 	if uid == "" {
-		return c.Status(401).JSON(fiber.Map{"code": 0, "msg": "未登录"})
+		return c.Status(401).JSON(fiber.Map{"code": 0, "msg": "not logged in"})
 	}
 
 	var user model.User
@@ -88,8 +111,7 @@ func (h *UserHandler) Info(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"code": 1, "data": user})
 }
 
-// Logout 登出
 func (h *UserHandler) Logout(c *fiber.Ctx) error {
 	h.sm.Destroy(c)
-	return c.JSON(fiber.Map{"code": 1, "msg": "已退出"})
+	return c.JSON(fiber.Map{"code": 1, "msg": "logout successful"})
 }

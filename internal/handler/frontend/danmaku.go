@@ -3,6 +3,7 @@ package frontend
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"log"
 	"strconv"
 	"sync"
@@ -10,8 +11,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
-	"gorm.io/gorm"
 	"gocms/internal/model"
+	"gorm.io/gorm"
 )
 
 // DanmakuHandler 弹幕处理器
@@ -163,6 +164,7 @@ func (h *DanmakuHandler) WebSocket(c *websocket.Conn) {
 		if dm.Color == "" {
 			dm.Color = "#ffffff"
 		}
+		dm.Content = html.EscapeString(dm.Content)
 		dm.VodID = vodID
 		dm.Created = time.Now().Unix()
 
@@ -221,7 +223,7 @@ func (h *DanmakuHandler) Send(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"code": 0, "msg": "无效的视频ID"})
 	}
 
-	content := c.FormValue("content")
+	content := html.EscapeString(c.FormValue("content"))
 	if content == "" {
 		return c.JSON(fiber.Map{"code": 0, "msg": "弹幕内容不能为空"})
 	}

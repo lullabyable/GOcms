@@ -1,12 +1,12 @@
 package admin
 
 import (
+	"html"
 	"strconv"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 	"gocms/internal/model"
+	"gorm.io/gorm"
 )
 
 type CommentHandler struct{ db *gorm.DB }
@@ -35,16 +35,18 @@ func (h *CommentHandler) Audit(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
 	status, _ := strconv.Atoi(c.FormValue("status"))
 	h.db.Model(&model.Comment{}).Where("comment_id = ?", id).Update("comment_status", status)
-	return c.JSON(fiber.Map{"code": 1, "msg": "操作成功"})
+	return c.JSON(fiber.Map{"code": 1, "msg": "operation successful"})
 }
 
 func (h *CommentHandler) Delete(c *fiber.Ctx) error {
-	ids := c.Query("ids")
-	h.db.Delete(&model.Comment{}, "comment_id IN ?", strings.Split(ids, ","))
-	return c.JSON(fiber.Map{"code": 1, "msg": "删除成功"})
+	idList := parseIDList(c.Query("ids"))
+	if len(idList) == 0 {
+		return c.JSON(fiber.Map{"code": 0, "msg": "invalid ids"})
+	}
+	h.db.Delete(&model.Comment{}, "comment_id IN ?", idList)
+	return c.JSON(fiber.Map{"code": 1, "msg": "delete successful"})
 }
 
-// GbookHandler 留言管理
 type GbookHandler struct{ db *gorm.DB }
 
 func NewGbookHandler(db *gorm.DB) *GbookHandler { return &GbookHandler{db: db} }
@@ -63,17 +65,20 @@ func (h *GbookHandler) List(c *fiber.Ctx) error {
 
 func (h *GbookHandler) Reply(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
-	reply := c.FormValue("reply")
+	reply := html.EscapeString(c.FormValue("reply"))
 	h.db.Model(&model.Gbook{}).Where("gbook_id = ?", id).Updates(map[string]interface{}{
 		"gbook_reply":      reply,
 		"gbook_status":     1,
 		"gbook_reply_time": 0, // TODO: time.Now().Unix()
 	})
-	return c.JSON(fiber.Map{"code": 1, "msg": "回复成功"})
+	return c.JSON(fiber.Map{"code": 1, "msg": "reply successful"})
 }
 
 func (h *GbookHandler) Delete(c *fiber.Ctx) error {
-	ids := c.Query("ids")
-	h.db.Delete(&model.Gbook{}, "gbook_id IN ?", strings.Split(ids, ","))
-	return c.JSON(fiber.Map{"code": 1, "msg": "删除成功"})
+	idList := parseIDList(c.Query("ids"))
+	if len(idList) == 0 {
+		return c.JSON(fiber.Map{"code": 0, "msg": "invalid ids"})
+	}
+	h.db.Delete(&model.Gbook{}, "gbook_id IN ?", idList)
+	return c.JSON(fiber.Map{"code": 1, "msg": "delete successful"})
 }

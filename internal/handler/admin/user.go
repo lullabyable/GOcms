@@ -2,11 +2,11 @@ package admin
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 	"gocms/internal/model"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type UserHandler struct{ db *gorm.DB }
@@ -43,6 +43,13 @@ func (h *UserHandler) Save(c *fiber.Ctx) error {
 	if user.UserID > 0 {
 		h.db.Model(&user).Omit("user_pwd").Updates(user)
 	} else {
+		if user.UserPwd != "" {
+			hashedPwd, err := bcrypt.GenerateFromPassword([]byte(user.UserPwd), bcrypt.DefaultCost)
+			if err != nil {
+				return c.Status(500).JSON(fiber.Map{"code": 0, "msg": "save failed"})
+			}
+			user.UserPwd = string(hashedPwd)
+		}
 		h.db.Create(&user)
 	}
 	return c.JSON(fiber.Map{"code": 1, "msg": "保存成功"})
@@ -53,7 +60,11 @@ func (h *UserHandler) Delete(c *fiber.Ctx) error {
 	if ids == "" {
 		return c.JSON(fiber.Map{"code": 0, "msg": "缺少参数 ids"})
 	}
-	h.db.Delete(&model.User{}, "user_id IN ?", strings.Split(ids, ","))
+	idList := parseIDList(ids)
+	if len(idList) == 0 {
+		return c.JSON(fiber.Map{"code": 0, "msg": "invalid ids"})
+	}
+	h.db.Delete(&model.User{}, "user_id IN ?", idList)
 	return c.JSON(fiber.Map{"code": 1, "msg": "删除成功"})
 }
 

@@ -2,13 +2,14 @@ package chat
 
 import (
 	"encoding/json"
+	"html"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/gofiber/websocket/v2"
-	"gorm.io/gorm"
 	"gocms/internal/model"
+	"gorm.io/gorm"
 )
 
 // Message 聊天消息
@@ -24,9 +25,9 @@ type Message struct {
 
 // Room 聊天室
 type Room struct {
-	RoomID  int
-	clients map[*websocket.Conn]*ClientInfo
-	mu      sync.RWMutex
+	RoomID    int
+	clients   map[*websocket.Conn]*ClientInfo
+	mu        sync.RWMutex
 	broadcast chan *Message
 }
 
@@ -164,6 +165,7 @@ func (s *Service) HandleWebSocket(c *websocket.Conn) {
 		chatMsg.RoomID = roomID
 		chatMsg.UserID = userID
 		chatMsg.UserName = userName
+		chatMsg.Content = html.EscapeString(chatMsg.Content)
 		chatMsg.MsgType = 0
 		chatMsg.CreatedAt = time.Now().Unix()
 

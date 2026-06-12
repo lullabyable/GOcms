@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 	"gocms/internal/model"
+	"gorm.io/gorm"
 )
 
 // ProvideHandler 资源站API（供其他站采集）
@@ -110,7 +110,10 @@ func (h *ProvideHandler) handleDetail(c *fiber.Ctx, output string) error {
 		return h.outputResult(c, output, fiber.Map{"code": 0, "msg": "缺少ids参数"})
 	}
 
-	idList := strings.Split(ids, ",")
+	idList := parseIDList(ids)
+	if len(idList) == 0 {
+		return h.outputResult(c, output, fiber.Map{"code": 0, "msg": "invalid ids"})
+	}
 	var vods []model.Vod
 	h.db.Where("vod_id IN ? AND vod_status = 1", idList).Find(&vods)
 
@@ -126,6 +129,18 @@ func (h *ProvideHandler) handleDetail(c *fiber.Ctx, output string) error {
 	}
 
 	return h.outputResult(c, output, result)
+}
+
+func parseIDList(raw string) []int {
+	parts := strings.Split(raw, ",")
+	ids := make([]int, 0, len(parts))
+	for _, part := range parts {
+		id, err := strconv.Atoi(strings.TrimSpace(part))
+		if err == nil && id > 0 {
+			ids = append(ids, id)
+		}
+	}
+	return ids
 }
 
 // cmsVideoOutput CMS视频输出格式

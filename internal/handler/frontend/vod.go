@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 	"gocms/internal/model"
 	"gocms/internal/template"
+	"gorm.io/gorm"
 )
 
 type VodHandler struct {
-	db       *gorm.DB
+	db        *gorm.DB
 	tplEngine *template.Engine
 }
 
@@ -215,6 +215,14 @@ func (h *VodHandler) Show(c *fiber.Ctx) error {
 	lang := c.Query("lang", "")
 	order := c.Query("order", "vod_time")
 	pageSize := 20
+	allowedOrders := map[string]bool{
+		"vod_time": true,
+		"vod_hits": true,
+		"vod_id":   true,
+	}
+	if !allowedOrders[order] {
+		order = "vod_time"
+	}
 
 	query := h.db.Where("vod_status = 1")
 	if typeID > 0 {

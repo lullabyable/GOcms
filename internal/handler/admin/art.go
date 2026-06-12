@@ -2,12 +2,11 @@ package admin
 
 import (
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 	"gocms/internal/model"
+	"gorm.io/gorm"
 )
 
 type ArtHandler struct{ db *gorm.DB }
@@ -65,6 +64,10 @@ func (h *ArtHandler) Delete(c *fiber.Ctx) error {
 	if ids == "" {
 		return c.JSON(fiber.Map{"code": 0, "msg": "缺少参数 ids"})
 	}
-	h.db.Delete(&model.Art{}, "art_id IN ?", strings.Split(ids, ","))
+	idList := parseIDList(ids)
+	if len(idList) == 0 {
+		return c.JSON(fiber.Map{"code": 0, "msg": "invalid ids"})
+	}
+	h.db.Delete(&model.Art{}, "art_id IN ?", idList)
 	return c.JSON(fiber.Map{"code": 1, "msg": "删除成功"})
 }

@@ -1,17 +1,18 @@
 package frontend
 
 import (
+	"html"
 	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 	"gocms/internal/model"
 	"gocms/internal/template"
+	"gorm.io/gorm"
 )
 
 type GbookHandler struct {
-	db       *gorm.DB
+	db        *gorm.DB
 	tplEngine *template.Engine
 }
 
@@ -48,7 +49,7 @@ func (h *GbookHandler) Index(c *fiber.Ctx) error {
 
 // Submit 提交留言（API，保持JSON）
 func (h *GbookHandler) Submit(c *fiber.Ctx) error {
-	content := c.FormValue("content")
+	content := html.EscapeString(c.FormValue("content"))
 	if content == "" {
 		return c.JSON(fiber.Map{"code": 0, "msg": "留言内容不能为空"})
 	}
