@@ -67,7 +67,7 @@ func main() {
 		db.AutoMigrate(&model.LoginBan{})
 
 		// 检查是否已安装
-		if db.Migrator().HasTable("mac_admin") {
+		if _, err := os.Stat("config/install.lock"); err == nil {
 			installH.SetInstalled(true)
 		}
 	}

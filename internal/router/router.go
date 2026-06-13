@@ -49,7 +49,19 @@ func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB, tplEngine *template
 		// 注册兜底：访问 / 且已安装时提示重启
 		app.Get("/", func(c *fiber.Ctx) error {
 			if installH.IsInstalled() {
-				return c.JSON(fiber.Map{"code": 1, "msg": "已安装成功，请重启服务以加载完整功能"})
+				c.Set("Content-Type", "text/html; charset=utf-8")
+				return c.SendString(`<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>已安装 - GoCMS</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f2f5;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:48px;text-align:center;max-width:420px}
+.icon{font-size:48px;margin-bottom:16px}h2{font-size:20px;color:#1a1a1a;margin-bottom:8px}p{color:#888;font-size:14px;margin-bottom:24px}
+a{display:inline-block;padding:10px 32px;background:#4f46e5;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;transition:background .2s}
+a:hover{background:#4338ca}
+</style></head><body>
+<div class="card"><div class="icon">🔄</div><h2>安装完成</h2><p>数据库已初始化，请重启服务以加载完整功能。</p>
+</div></body></html>`)
 			}
 			return c.Redirect("/install")
 		})

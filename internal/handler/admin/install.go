@@ -3,16 +3,18 @@ package admin
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/yaml.v3"
 	"gorm.io/driver/mysql"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	"gocms/internal/database"
 )
+
+const installLockFile = "config/install.lock"
 
 type InstallHandler struct {
 	installed bool
@@ -25,10 +27,9 @@ func NewInstallHandler() *InstallHandler {
 	return h
 }
 
-// checkPersistent 持久化安装检测：config.yaml 存在即视为已安装
-// 防止删除 config.yaml + 重启后绕过安装检查
+// checkPersistent 持久化安装检测：install.lock 存在即视为已安装
 func (h *InstallHandler) checkPersistent() {
-	if _, err := os.Stat("config/config.yaml"); err == nil {
+	if _, err := os.Stat(installLockFile); err == nil {
 		h.installed = true
 	}
 }
@@ -58,7 +59,19 @@ func (h *InstallHandler) IsInstalled() bool {
 // Page 安装页面
 func (h *InstallHandler) Page(c *fiber.Ctx) error {
 	if h.installed {
-		return c.JSON(fiber.Map{"code": 1, "msg": "已安装"})
+		c.Set("Content-Type", "text/html; charset=utf-8")
+		return c.SendString(`<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>已安装 - GoCMS</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f2f5;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:48px;text-align:center;max-width:420px}
+.icon{font-size:48px;margin-bottom:16px}h2{font-size:20px;color:#1a1a1a;margin-bottom:8px}p{color:#888;font-size:14px;margin-bottom:24px}
+a{display:inline-block;padding:10px 32px;background:#4f46e5;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;transition:background .2s}
+a:hover{background:#4338ca}
+</style></head><body>
+<div class="card"><div class="icon">✅</div><h2>系统已安装</h2><p>GoCMS 已完成安装，无需重复操作。</p><a href="/">返回首页</a>
+</div></body></html>`)
 	}
 
 	html := `<!DOCTYPE html>
@@ -101,15 +114,6 @@ input:focus,select:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px 
 <div class="section-title">数据库配置</div>
 
 <div class="form-group">
-<label>数据库类型</label>
-<select id="driver" name="driver" onchange="toggleDriver()">
-<option value="mysql">MySQL</option>
-<option value="sqlite">SQLite (无需安装)</option>
-</select>
-</div>
-
-<div id="mysqlFields">
-<div class="form-group">
 <label>数据库地址</label>
 <input type="text" id="host" name="host" value="127.0.0.1" placeholder="127.0.0.1">
 </div>
@@ -131,7 +135,6 @@ input:focus,select:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px 
 <div class="form-group">
 <label>密码</label>
 <input type="password" id="password" name="password" placeholder="数据库密码">
-</div>
 </div>
 </div>
 
@@ -161,24 +164,18 @@ input:focus,select:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px 
 </div>
 
 <script>
-function toggleDriver(){
-var d=document.getElementById('driver').value;
-document.getElementById('mysqlFields').style.display=d==='mysql'?'block':'none';
-}
 function showMsg(type,text){
 var m=document.getElementById('msg');
 m.className='msg '+type;m.textContent=text;m.style.display='block';
 }
 function testDB(){
-var driver=document.getElementById('driver').value;
-var data={driver:driver};
-if(driver==='mysql'){
-data.host=document.getElementById('host').value;
-data.port=document.getElementById('port').value;
-data.user=document.getElementById('user').value;
-data.password=document.getElementById('password').value;
-data.database=document.getElementById('database').value;
-}
+var data={driver:'mysql',
+host:document.getElementById('host').value,
+port:document.getElementById('port').value,
+user:document.getElementById('user').value,
+password:document.getElementById('password').value,
+database:document.getElementById('database').value
+};
 fetch('/install/test-db',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
 .then(r=>r.json()).then(d=>{
 if(d.code===1)showMsg('success','✅ 数据库连接成功！');
@@ -191,15 +188,14 @@ var pwd=document.getElementById('admin_pwd').value;
 var pwd2=document.getElementById('admin_pwd2').value;
 if(pwd!==pwd2){showMsg('error','两次密码不一致');return;}
 if(pwd.length<6){showMsg('error','密码至少6位');return;}
-var driver=document.getElementById('driver').value;
-var data={driver:driver,admin_user:document.getElementById('admin_user').value,admin_pwd:pwd};
-if(driver==='mysql'){
-data.host=document.getElementById('host').value;
-data.port=document.getElementById('port').value;
-data.user=document.getElementById('user').value;
-data.password=document.getElementById('password').value;
-data.database=document.getElementById('database').value;
-}
+var data={driver:'mysql',
+admin_user:document.getElementById('admin_user').value,admin_pwd:pwd,
+host:document.getElementById('host').value,
+port:document.getElementById('port').value,
+user:document.getElementById('user').value,
+password:document.getElementById('password').value,
+database:document.getElementById('database').value
+};
 fetch('/install/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
 .then(r=>r.json()).then(d=>{
 if(d.code===1){showMsg('success','✅ 安装成功！3秒后跳转...');setTimeout(()=>location.href='/',3000);}
@@ -228,19 +224,9 @@ func (h *InstallHandler) TestDB(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"code": 0, "msg": "参数错误"})
 	}
 
-	var dialector gorm.Dialector
-	switch req.Driver {
-	case "sqlite":
-		dialector = sqlite.Open("./runtime/gocms.db")
-	case "mysql":
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-			req.User, req.Password, req.Host, req.Port, req.Database)
-		dialector = mysql.Open(dsn)
-	default:
-		return c.JSON(fiber.Map{"code": 0, "msg": "不支持的数据库类型"})
-	}
-
-	db, err := gorm.Open(dialector, &gorm.Config{})
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		req.User, req.Password, req.Host, req.Port, req.Database)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("连接失败: %v", err)})
 	}
@@ -257,7 +243,7 @@ func (h *InstallHandler) TestDB(c *fiber.Ctx) error {
 // Submit 执行安装
 func (h *InstallHandler) Submit(c *fiber.Ctx) error {
 	if h.installed {
-		return c.JSON(fiber.Map{"code": 0, "msg": "已安装，如需重新安装请删除 config/config.yaml"})
+		return c.JSON(fiber.Map{"code": 0, "msg": "已安装，如需重新安装请删除 config/install.lock"})
 	}
 
 	var req struct {
@@ -283,19 +269,9 @@ func (h *InstallHandler) Submit(c *fiber.Ctx) error {
 	}
 
 	// 1. 连接数据库
-	var dialector gorm.Dialector
-	switch req.Driver {
-	case "sqlite":
-		dialector = sqlite.Open("./runtime/gocms.db")
-	case "mysql":
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-			req.User, req.Password, req.Host, req.Port, req.Database)
-		dialector = mysql.Open(dsn)
-	default:
-		return c.JSON(fiber.Map{"code": 0, "msg": "不支持的数据库类型"})
-	}
-
-	db, err := gorm.Open(dialector, &gorm.Config{})
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		req.User, req.Password, req.Host, req.Port, req.Database)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("数据库连接失败: %v", err)})
 	}
@@ -315,12 +291,7 @@ func (h *InstallHandler) Submit(c *fiber.Ctx) error {
 	result := db.Exec("INSERT INTO mac_admin (admin_name, admin_pwd, admin_status, admin_role) VALUES (?, ?, 1, 1) ON DUPLICATE KEY UPDATE admin_pwd = VALUES(admin_pwd)",
 		req.AdminUser, string(hashedPwd))
 	if result.Error != nil {
-		// SQLite 不支持 ON DUPLICATE KEY，用 INSERT OR REPLACE
-		result = db.Exec("INSERT OR REPLACE INTO mac_admin (admin_name, admin_pwd, admin_status, admin_role) VALUES (?, ?, 1, 1)",
-			req.AdminUser, string(hashedPwd))
-		if result.Error != nil {
-			return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("创建管理员失败: %v", result.Error)})
-		}
+		return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("创建管理员失败: %v", result.Error)})
 	}
 
 	// 4. 写入配置文件
@@ -383,6 +354,12 @@ func (h *InstallHandler) Submit(c *fiber.Ctx) error {
 
 	if err := os.WriteFile("config/config.yaml", yamlData, 0644); err != nil {
 		return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("写入配置失败: %v", err)})
+	}
+
+	// 创建 install.lock 标记安装完成
+	os.MkdirAll(filepath.Dir(installLockFile), 0755)
+	if err := os.WriteFile(installLockFile, []byte("installed"), 0644); err != nil {
+		return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("创建安装标记失败: %v", err)})
 	}
 
 	h.installed = true
