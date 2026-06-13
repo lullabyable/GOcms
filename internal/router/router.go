@@ -257,6 +257,7 @@ else{msg.className='msg err';msg.textContent='❌ '+d.msg;msg.style.display='blo
 
 	// --- 原有路由 ---
 	auth.Get("/dashboard", dashboard.Index)
+	auth.Get("/api/dashboard", dashboard.API) // SPA 纯 JSON 数据接口
 	auth.Get("/system/config", systemH.GetConfig)
 	auth.Post("/system/config/save", systemH.SaveConfig)
 	auth.Post("/system/cache/clear", systemH.CacheClear)

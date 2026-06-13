@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台</title>
+<style>
+:root {
+  --bg-primary: #141414;
+  --bg-secondary: #1f1f1f;
+  --bg-tertiary: #2a2a2a;
+  --bg-hover: #333;
+  --bg-active: #177ddc22;
+  --border: #333;
+  --border-light: #424242;
+  --text-primary: #e8e8e8;
+  --text-secondary: #999;
+  --text-muted: #666;
+  --accent: #177ddc;
+  --accent-hover: #1890ff;
+  --success: #52c41a;
+  --warning: #faad14;
+  --danger: #ff4d4f;
+  --sidebar-width: 240px;
+  --header-height: 56px;
+  --radius: 6px;
+  --shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif; background:var(--bg-primary); color:var(--text-primary); line-height:1.5; }
+a { color:var(--accent); text-decoration:none; }
+a:hover { color:var(--accent-hover); }
+button { cursor:pointer; font-family:inherit; }
+input,select,textarea { font-family:inherit; font-size:14px; }
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background:#555; border-radius:3px; }
+
+/* Login */
+.login-page { display:flex; align-items:center; justify-content:center; min-height:100vh; background:var(--bg-primary); }
+.login-box { background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; padding:40px; width:380px; }
+.login-box h1 { text-align:center; margin-bottom:32px; font-size:24px; color:var(--text-primary); }
+.login-box .form-group { margin-bottom:20px; }
+.login-box label { display:block; margin-bottom:6px; color:var(--text-secondary); font-size:14px; }
+.login-box input { width:100%; padding:10px 12px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius); color:var(--text-primary); outline:none; transition:border .2s; }
+.login-box input:focus { border-color:var(--accent); }
+.login-box .btn-login { width:100%; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-size:16px; font-weight:500; transition:background .2s; }
+.login-box .btn-login:hover { background:var(--accent-hover); }
+
+/* Layout */
+.app-layout { display:flex; min-height:100vh; }
+.sidebar { width:var(--sidebar-width); background:var(--bg-secondary); border-right:1px solid var(--border); position:fixed; top:0; left:0; bottom:0; overflow-y:auto; z-index:100; transition:width .3s; }
+.sidebar.collapsed { width:60px; }
+.sidebar-logo { height:var(--header-height); display:flex; align-items:center; padding:0 20px; border-bottom:1px solid var(--border); font-size:18px; font-weight:600; color:var(--accent); white-space:nowrap; overflow:hidden; }
+.sidebar-menu { padding:8px 0; }
+.menu-section { padding:8px 16px 4px; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); white-space:nowrap; overflow:hidden; }
+.menu-item { display:flex; align-items:center; padding:8px 16px; color:var(--text-secondary); cursor:pointer; transition:all .15s; white-space:nowrap; overflow:hidden; font-size:14px; }
+.menu-item:hover { background:var(--bg-hover); color:var(--text-primary); }
+.menu-item.active { background:var(--bg-active); color:var(--accent); border-right:3px solid var(--accent); }
+.menu-item .icon { width:20px; margin-right:10px; text-align:center; font-size:16px; flex-shrink:0; }
+.sidebar.collapsed .menu-section,
+.sidebar.collapsed .menu-item span { display:none; }
+.sidebar.collapsed .menu-item { justify-content:center; padding:8px 0; }
+.sidebar.collapsed .menu-item .icon { margin:0; }
+
+.main-area { margin-left:var(--sidebar-width); flex:1; display:flex; flex-direction:column; min-height:100vh; transition:margin .3s; }
+.sidebar.collapsed ~ .main-area { margin-left:60px; }
+.header { height:var(--header-height); background:var(--bg-secondary); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; position:sticky; top:0; z-index:50; }
+.header-left { display:flex; align-items:center; gap:12px; }
+.header-left .toggle-btn { background:none; border:none; color:var(--text-secondary); font-size:20px; padding:4px 8px; border-radius:4px; }
+.header-left .toggle-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
+.header-right { display:flex; align-items:center; gap:16px; }
+.header-right .admin-name { color:var(--text-secondary); font-size:14px; }
+.btn-logout { background:none; border:1px solid var(--border); color:var(--text-secondary); padding:4px 16px; border-radius:var(--radius); font-size:13px; transition:all .2s; }
+.btn-logout:hover { color:var(--danger); border-color:var(--danger); }
+
+.content { flex:1; padding:24px; }
+
+/* Cards */
+.card { background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:16px; }
+.card-title { font-size:16px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; }
+
+/* Stats */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-bottom:24px; }
+.stat-card { background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius); padding:20px; }
+.stat-card .stat-label { font-size:14px; color:var(--text-secondary); margin-bottom:8px; }
+.stat-card .stat-value { font-size:28px; font-weight:600; color:var(--accent); }
+.stat-card .stat-icon { float:right; font-size:32px; opacity:.3; }
+
+/* Tables */
+.table-wrapper { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th { background:var(--bg-tertiary); padding:12px 16px; text-align:left; font-weight:500; color:var(--text-secondary); border-bottom:1px solid var(--border); white-space:nowrap; position:sticky; top:0; }
+td { padding:12px 16px; border-bottom:1px solid var(--border); }
+tr:hover td { background:var(--bg-hover); }
+.status-badge { display:inline-block; padding:2px 10px; border-radius:10px; font-size:12px; }
+.status-badge.success { background:#52c41a22; color:var(--success); }
+.status-badge.warning { background:#faad1422; color:var(--warning); }
+.status-badge.danger { background:#ff4d4f22; color:var(--danger); }
+.status-badge.info { background:#177ddc22; color:var(--accent); }
+
+/* Buttons */
+.btn { display:inline-flex; align-items:center; gap:4px; padding:6px 16px; border-radius:var(--radius); font-size:14px; border:1px solid transparent; transition:all .2s; cursor:pointer; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:var(--accent-hover); }
+.btn-success { background:var(--success); color:#fff; }
+.btn-success:hover { opacity:.85; }
+.btn-danger { background:var(--danger); color:#fff; }
+.btn-danger:hover { opacity:.85; }
+.btn-outline { background:transparent; border-color:var(--border); color:var(--text-secondary); }
+.btn-outline:hover { border-color:var(--accent); color:var(--accent); }
+.btn-sm { padding:3px 10px; font-size:13px; }
+.btn-group { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* Forms */
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; margin-bottom:6px; font-size:14px; color:var(--text-secondary); }
+.form-control { width:100%; padding:8px 12px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius); color:var(--text-primary); outline:none; transition:border .2s; }
+.form-control:focus { border-color:var(--accent); }
+select.form-control { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:30px; }
+textarea.form-control { min-height:100px; resize:vertical; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+/* Toolbar */
+.toolbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+.toolbar .search-input { padding:6px 12px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:var(--radius); color:var(--text-primary); outline:none; min-width:220px; }
+.toolbar .search-input:focus { border-color:var(--accent); }
+
+/* Pagination */
+.pagination { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:16px; font-size:14px; color:var(--text-secondary); }
+.pagination button { background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); padding:4px 12px; border-radius:var(--radius); font-size:13px; }
+.pagination button:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+.pagination button:disabled { opacity:.4; cursor:default; }
+.pagination .page-info { margin:0 8px; }
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:1000; opacity:0; visibility:hidden; transition:all .2s; }
+.modal-overlay.active { opacity:1; visibility:visible; }
+.modal { background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; width:90%; max-width:640px; max-height:85vh; display:flex; flex-direction:column; transform:scale(.95); transition:transform .2s; }
+.modal-overlay.active .modal { transform:scale(1); }
+.modal-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.modal-header h3 { font-size:16px; }
+.modal-close { background:none; border:none; color:var(--text-muted); font-size:20px; padding:0 4px; }
+.modal-close:hover { color:var(--text-primary); }
+.modal-body { padding:20px; overflow-y:auto; flex:1; }
+.modal-footer { padding:12px 20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; flex-shrink:0; }
+
+/* Toast */
+.toast-container { position:fixed; top:20px; right:20px; z-index:2000; display:flex; flex-direction:column; gap:8px; }
+.toast { padding:12px 20px; border-radius:var(--radius); color:#fff; font-size:14px; animation:slideIn .3s; min-width:200px; box-shadow:var(--shadow); }
+.toast.success { background:var(--success); }
+.toast.error { background:var(--danger); }
+.toast.warning { background:var(--warning); color:#000; }
+@keyframes slideIn { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+
+/* Chart */
+.chart-container { padding:16px 0; }
+.chart-bar-group { display:flex; align-items:flex-end; gap:4px; height:180px; padding-top:10px; }
+.chart-bar-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.chart-bar { width:100%; max-width:40px; background:var(--accent); border-radius:3px 3px 0 0; transition:height .5s; min-height:2px; }
+.chart-bar:hover { background:var(--accent-hover); }
+.chart-label { font-size:10px; color:var(--text-muted); white-space:nowrap; }
+.chart-value { font-size:11px; color:var(--text-secondary); }
+.line-chart { position:relative; height:180px; border-left:1px solid var(--border); border-bottom:1px solid var(--border); margin:16px 0; }
+.line-chart svg { width:100%; height:100%; }
+
+/* Checkbox */
+.checkbox-wrapper { display:flex; align-items:center; gap:8px; cursor:pointer; }
+.checkbox-wrapper input[type="checkbox"] { width:16px; height:16px; accent-color:var(--accent); }
+
+/* Tag */
+.tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:12px; margin:2px; }
+.tag-blue { background:#177ddc22; color:var(--accent); }
+.tag-green { background:#52c41a22; color:var(--success); }
+.tag-red { background:#ff4d4f22; color:var(--danger); }
+
+/* Responsive */
+@media (max-width:768px) {
+  .sidebar { width:0; }
+  .sidebar.collapsed { width:0; }
+  .main-area { margin-left:0; }
+  .form-row { grid-template-columns:1fr; }
+  .stats-grid { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast-container" id="toasts"></div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalTitle">标题</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<script>
+// ========== UTILS ==========
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+function toast(msg, type='success') {
+  const c = $('#toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+function openModal(title, bodyHTML, footerHTML) {
+  $('#modalTitle').textContent = title;
+  $('#modalBody').innerHTML = bodyHTML;
+  $('#modalFooter').innerHTML = footerHTML || '';
+  $('#modalOverlay').classList.add('active');
+}
+function closeModal() { $('#modalOverlay').classList.remove('active'); }
+$('#modalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+// ========== API ==========
+async function api(method, url, body) {
+  const opts = { method, headers: {}, credentials: 'same-origin' };
+  if (body instanceof FormData) {
+    opts.body = body;
+  } else if (body && typeof body === 'object') {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  try {
+    const res = await fetch(url, opts);
+    if (res.status === 401) { location.hash = '#/login'; return null; }
+    const json = await res.json();
+    if (json.code !== 1 && json.code !== 0) {
+      toast(json.msg || '请求失败', 'error');
+    }
+    return json;
+  } catch (e) {
+    toast('网络错误', 'error');
+    return null;
+  }
+}
+const GET = url => api('GET', url);
+const POST = (url, body) => api('POST', url, body);
+
+// ========== STATE ==========
+let state = { adminName: 'admin', sidebarCollapsed: false };
+const menuItems = [
+  { section: '概览' },
+  { name: '仪表盘', icon: '📊', hash: '#/dashboard' },
+  { section: '内容管理' },
+  { name: '分类管理', icon: '📁', hash: '#/type/list' },
+  { name: '视频管理', icon: '🎬', hash: '#/vod/list' },
+  { name: '文章管理', icon: '📝', hash: '#/art/list' },
+  { name: '漫画管理', icon: '📖', hash: '#/manga/list' },
+  { name: '演员管理', icon: '🎭', hash: '#/actor/list' },
+  { name: '角色管理', icon: '👤', hash: '#/role/list' },
+  { name: '专题管理', icon: '📌', hash: '#/topic/list' },
+  { section: '用户管理' },
+  { name: '会员管理', icon: '👥', hash: '#/user/list' },
+  { name: '管理员', icon: '🛡️', hash: '#/admin/list' },
+  { section: '互动' },
+  { name: '评论管理', icon: '💬', hash: '#/comment/list' },
+  { name: '留言管理', icon: '📋', hash: '#/gbook/list' },
+  { name: '弹幕管理', icon: '🗯️', hash: '#/danmaku/list' },
+  { section: '数据分析' },
+  { name: '流量分析', icon: '📈', hash: '#/analytics/dashboard' },
+  { name: '访问记录', icon: '🔍', hash: '#/analytics/visits' },
+  { section: '运营' },
+  { name: '订单管理', icon: '💰', hash: '#/order/list' },
+  { name: '直播管理', icon: '📡', hash: '#/live/list' },
+  { name: '聊天管理', icon: '🗨️', hash: '#/chat/rooms' },
+  { name: 'AI内容', icon: '🤖', hash: '#/ai/content' },
+  { section: '系统' },
+  { name: '系统配置', icon: '⚙️', hash: '#/system/config' },
+  { name: '定时任务', icon: '⏰', hash: '#/timming/list' },
+  { name: '插件管理', icon: '🧩', hash: '#/plugin/list' },
+  { name: 'URL推送', icon: '🚀', hash: '#/urlsend/config' },
+];
+
+// ========== RENDER HELPERS ==========
+function renderSidebar() {
+  let html = '';
+  menuItems.forEach(item => {
+    if (item.section) {
+      html += `<div class="menu-section">${item.section}</div>`;
+    } else {
+      const active = location.hash === item.hash || location.hash.startsWith(item.hash + '/') ? 'active' : '';
+      html += `<div class="menu-item ${active}" onclick="location.hash='${item.hash}'"><span class="icon">${item.icon}</span><span>${item.name}</span></div>`;
+    }
+  });
+  return html;
+}
+
+function layout(title, content) {
+  return `
+    <div class="app-layout">
+      <div class="sidebar ${state.sidebarCollapsed ? 'collapsed' : ''}" id="sidebar">
+        <div class="sidebar-logo">⚡ CMS管理后台</div>
+        <div class="sidebar-menu">${renderSidebar()}</div>
+      </div>
+      <div class="main-area">
+        <div class="header">
+          <div class="header-left">
+            <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+            <span style="font-size:16px;font-weight:500">${title}</span>
+          </div>
+          <div class="header-right">
+            <span class="admin-name">👤 ${escHtml(state.adminName)}</span>
+            <button class="btn-logout" onclick="doLogout()">退出登录</button>
+          </div>
+        </div>
+        <div class="content">${content}</div>
+      </div>
+    </div>`;
+}
+
+function escHtml(s) { if (s == null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderTable(headers, rows, opts={}) {
+  let h = '<div class="table-wrapper"><table><thead><tr>';
+  if (opts.selectable) h += '<th style="width:40px"><input type="checkbox" onchange="toggleAllCheck(this)"></th>';
+  headers.forEach(th => { h += `<th>${th}</th>`; });
+  h += '</tr></thead><tbody>';
+  if (!rows || rows.length === 0) {
+    h += `<tr><td colspan="${headers.length + (opts.selectable?1:0)}" style="text-align:center;color:var(--text-muted);padding:40px">暂无数据</td></tr>`;
+  } else {
+    rows.forEach((row, i) => {
+      h += `<tr>`;
+      if (opts.selectable) h += `<td><input type="checkbox" class="row-check" value="${row._id || i}"></td>`;
+      row._cells.forEach(cell => { h += `<td>${cell}</td>`; });
+      h += '</tr>';
+    });
+  }
+  h += '</tbody></table></div>';
+  return h;
+}
+
+function paginationHTML(page, total, pageSize, onChange) {
+  const pages = Math.ceil(total / pageSize) || 1;
+  return `<div class="pagination">
+    <span class="page-info">共 ${total} 条</span>
+    <button ${page<=1?'disabled':''} onclick="${onChange}(${page-1})">上一页</button>
+    <span class="page-info">${page} / ${pages}</span>
+    <button ${page>=pages?'disabled':''} onclick="${onChange}(${page+1})">下一页</button>
+  </div>`;
+}
+
+function toggleSidebar() {
+  state.sidebarCollapsed = !state.sidebarCollapsed;
+  $('#sidebar').classList.toggle('collapsed');
+}
+
+function toggleAllCheck(el) {
+  $$('.row-check').forEach(c => c.checked = el.checked);
+}
+function getCheckedIds() {
+  return Array.from($$('.row-check:checked')).map(c => c.value);
+}
+
+async function doLogout() {
+  await POST('/admin/logout');
+  location.hash = '#/login';
+}
+
+// ========== CHARTS ==========
+function barChart(data, labelKey, valueKey, maxH=160) {
+  if (!data || !data.length) return '<div style="text-align:center;color:var(--text-muted);padding:40px">暂无数据</div>';
+  const max = Math.max(...data.map(d => d[valueKey] || 0), 1);
+  let html = '<div class="chart-bar-group">';
+  data.forEach(d => {
+    const h = Math.max(((d[valueKey] || 0) / max) * maxH, 2);
+    html += `<div class="chart-bar-item"><div class="chart-value">${d[valueKey]||0}</div><div class="chart-bar" style="height:${h}px" title="${d[labelKey]}: ${d[valueKey]}"></div><div class="chart-label">${escHtml(String(d[labelKey]).slice(-5))}</div></div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function lineChartSVG(data, labelKey, valueKey, w=600, h=180) {
+  if (!data || !data.length) return '<div style="text-align:center;color:var(--text-muted);padding:40px">暂无数据</div>';
+  const max = Math.max(...data.map(d => d[valueKey]||0), 1);
+  const pad = 30;
+  const cw = w - pad * 2;
+  const ch = h - pad * 2;
+  let points = '';
+  let circles = '';
+  data.forEach((d, i) => {
+    const x = pad + (i / (data.length - 1 || 1)) * cw;
+    const y = pad + ch - ((d[valueKey]||0) / max) * ch;
+    points += `${x},${y} `;
+    circles += `<circle cx="${x}" cy="${y}" r="3" fill="#177ddc"><title>${d[labelKey]}: ${d[valueKey]}</title></circle>`;
+  });
+  return `<div class="line-chart"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <polyline points="${points}" fill="none" stroke="#177ddc" stroke-width="2"/>
+    ${circles}
+  </svg></div>`;
+}
+
+// ========== ROUTER ==========
+const routes = {
+  '#/login': renderLogin,
+  '#/dashboard': renderDashboard,
+  '#/type/list': renderTypeList,
+  '#/vod/list': renderVodList,
+  '#/art/list': renderArtList,
+  '#/user/list': renderUserList,
+  '#/admin/list': renderAdminList,
+  '#/comment/list': renderCommentList,
+  '#/gbook/list': renderGbookList,
+  '#/analytics/dashboard': renderAnalyticsDashboard,
+  '#/analytics/visits': renderAnalyticsVisits,
+  '#/order/list': renderOrderList,
+  '#/live/list': renderLiveList,
+  '#/chat/rooms': renderChatRooms,
+  '#/ai/content': renderAIContent,
+  '#/system/config': renderSystemConfig,
+  '#/timming/list': renderTimmingList,
+  '#/plugin/list': renderPluginList,
+  '#/urlsend/config': renderUrlsendConfig,
+  '#/manga/list': renderPlaceholder('漫画管理'),
+  '#/actor/list': renderPlaceholder('演员管理'),
+  '#/role/list': renderPlaceholder('角色管理'),
+  '#/topic/list': renderPlaceholder('专题管理'),
+  '#/danmaku/list': renderPlaceholder('弹幕管理'),
+};
+
+function renderPlaceholder(name) {
+  return async () => {
+    $('#app').innerHTML = layout(name, `<div class="card"><div class="card-title">${name}</div><p style="color:var(--text-secondary)">功能开发中...</p></div>`);
+  };
+}
+
+async function router() {
+  const hash = location.hash || '#/dashboard';
+  if (hash === '#/login') { renderLogin(); return; }
+  const handler = routes[hash.split('?')[0]];
+  if (handler) { await handler(); }
+  else { renderNotFound(); }
+}
+window.addEventListener('hashchange', router);
+
+async function init() {
+  // Try to load admin info or just go to dashboard
+  location.hash = location.hash || '#/dashboard';
+  await router();
+}
+
+function renderNotFound() {
+  $('#app').innerHTML = layout('404', '<div class="card" style="text-align:center;padding:60px"><h2>404</h2><p style="color:var(--text-secondary)">页面不存在</p></div>');
+}
+
+// ========== LOGIN ==========
+function renderLogin() {
+  $('#app').innerHTML = `<div class="login-page"><div class="login-box">
+    <h1>⚡ CMS管理后台</h1>
+    <div class="form-group"><label>用户名</label><input type="text" id="loginUser" placeholder="请输入用户名" autofocus></div>
+    <div class="form-group"><label>密码</label><input type="password" id="loginPass" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-login" onclick="doLogin()">登 录</button>
+  </div></div>`;
+}
+async function doLogin() {
+  const user = $('#loginUser').value.trim();
+  const pass = $('#loginPass').value;
+  if (!user || !pass) { toast('请输入用户名和密码', 'warning'); return; }
+  const fd = new FormData();
+  fd.append('admin_name', user);
+  fd.append('admin_pwd', pass);
+  const res = await POST('/admin/login', fd);
+  if (res && res.code === 1) {
+    state.adminName = user;
+    toast('登录成功');
+    location.hash = '#/dashboard';
+  } else if (res) {
+    toast(res.msg || '登录失败', 'error');
+  }
+}
+
+// ========== DASHBOARD ==========
+async function renderDashboard() {
+  const res = await GET('/admin/dashboard');
+  const d = res && res.data ? res.data : {};
+  const content = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">🎬</div><div class="stat-label">视频总数</div><div class="stat-value">${d.vod_count||0}</div></div>
+      <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-label">文章总数</div><div class="stat-value">${d.art_count||0}</div></div>
+      <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-label">用户总数</div><div class="stat-value">${d.user_count||0}</div></div>
+      <div class="stat-card"><div class="stat-icon">🛡️</div><div class="stat-label">管理员数</div><div class="stat-value">${d.admin_count||0}</div></div>
+      <div class="stat-card"><div class="stat-icon">👁️</div><div class="stat-label">今日访问</div><div class="stat-value">${d.today_visits||0}</div></div>
+    </div>
+    <div class="card"><div class="card-title">快速操作</div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="location.hash='#/vod/list'">管理视频</button>
+        <button class="btn btn-primary" onclick="location.hash='#/art/list'">管理文章</button>
+        <button class="btn btn-outline" onclick="location.hash='#/system/config'">系统配置</button>
+        <button class="btn btn-outline" onclick="location.hash='#/analytics/dashboard'">数据分析</button>
+      </div>
+    </div>`;
+  $('#app').innerHTML = layout('仪表盘', content);
+}
+
+// ========== GENERIC LIST RENDERER ==========
+function listToolbar(opts={}) {
+  let html = '<div class="toolbar">';
+  if (opts.search !== false) {
+    html += `<input class="search-input" id="searchKeyword" placeholder="${opts.searchPlaceholder||'搜索...'}" onkeydown="if(event.key==='Enter')${opts.onSearch||'reloadList'}()">`;
+    html += `<button class="btn btn-primary btn-sm" onclick="${opts.onSearch||'reloadList'}()">搜索</button>`;
+  }
+  if (opts.filters) {
+    opts.filters.forEach(f => { html += f; });
+  }
+  if (opts.actions) {
+    opts.actions.forEach(a => { html += a; });
+  }
+  html += '</div>';
+  return html;
+}
+
+// ========== CATEGORIES (TYPE) ==========
+let typePage = { pid: -1 };
+async function renderTypeList() {
+  const res = await GET(`/admin/type/list?pid=${typePage.pid}`);
+  const list = res && res.data ? (Array.isArray(res.data) ? res.data : []) : [];
+  const rows = list.map(t => ({
+    _id: t.type_id,
+    _cells: [
+      t.type_id,
+      escHtml(t.type_name),
+      t.type_pid || 0,
+      t.type_sort || 0,
+      t.type_status === 1 ? '<span class="status-badge success">启用</span>' : '<span class="status-badge danger">禁用</span>',
+      `<button class="btn btn-outline btn-sm" onclick="editType(${t.type_id})">编辑</button>
+       <button class="btn btn-danger btn-sm" onclick="deleteType(${t.type_id})">删除</button>`
+    ]
+  }));
+  const content = listToolbar({
+    searchPlaceholder: '搜索分类...',
+    actions: [
+      `<button class="btn btn-primary btn-sm" onclick="editType(0)">新增分类</button>`,
+      `<button class="btn btn-danger btn-sm" onclick="batchDeleteType()">批量删除</button>`
+    ]
+  }) + renderTable(['ID','分类名称','父级ID','排序','状态','操作'], rows, {selectable:true}) + paginationHTML(1, list.length, 999, 'reloadTypePage');
+  $('#app').innerHTML = layout('分类管理', content);
+}
+window.reloadList = async function() { await renderTypeList(); };
+window.reloadTypePage = function() {};
+window.editType = async function(id) {
+  let data = { type_id: 0, type_name: '', type_pid: 0, type_sort: 0, type_status: 1 };
+  if (id > 0) {
+    const res = await GET(`/admin/type/detail/${id}`);
+    if (res && res.data) data = res.data;
+  }
+  openModal(id > 0 ? '编辑分类' : '新增分类', `
+    <input type="hidden" id="f_type_id" value="${data.type_id||0}">
+    <div class="form-group"><label>分类名称 *</label><input class="form-control" id="f_type_name" value="${escHtml(data.type_name)}"></div>
+    <div class="form-row">
+      <div class="form-group"><label>父级ID</label><input class="form-control" id="f_type_pid" type="number" value="${data.type_pid||0}"></div>
+      <div class="form-group"><label>排序</label><input class="form-control" id="f_type_sort" type="number" value="${data.type_sort||0}"></div>
+    </div>
+    <div class="form-group"><label>状态</label><select class="form-control" id="f_type_status"><option value="1" ${data.type_status===1?'selected':''}>启用</option><option value="0" ${data.type_status===0?'selected':''}>禁用</option></select></div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveType()">保存</button>`);
+};
+window.saveType = async function() {
+  const name = $('#f_type_name').value.trim();
+  if (!name) { toast('请输入分类名称', 'warning'); return; }
+  const fd = new FormData();
+  fd.append('type_id', $('#f_type_id').value);
+  fd.append('type_name', name);
+  fd.append('type_pid', $('#f_type_pid').value);
+  fd.append('type_sort', $('#f_type_sort').value);
+  fd.append('type_status', $('#f_type_status').value);
+  const res = await POST('/admin/type/save', fd);
+  if (res && res.code === 1) { toast('保存成功'); closeModal(); renderTypeList(); }
+};
+window.deleteType = async function(id) {
+  if (!confirm('确定删除此分类?')) return;
+  const res = await POST(`/admin/type/delete/${id}`);
+  if (res && res.code === 1) { toast('删除成功'); renderTypeList(); }
+};
+window.batchDeleteType = async function() {
+  const ids = getCheckedIds();
+  if (!ids.length) { toast('请选择要删除的项', 'warning'); return; }
+  if (!confirm(`确定删除选中的 ${ids.length} 项?`)) return;
+  const res = await POST('/admin/type/sort', { ids: ids.map(Number) });
+  if (res && res.code === 1) { toast('删除成功'); renderTypeList(); }
+};
+
+// ========== VIDEOS (VOD) ==========
+let vodState = { page: 1, pageSize: 20, type_id: 0, status: -1, keyword: '' };
+async function renderVodList() {
+  const s = vodState;
+  const url = `/admin/vod/list?page=${s.page}&page_size=${s.pageSize}&type_id=${s.type_id}&status=${s.status}&keyword=${encodeURIComponent(s.keyword)}`;
+  const res = await GET(url);
+  const d = res && res.data ? res.data : {};
+  const list = d.list || d.data || [];
+  const total = d.total || d.count || list.length;
+  const rows = list.map(v => ({
+    _id: v.vod_id,
+    _cells: [
+      v.vod_id,
+      `<div style="display:flex;align-items:center;gap:8px">${v.vod_pic ? '<img src="'+escHtml(v.vod_pic)+'" style="width:48px;height:36px;object-fit:cover;border-radius:4px">' : ''}<span>${escHtml(v.vod_name)}</span></div>`,
+      v.type_name || v.type_id || '-',
+      v.vod_year || '-',
+      v.vod_status === 1 ? '<span class="status-badge success">已上线</span>' : '<span class="status-badge danger">已下线</span>',
+      v.vod_hits || 0,
+      v.vod_time || v.created_at || '-',
+      `<button class="btn btn-outline btn-sm" onclick="editVod(${v.vod_id})">编辑</button>
+       <button class="btn btn-outline btn-sm" onclick="toggleVodStatus(${v.vod_id})">${v.vod_status===1?'下线':'上线'}</button>
+       <button class="btn btn-danger btn-sm" onclick="deleteVod(${v.vod_id})">删除</button>`
+    ]
+  }));
+  const content = listToolbar({
+    searchPlaceholder: '搜索视频...',
+    filters: [
+      `<select class="search-input" style="min-width:120px" id="vodStatusFilter" onchange="vodState.status=this.value;vodState.page=1;renderVodList()">
+        <option value="-1" ${s.status==-1?'selected':''}>全部状态</option>
+        <option value="1" ${s.status==1?'selected':''}>已上线</option>
+        <option value="0" ${s.status==0?'selected':''}>已下线</option>
+      </select>`
+    ],
+    actions: [
+      `<button class="btn btn-primary btn-sm" onclick="editVod(0)">新增视频</button>`,
+      `<button class="btn btn-danger btn-sm" onclick="batchDeleteVod()">批量删除</button>`
+    ],
+    onSearch: 'searchVod'
+  }) + renderTable(['ID','视频名称','分类','年份','状态','播放量','时间','操作'], rows, {selectable:true}) +
+    paginationHTML(s.page, total, s.pageSize, 'gotoVodPage');
+  $('#app').innerHTML = layout('视频管理', content);
+}
+window.searchVod = function() { vodState.keyword = ($('#searchKeyword')||{}).value||''; vodState.page=1; renderVodList(); };
+window.gotoVodPage = function(p) { vodState.page = p; renderVodList(); };
+window.editVod = async function(id) {
+  let data = {};
+  if (id > 0) {
+    const res = await GET(`/admin/vod/detail/${id}`);
+    if (res && res.data) data = res.data;
+  }
+  openModal(id > 0 ? '编辑视频' : '新增视频', `
+    <input type="hidden" id="f_vod_id" value="${data.vod_id||0}">
+    <div class="form-group"><label>视频名称 *</label><input class="form-control" id="f_vod_name" value="${escHtml(data.vod_name||'')}"></div>
+    <div class="form-row">
+      <div class="form-group"><label>分类ID</label><input class="form-control" id="f_vod_type_id" type="number" value="${data.type_id||0}"></div>
+      <div class="form-group"><label>状态</label><select class="form-control" id="f_vod_status"><option value="1" ${data.vod_status===1?'selected':''}>上线</option><option value="0" ${data.vod_status===0?'selected':''}>下线</option></select></div>
+    </div>
+    <div class="form-group"><label>封面图URL</label><input class="form-control" id="f_vod_pic" value="${escHtml(data.vod_pic||'')}"></div>
+    <div class="form-group"><label>播放地址</label><textarea class="form-control" id="f_vod_play_url" rows="3">${escHtml(data.vod_play_url||'')}</textarea></div>
+    <div class="form-group"><label>简介</label><textarea class="form-control" id="f_vod_content" rows="4">${escHtml(data.vod_content||'')}</textarea></div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveVod()">保存</button>`);
+};
+window.saveVod = async function() {
+  const name = $('#f_vod_name').value.trim();
+  if (!name) { toast('请输入视频名称', 'warning'); return; }
+  const fd = new FormData();
+  fd.append('vod_id', $('#f_vod_id').value);
+  fd.append('vod_name', name);
+  fd.append('type_id', $('#f_vod_type_id').value);
+  fd.append('vod_pic', $('#f_vod_pic').value);
+  fd.append('vod_play_url', $('#f_vod_play_url').value);
+  fd.append('vod_content', $('#f_vod_content').value);
+  fd.append('vod_status', $('#f_vod_status').value);
+  const res = await POST('/admin/vod/save', fd);
+  if (res && res.code === 1) { toast('保存成功'); closeModal(); renderVodList(); }
+};
+window.toggleVodStatus = async function(id) {
+  const res = await POST(`/admin/vod/audit/${id}`);
+  if (res && res.code === 1) { toast('操作成功'); renderVodList(); }
+};
+window.deleteVod = async function(id) {
+  if (!confirm('确定删除此视频?')) return;
+  const res = await POST('/admin/vod/delete', {ids:[id]});
+  if (res && res.code === 1) { toast('删除成功'); renderVodList(); }
+};
+window.batchDeleteVod = async function() {
+  const ids = getCheckedIds().map(Number);
+  if (!ids.length) { toast('请选择要删除的项', 'warning'); return; }
+  if (!confirm(`确定删除选中的 ${ids.length} 项?`)) return;
+  const res = await POST('/admin/vod/delete', {ids});
+  if (res && res.code === 1) { toast('删除成功'); renderVodList(); }
+};
+
+// ========== ARTICLES ==========
+let artState = { page: 1, pageSize: 20, type_id: 0, keyword: '' };
+async function renderArtList() {
+  const s = artState;
+  const url = `/admin/art/list?page=${s.page}&page_size=${s.pageSize}&type_id=${s.type_id}&keyword=${encodeURIComponent(s.keyword)}`;
+  const res = await GET(url);
+  const d = res && res.data ? res.data : {};
+  const list = d.list || d.data || [];
+  const total = d.total || d.count || list.length;
+  const rows = list.map(a => ({
+    _id: a.art_id,
+    _cells: [
+      a.art_id,
+      escHtml(a.art_title || a.art_name),
+      a.type_name || a.type_id || '-',
+      a.art_status === 1 ? '<span class="status-badge success">已发布</span>' : '<span class="status-badge danger">草稿</span>',
+      a.art_hits || 0,
+      a.created_at || '-',
+      `<button class="btn btn-outline btn-sm" onclick="editArt(${a.art_id})">编辑</button>
+       <button class="btn btn-danger btn-sm" onclick="deleteArt(${a.art_id})">删除</button>`
+    ]
+  }));
+  const content = listToolbar({
+    searchPlaceholder: '搜索文章...',
+    actions: [
+      `<button class="btn btn-primary btn-sm" onclick="editArt(0)">新增文章</button>`,
+      `<button class="btn btn-danger btn-sm" onclick="batchDeleteArt()">批量删除</button>`
+    ],
+    onSearch: 'searchArt'
+  }) + renderTable(['ID','标题','分类','状态','阅读量','时间','操作'], rows, {selectable:true}) +
+    paginationHTML(s.page, total, s.pageSize, 'gotoArtPage');
+  $('#app').innerHTML = layout('文章管理', content);
+}
+window.searchArt = function() { artState.keyword = ($('#searchKeyword')||{}).value||''; artState.page=1; renderArtList(); };
+window.gotoArtPage = function(p) { artState.page = p; renderArtList(); };
+window.editArt = async function(id) {
+  let data = {};
+  if (id > 0) {
+    const res = await GET(`/admin/art/detail/${id}`);
+    if (res && res.data) data = res.data;
+  }
+  openModal(id > 0 ? '编辑文章' : '新增文章', `
+    <input type="hidden" id="f_art_id" value="${data.art_id||0}">
+    <div class="form-group"><label>标题 *</label><input class="form-control" id="f_art_title" value="${escHtml(data.art_title||data.art_name||'')}"></div>
+    <div class="form-row">
+      <div class="form-group"><label>分类ID</label><input class="form-control" id="f_art_type_id" type="number" value="${data.type_id||0}"></div>
+      <div class="form-group"><label>状态</label><select class="form-control" id="f_art_status"><option value="1" ${data.art_status===1?'selected':''}>已发布</option><option value="0" ${data.art_status===0?'selected':''}>草稿</option></select></div>
+    </div>
+    <div class="form-group"><label>封面图</label><input class="form-control" id="f_art_pic" value="${escHtml(data.art_pic||'')}"></div>
+    <div class="form-group"><label>内容</label><textarea class="form-control" id="f_art_content" rows="8">${escHtml(data.art_content||'')}</textarea></div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveArt()">保存</button>`);
+};
+window.saveArt = async function() {
+  const title = $('#f_art_title').value.trim();
+  if (!title) { toast('请输入标题', 'warning'); return; }
+  const fd = new FormData();
+  fd.append('art_id', $('#f_art_id').value);
+  fd.append('art_title', title);
+  fd.append('type_id', $('#f_art_type_id').value);
+  fd.append('art_pic', $('#f_art_pic').value);
+  fd.append('art_content', $('#f_art_content').value);
+  fd.append('art_status', $('#f_art_status').value);
+  const res = await POST('/admin/art/save', fd);
+  if (res && res.code === 1) { toast('保存成功'); closeModal(); renderArtList(); }
+};
+window.deleteArt = async function(id) {
+  if (!confirm('确定删除此文章?')) return;
+  const res = await POST('/admin/art/delete', {ids:[id]});
+  if (res && res.code === 1) { toast('删除成功'); renderArtList(); }
+};
+window.batchDeleteArt = async function() {
+  const ids = getCheckedIds().map(Number);
+  if (!ids.length) { toast('请选择', 'warning'); return; }
+  if (!confirm(`确定删除选中的 ${ids.length} 项?`)) return;
+  const res = await POST('/admin/art/delete', {ids});
+  if (res && res.code === 1) { toast('删除成功'); renderArtList(); }
+};
+
+// ========== USERS ==========
+let userState = { page: 1, pageSize: 20, keyword: '' };
+async function renderUserList() {
+  const s = userState;
+  const res = await GET(`/admin/user/list?page=${s.page}&page_size=${s.pageSize}&keyword=${encodeURIComponent(s.keyword)}`);
+  const d = res && res.data ? res.data : {};
+  const list = d.list || d.data || [];
+  const total = d.total || d.count || list.length;
+  const rows = list.map(u => ({
+    _id: u.user_id,
+    _cells: [
+      u.user_id,
+      escHtml(u.user_name || u.username),
+      u.user_email || '-',
+      u.user_status === 1 ? '<span class="status-badge success">正常</span>' : '<span class="status-badge danger">禁用</span>',
+      u.user_group || u.group_name || '-',
+      u.created_at || '-',
+      `<button class="btn btn-outline btn-sm" onclick="editUser(${u.user_id})">编辑</button>
+       <button class="btn btn-outline btn-sm" onclick="toggleUser(${u.user_id})">${u.user_status===1?'禁用':'启用'}</button>
+       <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.user_id})">删除</button>`
+    ]
+  }));
+  const content = listToolbar({
+    searchPlaceholder: '搜索会员...',
+    actions: [`<button class="btn btn-primary btn-sm" onclick="editUser(0)">新增会员</button>`,
+      `<button class="btn btn-danger btn-sm" onclick="batchDeleteUser()">批量删除</button>`],
+    onSearch: 'searchUser'
+  }) + renderTable(['ID','用户名','邮箱','状态','用户组','注册时间','操作'], rows, {selectable:true}) +
+    paginationHTML(s.page, total, s.pageSize, 'gotoUserPage');
+  $('#app').innerHTML = layout('会员管理', content);
+}
+window.searchUser = function() { userState.keyword = ($('#searchKeyword')||{}).value||''; userState.page=1; renderUserList(); };
+window.gotoUserPage = function(p) { userState.page = p; renderUserList(); };
+window.editUser = async function(id) {
+  let data = {};
+  if (id > 0) {
+    // Use list data or try detail
+    const res = await GET(`/admin/user/list?page=1&page_size=1`);
+    if (res && res.data) {
+      const list = res.data.list || res.data.data || [];
+      data = list.find(u => u.user_id === id) || {};
+    }
+  }
+  openModal(id > 0 ? '编辑会员' : '新增会员', `
+    <input type="hidden" id="f_user_id" value="${data.user_id||0}">
+    <div class="form-group"><label>用户名 *</label><input class="form-control" id="f_user_name" value="${escHtml(data.user_name||data.username||'')}"></div>
+    <div class="form-group"><label>邮箱</label><input class="form-control" id="f_user_email" type="email" value="${escHtml(data.user_email||'')}"></div>
+    <div class="form-group"><label>密码 ${id>0?'(留空不修改)':''}</label><input class="form-control" id="f_user_pwd" type="password"></div>
+    <div class="form-group"><label>状态</label><select class="form-control" id="f_user_status"><option value="1" ${data.user_status===1?'selected':''}>正常</option><option value="0" ${data.user_status===0?'selected':''}>禁用</option></select></div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveUser()">保存</button>`);
+};
+window.saveUser = async function() {
+  const name = $('#f_user_name').value.trim();
+  if (!name) { toast('请输入用户名', 'warning'); return; }
+  const fd = new FormData();
+  fd.append('user_id', $('#f_user_id').value);
+  fd.append('user_name', name);
+  fd.append('user_email', $('#f_user_email').value);
+  if ($('#f_user_pwd').value) fd.append('user_pwd', $('#f_user_pwd').value);
+  fd.append('user_status', $('#f_user_status').value);
+  const res = await POST('/admin/user/save', fd);
+  if (res && res.code === 1) { toast('保存成功'); closeModal(); renderUserList(); }
+};
+window.toggleUser = async function(id) {
+  const res = await POST(`/admin/user/toggle/${id}`);
+  if (res && res.code === 1) { toast('操作成功'); renderUserList(); }
+};
+window.deleteUser = async function(id) {
+  if (!confirm('确定删除此会员?')) return;
+  const res = await POST('/admin/user/delete', {ids:[id]});
+  if (res && res.code === 1) { toast('删除成功'); renderUserList(); }
+};
+window.batchDeleteUser = async function() {
+  const ids = getCheckedIds().map(Number);
+  if (!ids.length) { toast('请选择', 'warning'); return; }
+  if (!confirm(`确定删除 ${ids.length} 项?`)) return;
+  const res = await POST('/admin/user/delete', {ids});
+  if (res && res.code === 1) { toast('删除成功'); renderUserList(); }
+};
+
+// ========== ADMIN ACCOUNTS ==========
+async function renderAdminList() {
+  const res = await GET('/admin/admin/list');
+  const list = res && res.data ? (Array.isArray(res.data) ? res.data : res.data.list || []) : [];
+  const rows = list.map(a => ({
+    _id: a.admin_id,
+    _cells: [
+      a.admin_id,
+      escHtml(a.admin_name),
+      a.admin_role || '-',
+      a.admin_status === 1 ? '<span class="status-badge success">正常</span>' : '<span class="status-badge danger">禁用</span>',
+      a.created_at || '-',
+      `<button class="btn btn-outline btn-sm" onclick="editAdmin(${a.admin_id})">编辑</button>
+       <button class="btn btn-danger btn-sm" onclick="deleteAdmin(${a.admin_id})">删除</button>`
+    ]
+  }));
+  const content = listToolbar({
+    search: false,
+    actions: [`<button class="btn btn-primary btn-sm" onclick="editAdmin(0)">新增管理员</button>`]
+  }) + renderTable(['ID','用户名','角色','状态','创建时间','操作'], rows);
+  $('#app').innerHTML = layout('管理员', content);
+}
+window.editAdmin = async function(id) {
+  let data = {};
+  if (id > 0) {
+    const res = await GET('/admin/admin/list');
+    if (res && res.data) {
+      const list = Array.isArray(res.data) ? res.data : res.data.list || [];
+      data = list.find(a => a.admin_id === id) || {};
+    }
+  }
+  openModal(id > 0 ? '编辑管理员' : '新增管理员', `
+    <input type="hidden" id="f_admin_id" value="${data.admin_id||0}">
+    <div class="form-group"><label>用户名 *</label><input class="form-control" id="f_admin_name" value="${escHtml(data.admin_name||'')}"></div>
+    <div class="form-group"><label>密码 ${id>0?'(留空不修改)':''}</label><input class="form-control" id="f_admin_pwd" type="password"></div>
+    <div class="form-group"><label>角色</label><input class="form-control" id="f_admin_role" value="${escHtml(data.admin_role||'admin')}"></div>
+    <div class="form-group"><label>状态</label><select class="form-control" id="f_admin_status"><option value="1" ${data.admin_status===1?'selected':''}>正常</option><option value="0" ${data.admin_status===0?'selected':''}>禁用</option></select></div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveAdmin()">保存</button>`);
+};
+window.saveAdmin = async function() {
+  const name = $('#f_admin_name').value.trim();
+  if (!name) { toast('请输入用户名', 'warning'); return; }
+  const fd = new FormData();
+  fd.append('admin_id', $('#f_admin_id').value);
+  fd.append('admin_name', name);
+  if ($('#f_admin_pwd').value) fd.append('admin_pwd', $('#f_admin_pwd').value);
+  fd.append('admin_role', $('#f_admin_role').value);
+  fd.append('admin_status', $('#f_admin_status').value);
+  const res = await POST('/admin/admin/save', fd);
+  if (res && res.code === 1) { toast('保存成功'); closeModal(); renderAdminList(); }
+};
+window.deleteAdmin = async function(id) {
+  if (!confirm('确定删除此管理员?')) return;
+  const res = await POST(`/admin/admin/delete/${id}`);
+  if (res && res.code === 1) { toast('删除成功'); renderAdminList(); }
+};
+
+// ========== COMMENTS ==========
+let commentState = { page: 1, pageSize: 20, status: -1 };
+async function renderCommentList() {
+  const s = commentState;
+  const res = await GET(`/admin/comment/list?page=${s.page}&page_size=${s.pageSize}&status=${s.status}`);
+  const d = res && res.data ? res.data : {};
+  const list = d.list || d.data || [];
+  const total = d.total || d.count || list.length;
+  const rows = list.map(c => ({
+    _id: c.comment_id || c.id,
+    _cells: [
+      c.comment_id || c.id,
+      escHtml(c.user_name || c.username || '-'),
+      `<div style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(c.content || c.comment_content)}</div>`,
+      c.vod_name || c.art_title || '-',
+      c.status === 1 ? '<span class="status-badge success">已审</span>' : '<span class="status-badge warning">待审</span>',
+      c.created_at || '-',
+      `<button class="btn btn-outline btn-sm" onclick="auditComment(${c.comment_id||c.id})">${c.status===1?'隐藏':'通过'}</button>
+       <button class="btn btn-danger btn-sm" onclick="deleteComment(${c.comment_id||c.id})">删除</button>`
+    ]
+  }));
+  const content = listToolbar({
+    search: false,
+    filters: [
+      `<select class="search-input" style="min-width:120px" onchange="commentState.status=this.value;commentState.page=1;renderCommentList()">
+        <option value="-1" ${s.status==-1?'selected':''}>全部</option>
+        <option value="1" ${s.status==1?'selected':''}>已审</option>
+        <option value="0" ${s.status==0?'selected':''}>待审</option>
+      </select>`
+    ],
+    actions: [`<button class="btn btn-danger btn-sm" onclick="batchDeleteComment()">批量删除</button>`]
+  }) + renderTable(['ID','用户','内容','关联内容','状态','时间','操作'], rows, {selectable:true}) +
+    paginationHTML(s.page, total, s.pageSize, 'gotoCommentPage');
+  $('#app').innerHTML = layout('评论管理', content);
+}
+window.gotoCommentPage = function(p) { commentState.page = p; renderCommentList(); };
+window.auditComment = async function(id) {
+  const res = await POST(`/admin/comment/audit/${id}`);
+  if (res && res.code === 1) { toast('操作成功'); renderCommentList(); }
+};
+window.deleteComment = async function(id) {
+  if (!confirm('确定删除?')) return;
+  const res = await POST('/admin/comment/delete', {ids:[id]});
+  if (res && res.code === 1) { toast('删除成功'); renderCommentList(); }
+};
+window.batchDeleteComment = async function() {
+  const ids = getCheckedIds().map(Number);
+  if (!ids.length) { toast('请选择', 'warning'); return; }
+  if (!confirm(`确定删除 ${ids.length} 项?`)) return;
+  const res = await POST('/admin/comment/delete', {ids});
+  if (res && res.code === 1) { toast('删除成功'); renderCommentList(); }
+};
+
+// ========== GUESTBOOK ==========
+let gbookState = { page: 1, pageSize: 20 };
+async function renderGbookList() {
+  const s = gbookState;
+  const res = await GET(`/admin/gbook/list?page=${s.page}&page_size=${s.pageSize}`);
+  const d = res && res.data ? res.data : {};
+  const list = d.list || d.data || [];
+  const total = d.total || d.count || list.length;
+  const rows = list.map(g => ({
+    _id: g.gbook_id || g.id,
+    _cells: [
+      g.gbook_id || g.id,
+      escHtml(g.gbook_name || g.name || '-'),
+      escHtml(g.gbook_email || g.email || '-'),
+      `<div style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(g.gbook_content || g.content)}</div>`,
+      g.reply ? `<span class="tag tag-green">已回复</span>` : '<span class="tag tag-red">未回复</span>',
+      g.created_at || '-',
+      `<button class="btn btn-outline btn-sm" onclick="replyGbook(${g.gbook_id||g.id})">回复</button>
+       <button class="btn btn-danger btn-sm" onclick="deleteGbook(${g.gbook_id||g.id})">删除</button>`
+    ]
+  }));
+  const content = listToolbar({search:false, actions:[
+    `<button class="btn btn-danger btn-sm" onclick="batchDeleteGbook()">批量删除</button>`
+  ]}) + renderTable(['ID','姓名','邮箱','内容','状态','时间','操作'], rows, {selectable:true}) +
+    paginationHTML(s.page, total, s.pageSize, 'gotoGbookPage');
+  $('#app').innerHTML = layout('留言管理', content);
+}
+window.gotoGbookPage = function(p) { gbookState.page = p; renderGbookList(); };
+window.replyGbook = function(id) {
+  openModal('回复留言', `
+    <div class="form-group"><label>回复内容</label><textarea class="form-control" id="f_reply_content" rows="4"></textarea></div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doReplyGbook(${id})">回复</button>`);
+};
+window.doReplyGbook = async function(id) {
+  const content = $('#f_reply_content').value.trim();
+  if (!content) { toast('请输入回复内容', 'warning'); return; }
+  const fd = new FormData();
+  fd.append('content', content);
+  const res = await POST(`/admin/gbook/reply/${id}`, fd);
+  if (res && res.code === 1) { toast('回复成功'); closeModal(); renderGbookList(); }
+};
+window.deleteGbook = async function(id) {
+  if (!confirm('确定删除?')) return;
+  const res = await POST('/admin/gbook/delete', {ids:[id]});
+  if (res && res.code === 1) { toast('删除成功'); renderGbookList(); }
+};
+window.batchDeleteGbook = async function() {
+  const ids = getCheckedIds().map(Number);
+  if (!ids.length) { toast('请选择', 'warning'); return; }
+  if (!confirm(`确定删除 ${ids.length} 项?`)) return;
+  const res = await POST('/admin/gbook/delete', {ids});
+  if (res && res.code === 1) { toast('删除成功'); renderGbookList(); }
+};
+
+// ========== ANALYTICS ==========
+async function renderAnalyticsDashboard() {
+  const [dashRes, trendRes, topRes, regionRes] = await Promise.all([
+    GET('/admin/analytics/dashboard'),
+    GET('/admin/analytics/trend?days=7'),
+    GET('/admin/analytics/top?limit=10'),
+    GET('/admin/analytics/regions')
+  ]);
+  const dash = dashRes && dashRes.data ? dashRes.data : {};
+  const trend = trendRes && trendRes.data ? (Array.isArray(trendRes.data) ? trendRes.data : trendRes.data.list || []) : [];
+  const top = topRes && topRes.data ? (Array.isArray(topRes.data) ? topRes.data : topRes.data.list || []) : [];
+  const regions = regionRes && regionRes.data ? (Array.isArray(regionRes.data) ? regionRes.data : regionRes.data.list || []) : [];
+
+  const statsHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-label">总访问量</div><div class="stat-value">${dash.total_visits||0}</div></div>
+      <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-label">今日访问</div><div class="stat-value">${dash.today_visits||0}</div></div>
+      <div class="stat-card"><div class="stat-icon">👤</div><div class="stat-label">今日IP</div><div class="stat-value">${dash.today_ips||0}</div></div>
+      <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-label">昨日访问</div><div class="stat-value">${dash.yesterday_visits||0}</div></div>
+    </div>`;
+
+  const trendChart = `<div class="card"><div class="card-title">近7天趋势</div><div class="chart-container">${barChart(trend, 'date', 'visits')}</div></div>`;
+
+  let topHTML = '<div class="card"><div class="card-title">热门内容</div>';
+  if (top.length) {
+    topHTML += '<table><thead><tr><th>排名</th><th>标题</th><th>访问量</th></tr></thead><tbody>';
+    top.forEach((t, i) => {
+      topHTML += `<tr><td>${i+1}</td><td>${escHtml(t.title || t.vod_name || t.name)}</td><td>${t.visits || t.hits || 0}</td></tr>`;
+    });
+    topHTML += '</tbody></table>';
+  } else {
+    topHTML += '<p style="color:var(--text-muted)">暂无数据</p>';
+  }
+  topHTML += '</div>';
+
+  let regionHTML = '<div class="card"><div class="card-title">地区分布</div>';
+  if (regions.length) {
+    regionHTML += '<table><thead><tr><th>地区</th><th>访问量</th></tr></thead><tbody>';
+    regions.forEach(r => {
+      regionHTML += `<tr><td>${escHtml(r.region || r.name)}</td><td>${r.visits || r.count || 0}</td></tr>`;
+    });
+    regionHTML += '</tbody></table>';
+  } else {
+    regionHTML += '<p style="color:var(--text-muted)">暂无数据</p>';
+  }
+  regionHTML += '</div>';
+
+  $('#app').innerHTML = layout('流量分析', statsHTML + trendChart + topHTML + regionHTML);
+}
+
+let visitState = { page: 1, pageSize: 50 };
+async function renderAnalyticsVisits() {
+  const s = visitState;
+  const res = await GET(`/admin/analytics/visits?page=${s.page}&page_size=${s.pageSize}`);
+  const d = res && res.data ? res.data : {};
+  const list = d.list || d.data || [];
+  const total = d.total || d.count || list.length;
+  const rows = list.map(v => ({
+    _id: v.id || v.visit_id,
+    _cells: [
+      v.id || v.visit_id || '-',
+      escHtml(v.ip || v.visit_ip || '-'),
+      escHtml(v.url || v.visit_url || '-'),
+      escHtml(v.referer || v.visit_referer || '-'),
+      escHtml(v.user_agent ? v.user_agent.slice(0,60)+'...' : v.ua || '-'),
+      escHtml(v.region || v.city || '-'),
+      v.created_at || v.visit_time || '-'
+    ]
+  }));
+  const content = renderTable(['ID','IP','URL','来源','浏览器','地区','时间'], rows) +
+    paginationHTML(s.page, total, s.pageSize, 'gotoVisitPage');
+  $('#app').innerHTML = layout('访问记录', content);
+}
+window.gotoVisitPage = function(p) { visitState.page = p; renderAnalyticsVisits(); };
+
+// ========== ORDERS ==========
+let orderState = { page: 1, pageSize: 20 };
+async function renderOrderList() {
+  const s = orderState;
+  const res = await GET(`/admin/order/list?page=${s.page}&page_size=${s.pageSize}`);
+  const d = res && res.data ? res.data : {};
+  const list = d.list || d.data || [];
+  const total = d.total || d.count || list.length;
+  const rows = list.map(o => ({
+    _id: o.order_id || o.id,
+    _cells: [
+      o.order_id || o.id,
+      escHtml(o.order_no || o.order_sn || '-'),
+      o.user_name || o.username || '-',
+      `¥${(o.order_amount || o.amount || 0).toFixed(2)}`,
+      o.pay_status === 1 || o.status === 1 ? '<span class="status-badge success">已支付</span>' : '<span class="status-badge warning">待支付</span>',
+      o.created_at || '-',
+      `<button class="btn btn-outline btn-sm" onclick="payOrder(${o.order_id||o.id})">标记支付</button>
+       <button class="btn btn-danger btn-sm" onclick="cancelOrder(${o.order_id||o.id})">取消</button>`
+    ]
+  }));
+  const content = listToolbar({search:false, actions:[
+    `<button class="btn btn-outline btn-sm" onclick="location.hash='#/order/cards'">卡密管理</button>`
+  ]}) + renderTable(['ID','订单号','用户','金额','状态','时间','操作'], rows) +
+    paginationHTML(s.page, total, s.pageSize, 'gotoOrderPage');
+  $('#app').innerHTML = layout('订单管理', content);
+}
+window.gotoOrderPage = function(p) { orderState.page = p; renderOrderList(); };
+window.payOrder = async function(id) {
+  const res = await POST('/admin/order/pay', {order_id: id});
+  if (res && res.code === 1) { toast('操作成功'); renderOrderList(); }
+};
+window.cancelOrder = async function(id) {
+  if (!confirm('确定取消此订单?')) return;
+  const res = await POST('/admin/order/cancel', {order_id: id});
+  if (res && res.code === 1) { toast('操作成功'); renderOrderList(); }
+};
+
+// ========== LIVE ==========
+async function renderLiveList() {
+  const res = await GET('/admin/live/list');
+  const list = res && res.data ? (Array.isArray(res.data) ? res.data : res.data.list || []) : [];
+  const rows = list.map(l => ({
+    _id: l.live_id || l.id,
+    _cells: [
+      l.live_id || l.id,
+      escHtml(l.live_name || l.name),
+      l.live_status === 1 || l.status === 1 ? '<span class="status-badge success">直播中</span>' : '<span class="status-badge info">未开播</span>',
+      l.online || l.viewers || 0,
+      `<button class="btn btn-outline btn-sm" onclick="editLive(${l.live_id||l.id})">编辑</button>
+       <button class="btn btn-outline btn-sm" onclick="toggleLive(${l.live_id||l.id})">${l.live_status===1?'关闭':'开启'}</button>
+       <button class="btn btn-danger btn-sm" onclick="deleteLive(${l.live_id||l.id})">删除</button>`
+    ]
+  }));
+  const content = listToolbar({search:false, actions:[
+    `<button class="btn btn-primary btn-sm" onclick="editLive(0)">新增直播间</button>`
+  ]}) + renderTable(['ID','名称','状态','在线人数','操作'], rows);
+  $('#app').innerHTML = layout('直播管理', content);
+}
+window.editLive = async function(id) {
+  let data = {};
+  if (id > 0) {
+    const res = await GET(`/admin/live/detail/${id}`);
+    if (res && res.data) data = res.data;
+  }
+  openModal(id > 0 ? '编辑直播间' : '新增直播间', `
+    <input type="hidden" id="f_live_id" value="${data.live_id||data.id||0}">
+    <div class="form-group"><label>直播间名称 *</label><input class="form-control" id="f_live_name" value="${escHtml(data.live_name||data.name||'')}"></div>
+    <div class="form-group"><label>推流地址</label><input class="form-control" id="f_live_url" value="${escHtml(data.live_url||data.push_url||'')}"></div>
+    <div class="form-group"><label>状态</label><select class="form-control" id="f_live_status"><option value="1" ${data.live_status===1?'selected':''}>开启</option><option value="0" ${data.live_status===0?'selected':''}>关闭</option></select></div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveLive()">保存</button>`);
+};
+window.saveLive = async function() {
+  const name = $('#f_live_name').value.trim();
+  if (!name) { toast('请输入名称', 'warning'); return; }
+  const fd = new FormData();
+  fd.append('live_id', $('#f_live_id').value);
+  fd.append('live_name', name);
+  fd.append('live_url', $('#f_live_url').value);
+  fd.append('live_status', $('#f_live_status').value);
+  const res = await POST('/admin/live/save', fd);
+  if (res && res.code === 1) { toast('保存成功'); closeModal(); renderLiveList(); }
+};
+window.toggleLive = async function(id) {
+  const res = await POST(`/admin/live/toggle/${id}`);
+  if (res && res.code === 1) { toast('操作成功'); renderLiveList(); }
+};
+window.deleteLive = async function(id) {
+  if (!confirm('确定删除?')) return;
+  const res = await POST(`/admin/live/delete/${id}`);
+  if (res && res.code === 1) { toast('删除成功'); renderLiveList(); }
+};
+
+// ========== CHAT ==========
+async function renderChatRooms() {
+  const res = await GET('/admin/chat/rooms');
+  const list = res && res.data ? (Array.isArray(res.data) ? res.data : res.data.list || []) : [];
+  const rows = list.map(r => ({
+    _id: r.room_id || r.id,
+    _cells: [
+      r.room_id || r.id,
+      escHtml(r.room_name || r.name),
+      r.online || 0,
+      r.member_count || r.users || 0,
+      r.status === 1 ? '<span class="status-badge success">开启</span>' : '<span class="status-badge info">关闭</span>',
+      `<button class="btn btn-outline btn-sm" onclick="viewChatHistory(${r.room_id||r.id})">聊天记录</button>
+       <button class="btn btn-outline btn-sm" onclick="editChatRoom(${r.room_id||r.id})">编辑</button>
+       <button class="btn btn-danger btn-sm" onclick="deleteChatRoom(${r.room_id||r.id})">删除</button>`
+    ]
+  }));
+  const content = listToolbar({search:false, actions:[
+    `<button class="btn btn-primary btn-sm" onclick="editChatRoom(0)">新增房间</button>`
+  ]}) + renderTable(['ID','房间名','在线','成员','状态','操作'], rows);
+  $('#app').innerHTML = layout('聊天管理', content);
+}
+window.editChatRoom = async function(id) {
+  let data = {};
+  openModal(id > 0 ? '编辑房间' : '新增房间', `
+    <input type="hidden" id="f_chat_id" value="${id}">
+    <div class="form-group"><label>房间名称 *</label><input class="form-control" id="f_chat_name" value="${escHtml(data.room_name||data.name||'')}"></div>
+    <div class="form-group"><label>状态</label><select class="form-control" id="f_chat_status"><option value="1">开启</option><option value="0">关闭</option></select></div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveChatRoom()">保存</button>`);
+};
+window.saveChatRoom = async function() {
+  const name = $('#f_chat_name').value.trim();
+  if (!name) { toast('请输入名称', 'warning'); return; }
+  const fd = new FormData();
+  fd.append('room_id', $('#f_chat_id').value);
+  fd.append('room_name', name);
+  fd.append('status', $('#f_chat_status').value);
+  const endpoint = Number($('#f_chat_id').value) > 0 ? '/admin/chat/room/update' : '/admin/chat/room/create';
+  const res = await POST(endpoint, fd);
+  if (res && res.code === 1) { toast('保存成功'); closeModal(); renderChatRooms(); }
+};
+window.deleteChatRoom = async function(id) {
+  if (!confirm('确定删除?')) return;
+  const res = await POST(`/admin/chat/room/delete/${id}`);
+  if (res && res.code === 1) { toast('删除成功'); renderChatRooms(); }
+};
+window.viewChatHistory = async function(roomId) {
+  const res = await GET(`/admin/chat/history?room_id=${roomId}&limit=100`);
+  const list = res && res.data ? (Array.isArray(res.data) ? res.data : res.data.list || []) : [];
+  let html = '<div style="max-height:400px;overflow-y:auto">';
+  if (list.length) {
+    list.forEach(m => {
+      html += `<div style="padding:8px 0;border-bottom:1px solid var(--border)"><strong>${escHtml(m.username||m.user_name||'匿名')}</strong> <span style="color:var(--text-muted);font-size:12px">${m.created_at||''}</span><div style="margin-top:4px">${escHtml(m.content||m.message)}</div></div>`;
+    });
+  } else {
+    html += '<p style="color:var(--text-muted);text-align:center;padding:20px">暂无聊天记录</p>';
+  }
+  html += '</div>';
+  openModal('聊天记录', html, '<button class="btn btn-outline" onclick="closeModal()">关闭</button>');
+};
+
+// ========== AI CONTENT ==========
+async function renderAIContent() {
+  const configRes = await GET('/admin/ai/config');
+  const config = configRes && configRes.data ? configRes.data : {};
+  const content = `
+    <div class="card"><div class="card-title">AI内容生成</div>
+      <div class="form-group"><label>生成类型</label>
+        <select class="form-control" id="ai_type">
+          <option value="generate">生成内容</option>
+          <option value="title">生成标题</option>
+          <option value="summary">生成摘要</option>
+          <option value="tags">生成标签</option>
+        </select>
+      </div>
+      <div class="form-group"><label>输入提示词/关键词</label><textarea class="form-control" id="ai_prompt" rows="4" placeholder="请输入关键词或提示词..."></textarea></div>
+      <button class="btn btn-primary" onclick="doAIGenerate()">生成</button>
+      <div id="ai_result" style="margin-top:16px;padding:16px;background:var(--bg-tertiary);border-radius:var(--radius);min-height:80px;display:none"></div>
+    </div>
+    <div class="card"><div class="card-title">AI配置</div>
+      <p style="color:var(--text-secondary)">API状态: ${config.api_key ? '<span class="tag tag-green">已配置</span>' : '<span class="tag tag-red">未配置</span>'}</p>
+      <p style="color:var(--text-secondary);margin-top:8px">模型: ${escHtml(config.model || '未设置')}</p>
+    </div>`;
+  $('#app').innerHTML = layout('AI内容', content);
+}
+window.doAIGenerate = async function() {
+  const type = $('#ai_type').value;
+  const prompt = $('#ai_prompt').value.trim();
+  if (!prompt) { toast('请输入提示词', 'warning'); return; }
+  const resultDiv = $('#ai_result');
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = '<span style="color:var(--text-muted)">生成中...</span>';
+  const fd = new FormData();
+  fd.append('prompt', prompt);
+  const res = await POST(`/admin/ai/${type}`, fd);
+  if (res && res.data) {
+    const text = typeof res.data === 'string' ? res.data : res.data.content || res.data.text || JSON.stringify(res.data);
+    resultDiv.innerHTML = `<div style="white-space:pre-wrap">${escHtml(text)}</div>`;
+  } else {
+    resultDiv.innerHTML = '<span style="color:var(--danger)">生成失败</span>';
+  }
+};
+
+// ========== SYSTEM CONFIG ==========
+async function renderSystemConfig() {
+  const res = await GET('/admin/system/config');
+  const config = res && res.data ? res.data : {};
+  // Render config as editable key-value pairs
+  let fieldsHTML = '';
+  const knownFields = [
+    {key:'site_name', label:'站点名称'},
+    {key:'site_url', label:'站点URL'},
+    {key:'site_keywords', label:'关键词'},
+    {key:'site_description', label:'站点描述'},
+    {key:'site_icp', label:'ICP备案'},
+    {key:'site_email', label:'联系邮箱'},
+    {key:'upload_max_size', label:'上传大小限制(MB)'},
+    {key:'cache_ttl', label:'缓存时间(秒)'},
+  ];
+  knownFields.forEach(f => {
+    const val = config[f.key] !== undefined ? config[f.key] : '';
+    fieldsHTML += `<div class="form-group"><label>${f.label}</label><input class="form-control" id="cfg_${f.key}" value="${escHtml(String(val))}"></div>`;
+  });
+  // Extra fields as JSON
+  const extra = {};
+  Object.keys(config).forEach(k => {
+    if (!knownFields.find(f => f.key === k)) extra[k] = config[k];
+  });
+  fieldsHTML += `<div class="form-group"><label>其他配置 (JSON)</label><textarea class="form-control" id="cfg_extra" rows="4">${escHtml(JSON.stringify(extra, null, 2))}</textarea></div>`;
+
+  const content = `
+    <div class="card"><div class="card-title">系统配置</div>${fieldsHTML}
+      <div class="btn-group" style="margin-top:16px">
+        <button class="btn btn-primary" onclick="saveSystemConfig()">保存配置</button>
+        <button class="btn btn-outline" onclick="clearCache()">清除缓存</button>
+      </div>
+    </div>`;
+  $('#app').innerHTML = layout('系统配置', content);
+}
+window.saveSystemConfig = async function() {
+  const fd = new FormData();
+  const knownFields = ['site_name','site_url','site_keywords','site_description','site_icp','site_email','upload_max_size','cache_ttl'];
+  knownFields.forEach(k => {
+    const el = $(`#cfg_${k}`);
+    if (el) fd.append(k, el.value);
+  });
+  // Try to merge extra JSON
+  try {
+    const extra = JSON.parse($('#cfg_extra').value);
+    Object.keys(extra).forEach(k => fd.append(k, typeof extra[k] === 'object' ? JSON.stringify(extra[k]) : extra[k]));
+  } catch(e) {}
+  const res = await POST('/admin/system/config/save', fd);
+  if (res && res.code === 1) toast('保存成功');
+};
+window.clearCache = async function() {
+  const res = await POST('/admin/system/cache/clear');
+  if (res && res.code === 1) toast('缓存已清除');
+};
+
+// ========== TIMMING ==========
+async function renderTimmingList() {
+  const res = await GET('/admin/timming/list');
+  const list = res && res.data ? (Array.isArray(res.data) ? res.data : res.data.list || []) : [];
+  const rows = list.map(t => ({
+    _id: t.id || t.task_id,
+    _cells: [
+      t.id || t.task_id,
+      escHtml(t.name || t.task_name),
+      escHtml(t.cron || t.schedule || '-'),
+      escHtml(t.command || t.action || '-'),
+      t.status === 1 || t.enabled ? '<span class="status-badge success">启用</span>' : '<span class="status-badge danger">禁用</span>',
+      t.last_run || '-',
+      `<button class="btn btn-outline btn-sm" onclick="editTimming(${t.id||t.task_id})">编辑</button>
+       <button class="btn btn-outline btn-sm" onclick="toggleTimming(${t.id||t.task_id})">${t.status===1?'禁用':'启用'}</button>
+       <button class="btn btn-outline btn-sm" onclick="triggerTimming(${t.id||t.task_id})">执行</button>
+       <button class="btn btn-danger btn-sm" onclick="deleteTimming(${t.id||t.task_id})">删除</button>`
+    ]
+  }));
+  const content = listToolbar({search:false, actions:[
+    `<button class="btn btn-primary btn-sm" onclick="editTimming(0)">新增任务</button>`
+  ]}) + renderTable(['ID','名称','Cron','命令','状态','上次执行','操作'], rows);
+  $('#app').innerHTML = layout('定时任务', content);
+}
+window.editTimming = async function(id) {
+  let data = {};
+  if (id > 0) {
+    const res = await GET('/admin/timming/list');
+    if (res && res.data) {
+      const list = Array.isArray(res.data) ? res.data : res.data.list || [];
+      data = list.find(t => (t.id||t.task_id) === id) || {};
+    }
+  }
+  openModal(id > 0 ? '编辑任务' : '新增任务', `
+    <input type="hidden" id="f_timming_id" value="${id}">
+    <div class="form-group"><label>任务名称 *</label><input class="form-control" id="f_timming_name" value="${escHtml(data.name||data.task_name||'')}"></div>
+    <div class="form-group"><label>Cron表达式</label><input class="form-control" id="f_timming_cron" value="${escHtml(data.cron||data.schedule||'')}" placeholder="例: 0 0 * * *"></div>
+    <div class="form-group"><label>执行命令</label><input class="form-control" id="f_timming_command" value="${escHtml(data.command||data.action||'')}"></div>
+    <div class="form-group"><label>状态</label><select class="form-control" id="f_timming_status"><option value="1" ${data.status===1?'selected':''}>启用</option><option value="0" ${data.status===0?'selected':''}>禁用</option></select></div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveTimming()">保存</button>`);
+};
+window.saveTimming = async function() {
+  const name = $('#f_timming_name').value.trim();
+  if (!name) { toast('请输入名称', 'warning'); return; }
+  const fd = new FormData();
+  fd.append('id', $('#f_timming_id').value);
+  fd.append('name', name);
+  fd.append('cron', $('#f_timming_cron').value);
+  fd.append('command', $('#f_timming_command').value);
+  fd.append('status', $('#f_timming_status').value);
+  const endpoint = Number($('#f_timming_id').value) > 0 ? '/admin/timming/update' : '/admin/timming/create';
+  const res = await POST(endpoint, fd);
+  if (res && res.code === 1) { toast('保存成功'); closeModal(); renderTimmingList(); }
+};
+window.toggleTimming = async function(id) {
+  const res = await POST(`/admin/timming/toggle/${id}`);
+  if (res && res.code === 1) { toast('操作成功'); renderTimmingList(); }
+};
+window.triggerTimming = async function(id) {
+  const res = await POST(`/admin/timming/trigger/${id}`);
+  if (res && res.code === 1) toast('已触发');
+};
+window.deleteTimming = async function(id) {
+  if (!confirm('确定删除?')) return;
+  const res = await POST(`/admin/timming/delete/${id}`);
+  if (res && res.code === 1) { toast('删除成功'); renderTimmingList(); }
+};
+
+// ========== PLUGINS ==========
+async function renderPluginList() {
+  const res = await GET('/admin/plugin/list');
+  const list = res && res.data ? (Array.isArray(res.data) ? res.data : res.data.list || []) : [];
+  const rows = list.map(p => ({
+    _id: p.name || p.plugin_name,
+    _cells: [
+      escHtml(p.name || p.plugin_name),
+      escHtml(p.description || p.desc || '-'),
+      p.version || '-',
+      p.enabled || p.status === 1 ? '<span class="status-badge success">已启用</span>' : '<span class="status-badge info">未启用</span>',
+      `<button class="btn btn-outline btn-sm" onclick="togglePlugin('${escHtml(p.name||p.plugin_name)}',${!(p.enabled||p.status===1)})">${p.enabled||p.status===1?'禁用':'启用'}</button>
+       <button class="btn btn-outline btn-sm" onclick="configPlugin('${escHtml(p.name||p.plugin_name)}')">配置</button>
+       <button class="btn btn-danger btn-sm" onclick="uninstallPlugin('${escHtml(p.name||p.plugin_name)}')">卸载</button>`
+    ]
+  }));
+  const content = listToolbar({search:false, actions:[
+    `<button class="btn btn-primary btn-sm" onclick="installPlugin()">安装插件</button>`
+  ]}) + renderTable(['名称','描述','版本','状态','操作'], rows);
+  $('#app').innerHTML = layout('插件管理', content);
+}
+window.togglePlugin = async function(name, enable) {
+  const endpoint = enable ? `/admin/plugin/enable/${name}` : `/admin/plugin/disable/${name}`;
+  const res = await POST(endpoint);
+  if (res && res.code === 1) { toast('操作成功'); renderPluginList(); }
+};
+window.configPlugin = async function(name) {
+  const res = await GET(`/admin/plugin/config/${name}`);
+  const config = res && res.data ? res.data : {};
+  openModal(`配置 - ${name}`, `
+    <div class="form-group"><label>配置 (JSON)</label><textarea class="form-control" id="f_plugin_config" rows="8">${escHtml(JSON.stringify(config, null, 2))}</textarea></div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="savePluginConfig('${name}')">保存</button>`);
+};
+window.savePluginConfig = async function(name) {
+  try {
+    const config = JSON.parse($('#f_plugin_config').value);
+    const res = await POST(`/admin/plugin/config/${name}`, config);
+    if (res && res.code === 1) { toast('保存成功'); closeModal(); }
+  } catch(e) { toast('JSON格式错误', 'error'); }
+};
+window.uninstallPlugin = async function(name) {
+  if (!confirm(`确定卸载插件 ${name}?`)) return;
+  const res = await POST(`/admin/plugin/uninstall/${name}`);
+  if (res && res.code === 1) { toast('卸载成功'); renderPluginList(); }
+};
+window.installPlugin = function() {
+  openModal('安装插件', `
+    <div class="form-group"><label>插件名称 *</label><input class="form-control" id="f_plugin_name"></div>
+    <div class="form-group"><label>来源</label><input class="form-control" id="f_plugin_source" placeholder="npm包名或URL"></div>
+  `, `<button class="btn btn-outline" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doInstallPlugin()">安装</button>`);
+};
+window.doInstallPlugin = async function() {
+  const name = $('#f_plugin_name').value.trim();
+  if (!name) { toast('请输入插件名称', 'warning'); return; }
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('source', $('#f_plugin_source').value);
+  const res = await POST('/admin/plugin/install', fd);
+  if (res && res.code === 1) { toast('安装成功'); closeModal(); renderPluginList(); }
+};
+
+// ========== URL SEND ==========
+async function renderUrlsendConfig() {
+  const [configRes, logsRes] = await Promise.all([
+    GET('/admin/urlsend/config'),
+    GET('/admin/urlsend/logs')
+  ]);
+  const config = configRes && configRes.data ? configRes.data : {};
+  const logs = logsRes && logsRes.data ? (Array.isArray(logsRes.data) ? logsRes.data : logsRes.data.list || []) : [];
+
+  let logsHTML = '';
+  if (logs.length) {
+    logsHTML = '<table><thead><tr><th>时间</th><th>URL</th><th>状态</th></tr></thead><tbody>';
+    logs.slice(0, 50).forEach(l => {
+      logsHTML += `<tr><td>${escHtml(l.created_at||l.time||'-')}</td><td style="max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(l.url||'-')}</td><td>${l.success!==false?'<span class="status-badge success">成功</span>':'<span class="status-badge danger">失败</span>'}</td></tr>`;
+    });
+    logsHTML += '</tbody></table>';
+  } else {
+    logsHTML = '<p style="color:var(--text-muted)">暂无推送记录</p>';
+  }
+
+  const content = `
+    <div class="card"><div class="card-title">URL推送配置</div>
+      <div class="form-group"><label>推送接口URL</label><input class="form-control" id="us_api_url" value="${escHtml(config.api_url||'')}"></div>
+      <div class="form-group"><label>推送密钥</label><input class="form-control" id="us_api_key" value="${escHtml(config.api_key||'')}"></div>
+      <div class="form-group"><label>站点URL</label><input class="form-control" id="us_site_url" value="${escHtml(config.site_url||'')}"></div>
+      <div class="btn-group" style="margin-top:16px">
+        <button class="btn btn-primary" onclick="saveUrlsendConfig()">保存配置</button>
+        <button class="btn btn-success" onclick="pushUrls()">推送URL</button>
+        <button class="btn btn-outline" onclick="pushAllUrls()">全量推送</button>
+        <button class="btn btn-outline" onclick="generateSitemap()">生成Sitemap</button>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">推送日志</div>${logsHTML}</div>`;
+  $('#app').innerHTML = layout('URL推送', content);
+}
+window.saveUrlsendConfig = async function() {
+  const fd = new FormData();
+  fd.append('api_url', $('#us_api_url').value);
+  fd.append('api_key', $('#us_api_key').value);
+  fd.append('site_url', $('#us_site_url').value);
+  const res = await POST('/admin/urlsend/config', fd);
+  if (res && res.code === 1) toast('保存成功');
+};
+window.pushUrls = async function() {
+  const res = await POST('/admin/urlsend/push');
+  if (res && res.code === 1) toast('推送成功');
+};
+window.pushAllUrls = async function() {
+  if (!confirm('确定全量推送?')) return;
+  const res = await POST('/admin/urlsend/pushall');
+  if (res && res.code === 1) toast('推送成功');
+};
+window.generateSitemap = async function() {
+  const res = await POST('/admin/urlsend/sitemap');
+  if (res && res.code === 1) toast('Sitemap已生成');
+};
+
+// ========== INIT ==========
+init();
+</script>
+</body>
+</html>
