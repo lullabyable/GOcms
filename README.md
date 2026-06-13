@@ -18,8 +18,8 @@
 
 ### 环境要求
 
-- Go 1.24+
-- MySQL 5.7+（可选，也支持 SQLite）
+- Go 1.25+
+- MySQL 5.7+
 
 ### 安装
 
@@ -38,11 +38,10 @@ go build -o gocms ./cmd/server
 
 首次启动后访问 `http://localhost:8080`，自动跳转安装向导：
 
-1. 选择数据库类型（MySQL / SQLite）
-2. 填写数据库连接信息，点击「测试连接」
-3. 设置管理员账号密码
-4. 点击「开始安装」，自动建表、写入配置
-5. 安装完成自动跳转首页
+1. 填写 MySQL 连接信息，点击「测试连接」
+2. 设置管理员账号密码
+3. 点击「开始安装」，自动建表、写入配置、生成 `install.lock`
+4. 安装完成自动跳转首页
 
 ### 手动配置（可选）
 
@@ -54,7 +53,7 @@ server:
   port: 8080
 
 database:
-  driver: "mysql"      # mysql | sqlite
+  driver: "mysql"
   host: "127.0.0.1"
   port: 3306
   user: "root"
@@ -77,7 +76,7 @@ GOcms/
 ├── config/              # 配置文件
 ├── internal/
 │   ├── config/          # 配置加载
-│   ├── database/        # 数据库连接 + 迁移 (MySQL/SQLite)
+│   ├── database/        # 数据库连接 + 迁移 (MySQL)
 │   ├── handler/
 │   │   ├── admin/       # 后台 API + 安装向导
 │   │   ├── api/         # 公开 API
@@ -96,7 +95,7 @@ GOcms/
 │   │       ├── *.html   # 页面模板
 │   │       └── partials/# 公共组件 (header/footer)
 │   └── uploads/         # 上传文件
-├── runtime/             # 运行时（缓存/日志/SQLite）
+├── runtime/             # 运行时（缓存/日志）
 ├── Dockerfile
 ├── Makefile
 └── README.md
