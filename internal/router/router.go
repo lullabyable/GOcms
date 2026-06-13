@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"gocms/internal/config"
 	"gocms/internal/handler/admin"
 	"gocms/internal/handler/api"
 	"gocms/internal/handler/frontend"
@@ -26,7 +27,7 @@ import (
 )
 
 // Setup 注册所有路由
-func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB, tplEngine *template.Engine, installH *admin.InstallHandler) {
+func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB, tplEngine *template.Engine, installH *admin.InstallHandler, cfg *config.Config) {
 
 	// 安装路由（无需认证，必须最先注册）
 	app.Get("/install", installH.Page)
@@ -97,7 +98,7 @@ a:hover{background:#4338ca}
 	pluginMgr.LoadEnabled()
 
 	// 后台路由
-	setupAdmin(app, sm, db, analyticsSvc, schedulerSvc, urlPushMgr, pluginMgr, aiSvc, paymentSvc, chatSvc)
+	setupAdmin(app, sm, db, analyticsSvc, schedulerSvc, urlPushMgr, pluginMgr, aiSvc, paymentSvc, chatSvc, cfg)
 
 	// API 路由
 	setupAPI(app, db, chatSvc)
@@ -110,7 +111,7 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	analyticsSvc *analytics.Service, schedulerSvc *scheduler.Scheduler,
 	urlPushMgr *urlpush.Manager, pluginMgr *plugin.Manager,
 	aiSvc *aicontent.Service, paymentSvc *payment.Service,
-	chatSvc *chat.Service) {
+	chatSvc *chat.Service, cfg *config.Config) {
 
 	// 原有 handlers
 	dashboard := admin.NewDashboardHandler(db)
@@ -140,6 +141,15 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	orderH := admin.NewOrderHandler(paymentSvc)
 	liveH := admin.NewLiveHandler(db)
 	chatH := admin.NewChatHandler(chatSvc)
+
+	// Phase 6 handlers
+	topicH := admin.NewTopicHandler(db)
+	linkH := admin.NewLinkHandler(db)
+	dbH := admin.NewDatabaseHandler(db)
+	tplH := admin.NewTemplateHandler(cfg.Template.Dir)
+	uploadH := admin.NewUploadHandler(cfg.Upload.Dir, int64(cfg.Upload.MaxSize)*1024*1024)
+	plogH := admin.NewPlogHandler(db)
+	dataReplaceH := admin.NewDataReplaceHandler(db)
 
 	a := app.Group("/admin")
 
@@ -369,6 +379,43 @@ else{msg.className='msg err';msg.textContent='❌ '+d.msg;msg.style.display='blo
 	auth.Post("/chat/room/delete/:id", chatH.RoomDelete)
 	auth.Get("/chat/history", chatH.History)
 	auth.Get("/chat/online/:id", chatH.OnlineCount)
+
+	// --- Phase 6 路由 ---
+	// 专题管理
+	auth.Get("/topic/list", topicH.List)
+	auth.Get("/topic/detail/:id", topicH.Detail)
+	auth.Post("/topic/save", topicH.Save)
+	auth.Post("/topic/delete", topicH.Delete)
+
+	// 友情链接
+	auth.Get("/link/list", linkH.List)
+	auth.Post("/link/save", linkH.Save)
+	auth.Post("/link/delete", linkH.Delete)
+
+	// 数据库管理
+	auth.Get("/database/list", dbH.List)
+	auth.Post("/database/optimize", dbH.Optimize)
+	auth.Post("/database/repair", dbH.Repair)
+	auth.Post("/database/backup", dbH.Backup)
+	auth.Get("/database/backups", dbH.Backups)
+	auth.Post("/database/restore", dbH.Restore)
+	auth.Post("/database/sql", dbH.SQL)
+
+	// 模板管理
+	auth.Get("/template/list", tplH.List)
+	auth.Get("/template/read", tplH.Read)
+	auth.Post("/template/save", tplH.Save)
+	auth.Get("/template/themes", tplH.Themes)
+
+	// 文件上传
+	auth.Post("/upload/file", uploadH.File)
+	auth.Post("/upload/image", uploadH.Image)
+
+	// 操作日志
+	auth.Get("/plog/list", plogH.List)
+
+	// 数据替换
+	auth.Post("/datareplace/execute", dataReplaceH.Execute)
 
 	// 登出
 	auth.Post("/logout", func(c *fiber.Ctx) error {

@@ -102,7 +102,7 @@ func main() {
 	middleware.Setup(app, logger)
 
 	// 注册路由
-	router.Setup(app, sm, db, tplEngine, installH)
+	router.Setup(app, sm, db, tplEngine, installH, cfg)
 
 	// 静态文件
 	app.Static("/static", "./web/static")
