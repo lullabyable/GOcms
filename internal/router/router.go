@@ -151,53 +151,21 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	plogH := admin.NewPlogHandler(db)
 	dataReplaceH := admin.NewDataReplaceHandler(db)
 
+	// 页面渲染处理器（原版 maccms10 模板兼容）
+	pageH := admin.NewPageHandler(db, cfg.Template.Dir+"/admin")
+
 	a := app.Group("/admin")
 
-	// 后台首页 → 重定向到 dashboard（中间件会拦截未登录）
-	a.Get("/", func(c *fiber.Ctx) error {
-		return c.Redirect("/admin/dashboard")
-	})
+	// 后台首页 → 主框架
+	a.Get("/", pageH.Index)
 
 	// 登录页面
-	a.Get("/login", func(c *fiber.Ctx) error {
-		c.Set("Content-Type", "text/html; charset=utf-8")
-		return c.SendString(`<!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>GOcms 后台登录</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f0f0f;color:#eee;min-height:100vh;display:flex;align-items:center;justify-content:center}
-.login-card{background:#1a1a1a;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.3);width:100%;max-width:400px;padding:40px}
-h1{text-align:center;font-size:22px;margin-bottom:8px;color:#e74c3c}.sub{text-align:center;color:#888;margin-bottom:28px;font-size:13px}
-.form-group{margin-bottom:18px}label{display:block;font-weight:600;margin-bottom:6px;font-size:13px;color:#aaa}
-input{width:100%;padding:10px 14px;border:1px solid #333;border-radius:8px;font-size:14px;background:#222;color:#eee;transition:border .2s}
-input:focus{outline:none;border-color:#e74c3c;box-shadow:0 0 0 3px rgba(231,76,60,.15)}
-.btn{width:100%;padding:12px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;background:#e74c3c;color:#fff;transition:all .2s}
-.btn:hover{background:#c0392b}.btn:disabled{background:#555;cursor:not-allowed}
-.msg{padding:10px;border-radius:8px;margin-bottom:14px;font-size:13px;display:none;text-align:center}
-.msg.err{display:block;background:#2a1515;color:#e74c3c;border:1px solid #3a1a1a}
-.msg.ok{display:block;background:#152a15;color:#2ecc71;border:1px solid #1a3a1a}
-</style></head><body>
-<div class="login-card">
-<h1>🎬 GOcms</h1><p class="sub">后台管理登录</p>
-<div id="msg" class="msg"></div>
-<form id="loginForm">
-<div class="form-group"><label>用户名</label><input type="text" id="name" name="admin_name" required autofocus></div>
-<div class="form-group"><label>密码</label><input type="password" id="pwd" name="admin_pwd" required></div>
-<button type="submit" class="btn" id="btn">登 录</button>
-</form></div>
-<script>
-document.getElementById('loginForm').onsubmit=function(e){
-e.preventDefault();
-var btn=document.getElementById('btn'),msg=document.getElementById('msg');
-btn.disabled=true;btn.textContent='登录中...';msg.className='msg';msg.style.display='none';
-fetch('/admin/login',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-body:'admin_name='+encodeURIComponent(document.getElementById('name').value)+'&admin_pwd='+encodeURIComponent(document.getElementById('pwd').value)})
-.then(r=>r.json()).then(d=>{
-if(d.code===1){msg.className='msg ok';msg.textContent='✅ 登录成功，跳转中...';msg.style.display='block';setTimeout(()=>location.href='/admin/dashboard',800);}
-else{msg.className='msg err';msg.textContent='❌ '+d.msg;msg.style.display='block';btn.disabled=false;btn.textContent='登 录';}
-}).catch(()=>{msg.className='msg err';msg.textContent='请求失败';msg.style.display='block';btn.disabled=false;btn.textContent='登 录';});
-};
-</script></body></html>`)
+	a.Get("/login", pageH.Login)
+	// 兼容原版 URL 模式
+	a.Get("/index/login", pageH.Login)
+	a.Get("/index/index", pageH.Index)
+	a.Get("/index/welcome", func(c *fiber.Ctx) error {
+		return c.Redirect("/admin/page/welcome")
 	})
 
 	// 登录接口（数据库限流，3次失败锁定60分钟）
@@ -252,6 +220,62 @@ else{msg.className='msg err';msg.textContent='❌ '+d.msg;msg.style.display='blo
 		// 登录成功，清除封禁
 		db.Where("ip = ?", ip).Delete(&model.LoginBan{})
 
+		sess := sm.Regenerate(c)
+		sess.Set("admin_id", strconv.Itoa(adm.AdminID))
+		sess.Set("admin_name", adm.AdminName)
+		sess.Set("admin_role", strconv.Itoa(adm.AdminRole))
+		db.Model(&adm).Updates(map[string]interface{}{
+			"admin_last_time": 0,
+			"admin_login_num": gorm.Expr("admin_login_num + 1"),
+		})
+		return c.JSON(fiber.Map{"code": 1, "msg": "登录成功"})
+	})
+
+	// 兼容原版 URL 模式的登录接口
+	a.Post("/index/login", func(c *fiber.Ctx) error {
+		// 复用 /admin/login 的逻辑
+		ip := c.IP()
+		var ban model.LoginBan
+		result := db.Where("ip = ?", ip).First(&ban)
+		if result.Error == nil && ban.BanUntil > time.Now().Unix() {
+			remaining := (ban.BanUntil - time.Now().Unix()) / 60
+			if remaining < 1 {
+				remaining = 1
+			}
+			return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("登录失败次数过多，请 %d 分钟后重试", remaining)})
+		}
+		name := c.FormValue("admin_name")
+		pwd := c.FormValue("admin_pwd")
+		var adm model.Admin
+		if err := db.Where("admin_name = ?", name).First(&adm).Error; err != nil {
+			ban.IP = ip
+			ban.Failures++
+			ban.LastFail = time.Now().Unix()
+			if ban.Failures >= 3 {
+				ban.BanUntil = time.Now().Add(60 * time.Minute).Unix()
+			}
+			db.Save(&ban)
+			return c.JSON(fiber.Map{"code": 0, "msg": "用户名或密码错误"})
+		}
+		if err := bcrypt.CompareHashAndPassword([]byte(adm.AdminPwd), []byte(pwd)); err != nil {
+			if adm.AdminPwd != fmt.Sprintf("%x", []byte(pwd)) {
+				ban.IP = ip
+				ban.Failures++
+				ban.LastFail = time.Now().Unix()
+				if ban.Failures >= 3 {
+					ban.BanUntil = time.Now().Add(60 * time.Minute).Unix()
+				}
+				db.Save(&ban)
+				return c.JSON(fiber.Map{"code": 0, "msg": "用户名或密码错误"})
+			}
+			if newHash, err := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost); err == nil {
+				db.Model(&adm).Update("admin_pwd", string(newHash))
+			}
+		}
+		if adm.AdminStatus != 1 {
+			return c.JSON(fiber.Map{"code": 0, "msg": "账号已被禁用"})
+		}
+		db.Where("ip = ?", ip).Delete(&model.LoginBan{})
 		sess := sm.Regenerate(c)
 		sess.Set("admin_id", strconv.Itoa(adm.AdminID))
 		sess.Set("admin_name", adm.AdminName)
@@ -416,6 +440,50 @@ else{msg.className='msg err';msg.textContent='❌ '+d.msg;msg.style.display='blo
 
 	// 数据替换
 	auth.Post("/datareplace/execute", dataReplaceH.Execute)
+
+	// --- 原版模板渲染页面（iframe 加载） ---
+	auth.Get("/page/welcome", pageH.Welcome)
+	auth.Get("/page/vod/data", pageH.VodData)
+	auth.Get("/page/vod/info", pageH.VodInfo)
+	auth.Get("/page/vod/info/:id", pageH.VodInfo)
+	auth.Get("/page/art/data", pageH.ArtData)
+	auth.Get("/page/art/info", pageH.ArtInfo)
+	auth.Get("/page/art/info/:id", pageH.ArtInfo)
+	auth.Get("/page/topic/data", pageH.TopicData)
+	auth.Get("/page/topic/info", pageH.TopicInfo)
+	auth.Get("/page/topic/info/:id", pageH.TopicInfo)
+	auth.Get("/page/link/index", pageH.LinkIndex)
+	auth.Get("/page/link/info", pageH.LinkInfo)
+	auth.Get("/page/link/info/:id", pageH.LinkInfo)
+	auth.Get("/page/type/index", pageH.TypeIndex)
+	auth.Get("/page/type/info", pageH.TypeInfo)
+	auth.Get("/page/type/info/:id", pageH.TypeInfo)
+	auth.Get("/page/actor/data", pageH.ActorData)
+	auth.Get("/page/actor/info", pageH.ActorInfo)
+	auth.Get("/page/actor/info/:id", pageH.ActorInfo)
+	auth.Get("/page/role/data", pageH.RoleData)
+	auth.Get("/page/role/info", pageH.RoleInfo)
+	auth.Get("/page/role/info/:id", pageH.RoleInfo)
+	auth.Get("/page/user/data", pageH.UserIndex)
+	auth.Get("/page/user/info", pageH.UserInfo)
+	auth.Get("/page/user/info/:id", pageH.UserInfo)
+	auth.Get("/page/admin/index", pageH.AdminIndex)
+	auth.Get("/page/admin/info", pageH.AdminInfo)
+	auth.Get("/page/admin/info/:id", pageH.AdminInfo)
+	auth.Get("/page/comment/data", pageH.CommentIndex)
+	auth.Get("/page/gbook/data", pageH.GbookIndex)
+	auth.Get("/page/database/export", pageH.DatabaseExport)
+	auth.Get("/page/database/sql", pageH.DatabaseSQL)
+	auth.Get("/page/database/rep", pageH.DatabaseRep)
+	auth.Get("/page/template/index", pageH.TemplateIndex)
+	auth.Get("/page/plog/index", pageH.PlogIndex)
+	auth.Get("/page/collect/index", pageH.CollectIndex)
+	auth.Get("/page/order/index", pageH.OrderIndex)
+	auth.Get("/page/manga/data", pageH.MangaData)
+	auth.Get("/page/manga/info", pageH.MangaInfo)
+	auth.Get("/page/manga/info/:id", pageH.MangaInfo)
+	auth.Get("/page/live/index", pageH.LiveIndex)
+	auth.Get("/page/system/config", pageH.SystemConfig)
 
 	// 登出
 	auth.Post("/logout", func(c *fiber.Ctx) error {
