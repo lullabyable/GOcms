@@ -38,7 +38,12 @@ func Setup(app *fiber.App, sm *session.Manager, db *gorm.DB, tplEngine *template
 	app.Use(func(c *fiber.Ctx) error {
 		if !installH.IsInstalled() && c.Path() != "/install" &&
 			c.Path() != "/install/test-db" && c.Path() != "/install/submit" &&
-			!strings.HasPrefix(c.Path(), "/static") {
+			!strings.HasPrefix(c.Path(), "/static") &&
+			!strings.HasPrefix(c.Path(), "/layui/") &&
+			!strings.HasPrefix(c.Path(), "/css/") &&
+			!strings.HasPrefix(c.Path(), "/js/") &&
+			!strings.HasPrefix(c.Path(), "/images/") &&
+			!strings.HasPrefix(c.Path(), "/pages/") {
 			return c.Redirect("/install")
 		}
 		return c.Next()
