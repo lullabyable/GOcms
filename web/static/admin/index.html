@@ -58,7 +58,7 @@
             <div class="tab-go-refresh" id="J_refresh"><i class="layui-icon layui-icon-refresh"></i></div>
             <div class="tab-go-left" id="page-prev"><i class="layui-icon layui-icon-zuozuo"></i></div>
             <ul class="layui-tab-title top_tab" id="B_history">
-                <li lay-id="111" class="layui-this">后台首页</li>
+                <li lay-id="welcome" class="layui-this">后台首页</li>
             </ul>
             <div class="tab-right">
                 <div class="tab-go-right" id="page-next"><i class="layui-icon layui-icon-youyou"></i></div>
@@ -74,7 +74,7 @@
             </div>
             <div class="layui-tab-content">
                 <div class="layui-tab-item layui-show">
-                    <iframe lay-id="111" src="/pages/index/welcome.html" width="100%" height="100%" frameborder="0" scrolling="yes" class="hs-iframe"></iframe>
+                    <iframe lay-id="welcome" src="/pages/index/welcome.html" width="100%" height="100%" frameborder="0" scrolling="yes" class="hs-iframe"></iframe>
                 </div>
             </div>
         </div>
@@ -190,7 +190,7 @@
             html += '<a href="javascript:;">' + item.name + '</a>';
             html += '<dl class="layui-nav-child">';
             item.sub.forEach(function(sub, j) {
-                var dataId = (i+1) + '' + (j+1);
+                var dataId = 'm' + i + '_s' + j;
                 html += '<dd><a class="admin-nav-item" data-id="' + dataId + '" href="' + sub.url + '">' + sub.name + '</a></dd>';
             });
             html += '</dl>';
@@ -274,7 +274,7 @@
             if ($("#B_history li").length > 1) {
                 $("#B_history li").each(function() {
                     var data_id = $(this).attr('lay-id');
-                    if (data_id != '' && data_id != '111') {
+                    if (data_id != '' && data_id != 'welcome') {
                         element.tabDelete("macTab", data_id);
                         $("iframe[lay-id='"+data_id+"']").remove();
                     }
@@ -287,7 +287,7 @@
                 var cid = $('#B_history .layui-this').attr('lay-id');
                 $("#B_history li").each(function() {
                     var data_id = $(this).attr('lay-id');
-                    if (data_id != '' && data_id != '111' && data_id != cid) {
+                    if (data_id != '' && data_id != 'welcome' && data_id != cid) {
                         element.tabDelete("macTab", data_id);
                         $("iframe[lay-id='"+data_id+"']").remove();
                     }
