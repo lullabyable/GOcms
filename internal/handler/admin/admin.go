@@ -48,6 +48,28 @@ func (h *AdminHandler) Save(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"code": 1, "msg": "保存成功"})
 }
 
+// Detail 管理员详情
+func (h *AdminHandler) Detail(c *fiber.Ctx) error {
+	id, _ := strconv.Atoi(c.Params("id"))
+	var admin model.Admin
+	if err := h.db.First(&admin, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"code": 0, "msg": "管理员不存在"})
+	}
+	// 不返回密码
+	type safeAdmin struct {
+		AdminID       int    `json:"admin_id"`
+		AdminName     string `json:"admin_name"`
+		AdminRole     int    `json:"admin_role"`
+		AdminStatus   int    `json:"admin_status"`
+		AdminLastTime int64  `json:"admin_last_time"`
+		AdminLoginNum int    `json:"admin_login_num"`
+	}
+	return c.JSON(fiber.Map{"code": 1, "data": safeAdmin{
+		AdminID: admin.AdminID, AdminName: admin.AdminName, AdminRole: admin.AdminRole,
+		AdminStatus: admin.AdminStatus, AdminLastTime: admin.AdminLastTime, AdminLoginNum: admin.AdminLoginNum,
+	}})
+}
+
 func (h *AdminHandler) Delete(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
 	if id == 1 {

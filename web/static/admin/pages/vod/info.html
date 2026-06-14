@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>视频管理</title>
+    <link rel="stylesheet" href="../../layui/css/layui.css">
+    <link rel="stylesheet" href="../../css/admin_style.css">
+</head>
+<body>
+<div class="page-container p10">
+    <div class="showpic" style="display:none;"><img class="showpic_img" width="120" height="160" referrerPolicy="no-referrer"></div>
+
+    <form class="layui-form layui-form-pane" id="editForm">
+        <input type="hidden" name="vod_id" id="vod_id" value="">
+
+        <div class="layui-tab">
+            <ul class="layui-tab-title">
+                <li class="layui-this">基本信息</li>
+                <li>其他信息</li>
+            </ul>
+            <div class="layui-tab-content">
+
+                <div class="layui-tab-item layui-show">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">参数：</label>
+                        <div class="layui-input-inline w150">
+                            <select name="type_id" lay-filter="type_id" id="type_id"></select>
+                        </div>
+                        <div class="layui-input-inline w150">
+                            <select name="vod_level">
+                                <option value="0">选择推荐</option>
+                                <option value="9">推荐9-幻灯</option>
+                                <option value="1">推荐1</option>
+                                <option value="2">推荐2</option>
+                                <option value="3">推荐3</option>
+                                <option value="4">推荐4</option>
+                                <option value="5">推荐5</option>
+                                <option value="6">推荐6</option>
+                                <option value="7">推荐7</option>
+                                <option value="8">推荐8</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline w120">
+                            <select name="vod_status">
+                                <option value="1">已审核</option>
+                                <option value="0">未审核</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline w120">
+                            <select name="vod_lock">
+                                <option value="0">正常</option>
+                                <option value="1">锁定</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline w120">
+                            <select name="vod_isend">
+                                <option value="1">已完结</option>
+                                <option value="0">连载中</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline w120">
+                            <select name="vod_copyright">
+                                <option value="0">版权关闭</option>
+                                <option value="1">版权开启</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline w110">
+                            <input type="checkbox" name="uptime" title="更新时间" value="1" checked class="layui-checkbox" lay-skin="primary">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">名称：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_name" id="vod_name">
+                        </div>
+                        <label class="layui-form-label">副标题：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_sub" id="vod_sub">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">别名：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_en">
+                        </div>
+                        <label class="layui-form-label">首字母：</label>
+                        <div class="layui-input-inline w70">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_letter">
+                        </div>
+                        <label class="layui-form-label">颜色：</label>
+                        <div class="layui-input-inline w70">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_color">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">TAG：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_tag" id="vod_tag">
+                        </div>
+                        <div class="layui-input-inline w120">
+                            <input type="checkbox" name="uptag" title="自动生成" value="1" class="layui-checkbox" lay-skin="primary">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">备注：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_remarks" id="vod_remarks">
+                        </div>
+                        <label class="layui-form-label">移除后续：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_behind" id="vod_behind">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">总集数：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_total" id="vod_total">
+                        </div>
+                        <label class="layui-form-label">连载到：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_serial" id="vod_serial">
+                        </div>
+                        <label class="layui-form-label">上映日期：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_pubdate" id="vod_pubdate">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">演员：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_actor" id="vod_actor">
+                        </div>
+                        <label class="layui-form-label">导演：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_director" id="vod_director">
+                        </div>
+                        <label class="layui-form-label">编剧：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_writer" id="vod_writer">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">电视台：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_tv">
+                        </div>
+                        <label class="layui-form-label">更新周期：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_weekday">
+                        </div>
+                        <label class="layui-form-label">时长：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_duration" id="vod_duration">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">豆瓣评分：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_douban_score" id="vod_douban_score">
+                        </div>
+                        <label class="layui-form-label">豆瓣ID：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_douban_id" id="vod_douban_id">
+                        </div>
+                        <div class="layui-input-inline">
+                            <button type="button" class="layui-btn" id="btn_douban">搜索数据</button>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">关联视频：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="输入关联视频ID，多个用逗号分隔" name="vod_rel_vod">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">关联文章：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="输入关联文章ID，多个用逗号分隔" name="vod_rel_art">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">分类：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_class" name="vod_class">
+                        </div>
+                        <div class="layui-input-inline w500 vod_class_label"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">年份：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_year" name="vod_year">
+                        </div>
+                        <div class="layui-input-inline w500 vod_year_label"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">地区：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_area" name="vod_area">
+                        </div>
+                        <div class="layui-input-inline w500 vod_area_label"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">语言：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_lang" name="vod_lang">
+                        </div>
+                        <div class="layui-input-inline w500 vod_lang_label"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">版本：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_version" name="vod_version">
+                        </div>
+                        <div class="layui-input-inline w500 vod_version_label"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">状态：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_state" name="vod_state">
+                        </div>
+                        <div class="layui-input-inline w500 vod_state_label"></div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">图片：</label>
+                        <div class="layui-input-inline w500 upload">
+                            <input type="text" class="layui-input upload-input" style="max-width:100%;" value="" placeholder="" id="vod_pic" name="vod_pic">
+                        </div>
+                        <div class="layui-input-inline">
+                            <button type="button" class="layui-btn layui-upload" id="upload1">上传图片</button>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">缩略图：</label>
+                        <div class="layui-input-inline w500 upload">
+                            <input type="text" class="layui-input upload-input upload-thumb" style="max-width:100%;" value="" placeholder="" id="vod_pic_thumb" name="vod_pic_thumb">
+                        </div>
+                        <div class="layui-input-inline">
+                            <button type="button" class="layui-btn layui-upload" id="upload2">上传图片</button>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">幻灯图：</label>
+                        <div class="layui-input-inline w500 upload">
+                            <input type="text" class="layui-input upload-input" style="max-width:100%;" value="" placeholder="" id="vod_pic_slide" name="vod_pic_slide">
+                        </div>
+                        <div class="layui-input-inline">
+                            <button type="button" class="layui-btn layui-upload" id="upload3">上传图片</button>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">简介：</label>
+                        <div class="layui-input-block">
+                            <textarea name="vod_blurb" cols="" rows="3" class="layui-textarea" placeholder="不填则自动截取内容前200字" style="height:40px;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 播放源配置 -->
+                    <div id="player_list" class="contents">
+                    </div>
+                    <div class="layui-form-item">
+                        <label class=""><button class="layui-btn radius j-player-add" type="button">+ 添加播放组</button></label>
+                        <div class="layui-input-block"></div>
+                    </div>
+
+                    <hr class="layui-bg-gray">
+
+                    <!-- 下载源配置 -->
+                    <div id="downer_list" class="contents">
+                    </div>
+                    <div class="layui-form-item">
+                        <label class=""><button class="layui-btn radius j-downer-add" type="button">+ 添加下载组</button></label>
+                        <div class="layui-input-block"></div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">内容：</label>
+                        <div class="layui-input-block">
+                            <textarea id="vod_content" name="vod_content" style="width:99%;height:250px"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-tab-item">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">顶：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_up" name="vod_up">
+                        </div>
+                        <label class="layui-form-label">踩：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_down" name="vod_down">
+                        </div>
+                        <button class="layui-btn" type="button" id="btn_rnd">随机生成</button>
+                        <button class="layui-btn" type="button" id="btn_zero">归零</button>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">总人气：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_hits" name="vod_hits">
+                        </div>
+                        <label class="layui-form-label">月人气：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_hits_month" name="vod_hits_month">
+                        </div>
+                        <label class="layui-form-label">作者：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_author" id="vod_author">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">周人气：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_hits_week" name="vod_hits_week">
+                        </div>
+                        <label class="layui-form-label">日人气：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_hits_day" name="vod_hits_day">
+                        </div>
+                        <label class="layui-form-label">跳转URL：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_jumpurl" id="vod_jumpurl">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">评分：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_score" name="vod_score">
+                        </div>
+                        <label class="layui-form-label">总评分：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_score_all" name="vod_score_all">
+                        </div>
+                        <label class="layui-form-label">评分次数：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" id="vod_score_num" name="vod_score_num">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">总积分：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_points">
+                        </div>
+                        <label class="layui-form-label">播放积分：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_points_play">
+                        </div>
+                        <label class="layui-form-label">下载积分：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_points_down">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">详情模板：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_tpl">
+                        </div>
+                        <label class="layui-form-label">播放模板：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_tpl_play">
+                        </div>
+                        <label class="layui-form-label">下载模板：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_tpl_down">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">访问密码：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="留空则不生效" name="vod_pwd">
+                        </div>
+                        <label class="layui-form-label">密码提示：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_pwd_url">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">播放密码：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_pwd_play">
+                        </div>
+                        <label class="layui-form-label">密码提示：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_pwd_play_url">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">下载密码：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_pwd_down">
+                        </div>
+                        <label class="layui-form-label">密码提示：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="vod_pwd_down_url">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item center">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="formSubmit">保存</button>
+                <button class="layui-btn layui-btn-warm" type="reset">重置</button>
+                <button type="button" class="layui-btn layui-btn-normal" onclick="history.back()">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/app.js"></script>
+<script type="text/javascript">
+    var vodId = getQueryParam('id');
+    var playersArrLen = 0;
+    var downersArrLen = 0;
+    var playerSelectHtml = '';
+    var downerSelectHtml = '';
+    var serverSelectHtml = '';
+
+    // 加载分类列表
+    function loadTypes() {
+        API.get('/admin/api/type/list?mid=1').then(function(r) {
+            if (r.code === 1 && r.data) {
+                var select = document.getElementById('type_id');
+                select.innerHTML = '<option value="">选择分类</option>';
+                r.data.forEach(function(vo) {
+                    select.innerHTML += '<option value="' + vo.type_id + '">' + vo.type_name + '</option>';
+                    if (vo.child) {
+                        vo.child.forEach(function(ch) {
+                            select.innerHTML += '<option value="' + ch.type_id + '">&nbsp;|&nbsp;&nbsp;&nbsp;|—' + ch.type_name + '</option>';
+                        });
+                    }
+                });
+                layui.use('form', function() { layui.form.render('select'); });
+            }
+        });
+    }
+
+    // 加载播放器列表
+    function loadPlayers() {
+        API.get('/admin/api/player/list').then(function(r) {
+            if (r.code === 1 && r.data) {
+                playerSelectHtml = '<option value="no">选择播放器.</option>';
+                serverSelectHtml = '<option value="no">选择服务器.</option>';
+                r.data.forEach(function(vo) {
+                    if (vo.status == 1) {
+                        playerSelectHtml += '<option value="' + vo.from + '">' + vo.show + '</option>';
+                    }
+                });
+            }
+        });
+        API.get('/admin/api/server/list').then(function(r) {
+            if (r.code === 1 && r.data) {
+                r.data.forEach(function(vo) {
+                    if (vo.status == 1) {
+                        serverSelectHtml += '<option value="' + vo.from + '">' + vo.show + '</option>';
+                    }
+                });
+            }
+        });
+        API.get('/admin/api/downer/list').then(function(r) {
+            if (r.code === 1 && r.data) {
+                downerSelectHtml = '<option value="no">选择下载器.</option>';
+                r.data.forEach(function(vo) {
+                    if (vo.status == 1) {
+                        downerSelectHtml += '<option value="' + vo.from + '">' + vo.show + '</option>';
+                    }
+                });
+            }
+        });
+    }
+
+    // 添加播放组
+    function addPlayerGroup(data) {
+        playersArrLen++;
+        var i = playersArrLen;
+        var div = document.createElement('div');
+        div.className = 'layui-form-item';
+        div.setAttribute('data-i', i);
+        div.innerHTML = '<label class="layui-form-label">播放' + i + '：</label>' +
+            '<div class="layui-input-inline w150"><select name="vod_play_from[]">' + playerSelectHtml + '</select></div>' +
+            '<div class="layui-input-inline w150"><select name="vod_play_server[]">' + serverSelectHtml + '</select></div>' +
+            '<div class="layui-input-inline w150"><input type="text" name="vod_play_note[]" class="layui-input" value="' + (data ? data.note : '') + '" placeholder="备注"></div>' +
+            '<div class="layui-input-inline w400 p10"><a href="javascript:void(0)" class="j-editor-clear">清空</a>&nbsp;<a href="javascript:void(0)" class="j-editor-remove">删除</a>&nbsp;<a href="javascript:void(0)" class="j-editor-up">上移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-down">下移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-xz">整理</a>&nbsp;<a href="javascript:void(0)" class="j-editor-order">倒序</a>&nbsp;<a href="javascript:void(0)" class="j-editor-dn">去前缀</a></div>' +
+            '<div class="p10 m20"></div>' +
+            '<div class="layui-input-block"><textarea id="vod_play_url' + i + '" name="vod_play_url[]" style="width:100%;height:150px">' + (data ? data.url.replace(/\$/g, '\n') : '') + '</textarea></div>';
+        document.getElementById('player_list').appendChild(div);
+
+        if (data && data.from) {
+            var sel = div.querySelector('select[name="vod_play_from[]"]');
+            sel.value = data.from;
+        }
+        if (data && data.server) {
+            var sel = div.querySelector('select[name="vod_play_server[]"]');
+            sel.value = data.server;
+        }
+        layui.use('form', function() { layui.form.render('select'); });
+    }
+
+    // 添加下载组
+    function addDownerGroup(data) {
+        downersArrLen++;
+        var i = downersArrLen;
+        var div = document.createElement('div');
+        div.className = 'layui-form-item';
+        div.setAttribute('data-i', i);
+        div.innerHTML = '<label class="layui-form-label">下载' + i + '：</label>' +
+            '<div class="layui-input-inline w150"><select name="vod_down_from[]">' + downerSelectHtml + '</select></div>' +
+            '<div class="layui-input-inline w150"><select name="vod_down_server[]">' + serverSelectHtml + '</select></div>' +
+            '<div class="layui-input-inline w150"><input type="text" name="vod_down_note[]" class="layui-input" value="' + (data ? data.note : '') + '" placeholder="备注"></div>' +
+            '<div class="layui-input-inline w400 p10"><a href="javascript:void(0)" class="j-editor-clear">清空</a>&nbsp;<a href="javascript:void(0)" class="j-editor-remove">删除</a>&nbsp;<a href="javascript:void(0)" class="j-editor-up">上移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-down">下移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-xz">整理</a>&nbsp;<a href="javascript:void(0)" class="j-editor-order">倒序</a>&nbsp;<a href="javascript:void(0)" class="j-editor-dn">去前缀</a></div>' +
+            '<div class="p10"></div>' +
+            '<div class="layui-input-block"><textarea id="vod_down_url' + i + '" name="vod_down_url[]" style="width:100%;height:150px">' + (data ? data.url.replace(/\$/g, '\n') : '') + '</textarea></div>';
+        document.getElementById('downer_list').appendChild(div);
+
+        if (data && data.from) {
+            div.querySelector('select[name="vod_down_from[]"]').value = data.from;
+        }
+        if (data && data.server) {
+            div.querySelector('select[name="vod_down_server[]"]').value = data.server;
+        }
+        layui.use('form', function() { layui.form.render('select'); });
+    }
+
+    // 编辑器操作
+    document.addEventListener('click', function(e) {
+        var target = e.target;
+        var parent = target.closest('.layui-form-item');
+        if (!parent) return;
+
+        if (target.classList.contains('j-editor-clear')) {
+            parent.querySelector('textarea').value = '';
+        } else if (target.classList.contains('j-editor-remove')) {
+            parent.remove();
+        } else if (target.classList.contains('j-editor-up')) {
+            var prev = parent.previousElementSibling;
+            if (prev && prev.classList.contains('layui-form-item')) {
+                parent.parentNode.insertBefore(parent, prev);
+            }
+        } else if (target.classList.contains('j-editor-down')) {
+            var next = parent.nextElementSibling;
+            if (next && next.classList.contains('layui-form-item')) {
+                parent.parentNode.insertBefore(next, parent);
+            }
+        } else if (target.classList.contains('j-editor-xz')) {
+            var ta = parent.querySelector('textarea');
+            var s1 = ta.value.trim();
+            if (!s1) return;
+            var arr = s1.split('\n');
+            var s2 = '';
+            arr.forEach(function(line, j) {
+                if (line.trim()) {
+                    if (line.indexOf('$') === -1) {
+                        line = '第' + (j + 1) + '集$' + line;
+                    }
+                    s2 += line + '\n';
+                }
+            });
+            ta.value = s2.trim();
+        } else if (target.classList.contains('j-editor-order')) {
+            var ta = parent.querySelector('textarea');
+            var arr = ta.value.trim().split('\n').reverse();
+            ta.value = arr.filter(function(l) { return l.trim(); }).join('\n');
+        } else if (target.classList.contains('j-editor-dn')) {
+            var ta = parent.querySelector('textarea');
+            var arr = ta.value.trim().split('\n');
+            var s2 = '';
+            arr.forEach(function(line) {
+                if (line.trim()) {
+                    var parts = line.split('$');
+                    s2 += (parts.length > 1 ? parts[1] : line) + '\n';
+                }
+            });
+            ta.value = s2.trim();
+        }
+    });
+
+    // 加载编辑数据
+    function loadDetail() {
+        if (!vodId) return;
+        API.get('/admin/api/vod/detail?id=' + vodId).then(function(r) {
+            if (r.code === 1 && r.data) {
+                var info = r.data;
+                // 填充基础字段
+                var form = document.getElementById('editForm');
+                Object.keys(info).forEach(function(key) {
+                    var el = form.querySelector('[name="' + key + '"]');
+                    if (el) {
+                        if (el.type === 'checkbox') {
+                            el.checked = !!info[key];
+                        } else if (el.type === 'radio') {
+                            form.querySelectorAll('[name="' + key + '"]').forEach(function(radio) {
+                                radio.checked = (radio.value == info[key]);
+                            });
+                        } else {
+                            el.value = info[key] || '';
+                        }
+                    }
+                });
+
+                // 填充播放源
+                if (info.vod_play_list) {
+                    info.vod_play_list.forEach(function(p) { addPlayerGroup(p); });
+                }
+                // 填充下载源
+                if (info.vod_down_list) {
+                    info.vod_down_list.forEach(function(d) { addDownerGroup(d); });
+                }
+                // 填充内容
+                if (info.vod_content) {
+                    document.getElementById('vod_content').value = info.vod_content;
+                }
+
+                layui.use('form', function() { layui.form.render(); });
+            }
+        });
+    }
+
+    // 初始化
+    loadTypes();
+    loadPlayers();
+
+    // 加载完播放器后再加载详情
+    setTimeout(function() {
+        if (playersArrLen === 0 && downersArrLen === 0) {
+            addPlayerGroup();
+        }
+        loadDetail();
+    }, 500);
+
+    // 添加播放/下载组
+    document.querySelector('.j-player-add').addEventListener('click', function() { addPlayerGroup(); });
+    document.querySelector('.j-downer-add').addEventListener('click', function() { addDownerGroup(); });
+
+    // 随机生成
+    document.getElementById('btn_rnd').addEventListener('click', function() {
+        document.getElementById('vod_hits').value = rndNum(5000, 9999);
+        document.getElementById('vod_hits_month').value = rndNum(1000, 4999);
+        document.getElementById('vod_hits_week').value = rndNum(300, 999);
+        document.getElementById('vod_hits_day').value = rndNum(1, 299);
+        document.getElementById('vod_up').value = rndNum(1, 999);
+        document.getElementById('vod_down').value = rndNum(1, 999);
+        document.getElementById('vod_score').value = rndNum(10);
+        document.getElementById('vod_score_all').value = rndNum(1000);
+        document.getElementById('vod_score_num').value = rndNum(100);
+    });
+
+    // 归零
+    document.getElementById('btn_zero').addEventListener('click', function() {
+        ['vod_hits', 'vod_hits_month', 'vod_hits_week', 'vod_hits_day', 'vod_up', 'vod_down', 'vod_score', 'vod_score_all', 'vod_score_num'].forEach(function(id) {
+            document.getElementById(id).value = '0';
+        });
+    });
+
+    // 表单提交
+    bindForm('editForm', '/admin/api/vod/save', function(r) {
+        if (!vodId && r.data && r.data.vod_id) {
+            vodId = r.data.vod_id;
+            document.getElementById('vod_id').value = vodId;
+            window.history.replaceState({}, '', 'info.html?id=' + vodId);
+        }
+    });
+
+    // 扩展标签点击
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('extend')) {
+            var id = e.target.getAttribute('data-id');
+            var input = document.getElementById(id);
+            if (input) {
+                if (id === 'vod_class' || id === 'vod_keywords') {
+                    var val = input.value;
+                    if (val && val.indexOf(e.target.textContent) === -1) {
+                        input.value = val + ',' + e.target.textContent;
+                    } else if (!val) {
+                        input.value = e.target.textContent;
+                    }
+                } else {
+                    input.value = e.target.textContent;
+                }
+            }
+        }
+    });
+
+    // 分类变更时加载扩展
+    layui.use('form', function() {
+        layui.form.on('select(type_id)', function(data) {
+            if (data.value) {
+                API.post('/admin/api/type/extend', { id: data.value }).then(function(r) {
+                    if (r.code === 1 && r.data) {
+                        Object.keys(r.data).forEach(function(key) {
+                            var label = document.querySelector('.vod_' + key + '_label');
+                            if (label) {
+                                label.innerHTML = '';
+                                if (r.data[key]) {
+                                    r.data[key].forEach(function(val) {
+                                        label.innerHTML += '<a class="layui-btn layui-btn-xs extend" href="javascript:;" data-id="vod_' + key + '">' + val + '</a>';
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>GOcms 后台管理</title>
+    <link rel="stylesheet" href="layui/css/layui.css?v=1024">
+    <link rel="stylesheet" href="css/admin_style.css?v=1024">
+    <style type="text/css">
+        .hs-iframe{width:100%;height:100%;}
+        .layui-tab-content {top: 41px; position: absolute; bottom: 0; width: 100%; padding: 0; }
+        .layui-tab-item{height:100%;}
+        .layui-tab-title .layui-this {background-color: #009688; color: #fff; }
+        .layui-tab-title .layui-this:after {border: none; }
+        .layui-tab-title li { border-right: 1px solid #e6e6e6;}
+        .footer{position:fixed;left:0;bottom:0;z-index:998;}
+    </style>
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header header-top">
+        <div class="top-logo">GOcms</div>
+        <ul class="layout-right" lay-filter="">
+            <li class="nav-item">
+                <a href="javascript:void(0);" onclick="chanage_version()">New</a>
+            </li>
+            <li class="nav-item">
+                <a href="/" target="_blank"><i class="layui-icon layui-icon-home size-14"></i></a>
+            </li>
+            <li class="nav-item">
+                <a href="javascript:;" class="j-ajax" onclick="clearCache()"><i class="layui-icon layui-icon-delete size-16"></i></a>
+            </li>
+            <li class="nav-item">
+                <a href="javascript:;" id="admin_name">
+                    <i class="layui-icon layui-icon-app size-14"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="layui-header">
+        <div class="fl header-logo">GOcms</div>
+        <div class="fl header-fold topLevelMenus"><a href="javascript:;" title="菜单切换" class="aicon ai-caidan" id="foldSwitch"><i class="layui-icon">&#xe65f;</i></a></div>
+        <a href="javascript:;" class="site-tree-mobile layui-mobile layui-show-xs-block layui-hide-lg"><i class="layui-icon layui-icon-spread-left size-20"></i></a>
+        <div class="bottom-nav">
+            <ul class="layui-nav fl nobg main-nav" id="topMenu">
+            </ul>
+            <ul class="layui-nav layui-layout-right" lay-filter="">
+                <li class="layui-nav-item layui-hide-xs"></li>
+                <li class="layui-nav-item layui-hide-xs">
+                    <a href="javascript:void(0);">操作&nbsp;&nbsp;</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;" onclick="clearCache()">清除缓存</a></dd>
+                        <dd><a href="javascript:void(0);" id="lockScreen">锁屏</a></dd>
+                        <dd><a href="javascript:;" onclick="logout()">退出登录</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item layui-hide-xs">
+                    <a href="/" target="_blank">前台首页</a>
+                </li>
+                <li class="layui-nav-item layui-hide-xs">
+                    <a href="javascript:void(0);" onclick="chanage_version()">新版切换</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="nav-item-ul">
+        <div class="">
+            <ul class="layui-nav">
+                <li class="layui-nav-item"><a href="/" target="_blank">前台首页</a></li>
+                <li class="layui-nav-item"><a href="javascript:void(0);" id="lockScreen2">锁屏</a></li>
+                <li class="layui-nav-item"><a href="javascript:;" onclick="clearCache()">清除缓存</a></li>
+                <li class="layui-nav-item"><a href="javascript:;" onclick="logout()">退出登录</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-side layui-bg-black" id="switchNav">
+        <div class="layui-side-scroll navBar" id="navBar">
+        </div>
+    </div>
+    <div class="site-tree-mobile layui-hide">
+        <i class="layui-icon">&#xe65f;</i>
+    </div>
+    <div class="site-mobile-shade"></div>
+
+    <div class="layui-body" id="switchBody">
+        <div class="layui-tab mag0" id="top_tabs_box" lay-filter="macTab" lay-allowClose="true">
+            <div class="tab-go-refresh" id="J_refresh"><i class="layui-icon layui-icon-refresh"></i></div>
+            <div class="tab-go-left" id="page-prev"><i class="layui-icon layui-icon-zuozuo"></i></div>
+            <ul class="layui-tab-title top_tab" id="B_history">
+                <li lay-id="111" class="layui-this">后台首页</li>
+            </ul>
+            <div class="tab-right">
+                <div class="tab-go-right" id="page-next"><i class="layui-icon layui-icon-youyou"></i></div>
+                <ul class="layui-nav closeBox">
+                    <li class="layui-nav-item">
+                        <a href="javascript;">操作</a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="javascript:;" class="closePageAll">&nbsp;关闭全部</a></dd>
+                            <dd><a href="javascript:;" class="closePageOther">&nbsp;关闭其他</a></dd>
+                        </dl>
+                    </li>
+                </ul>
+            </div>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <iframe lay-id="111" src="pages/index/welcome.html" width="100%" height="100%" frameborder="0" scrolling="yes" class="hs-iframe"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-footer footer">
+        <div class="fl"></div>
+        <div class="fr">Powered by GOcms</div>
+    </div>
+</div>
+
+<script type="text/javascript" src="layui/layui.js"></script>
+<script type="text/javascript" src="js/app.js"></script>
+<script type="text/javascript">
+    window.localStorage.clear();
+    var LAYUI_OFFSET = 60;
+
+    // 菜单数据
+    var MENUS = [
+        { name: '首页', icon: 'layui-icon-home', sub: [
+            { name: '后台首页', url: 'pages/index/welcome.html' }
+        ]},
+        { name: '视频', icon: 'layui-icon-video', sub: [
+            { name: '视频列表', url: 'pages/vod/index.html' },
+            { name: '视频管理', url: 'pages/vod/info.html' },
+            { name: '视频分类', url: 'pages/type/index.html' },
+            { name: '视频采集', url: 'pages/collect/index.html' }
+        ]},
+        { name: '文章', icon: 'layui-icon-read', sub: [
+            { name: '文章列表', url: 'pages/art/index.html' },
+            { name: '文章管理', url: 'pages/art/info.html' },
+            { name: '文章分类', url: 'pages/type/index.html' }
+        ]},
+        { name: '漫画', icon: 'layui-icon-picture', sub: [
+            { name: '漫画列表', url: 'pages/manga/index.html' },
+            { name: '漫画管理', url: 'pages/manga/info.html' }
+        ]},
+        { name: '演员', icon: 'layui-icon-user', sub: [
+            { name: '演员列表', url: 'pages/actor/index.html' },
+            { name: '演员管理', url: 'pages/actor/info.html' }
+        ]},
+        { name: '角色', icon: 'layui-icon-group', sub: [
+            { name: '角色列表', url: 'pages/role/index.html' },
+            { name: '角色管理', url: 'pages/role/info.html' }
+        ]},
+        { name: '专题', icon: 'layui-icon-app', sub: [
+            { name: '专题列表', url: 'pages/topic/index.html' },
+            { name: '专题管理', url: 'pages/topic/info.html' }
+        ]},
+        { name: '用户', icon: 'layui-icon-group', sub: [
+            { name: '用户列表', url: 'pages/user/index.html' },
+            { name: '用户管理', url: 'pages/user/info.html' },
+            { name: '用户组', url: 'pages/group/index.html' }
+        ]},
+        { name: '管理员', icon: 'layui-icon-username', sub: [
+            { name: '管理员列表', url: 'pages/admin/index.html' },
+            { name: '管理员管理', url: 'pages/admin/info.html' }
+        ]},
+        { name: '互动', icon: 'layui-icon-survey', sub: [
+            { name: '留言管理', url: 'pages/gbook/index.html' },
+            { name: '评论管理', url: 'pages/comment/index.html' }
+        ]},
+        { name: '采集', icon: 'layui-icon-upload-drag', sub: [
+            { name: '资源站采集', url: 'pages/collect/index.html' },
+            { name: '自定义采集', url: 'pages/cj/index.html' },
+            { name: '弹幕管理', url: 'pages/comment/index.html' }
+        ]},
+        { name: '推广', icon: 'layui-icon-snowflake', sub: [
+            { name: 'URL推送', url: 'pages/urlsend/index.html' },
+            { name: 'Sitemap', url: 'pages/urlsend/index.html' }
+        ]},
+        { name: '数据', icon: 'layui-icon-template-1', sub: [
+            { name: '数据库管理', url: 'pages/database/export.html' },
+            { name: '数据替换', url: 'pages/database/rep.html' },
+            { name: 'SQL执行', url: 'pages/database/sql.html' }
+        ]},
+        { name: '模板', icon: 'layui-icon-code-circle', sub: [
+            { name: '模板管理', url: 'pages/template/index.html' }
+        ]},
+        { name: '运营', icon: 'layui-icon-chart', sub: [
+            { name: '访问统计', url: 'pages/visit/index.html' },
+            { name: '定时任务', url: 'pages/timming/index.html' },
+            { name: '操作日志', url: 'pages/plog/index.html' }
+        ]},
+        { name: '扩展', icon: 'layui-icon-app', sub: [
+            { name: '插件管理', url: 'pages/addon/index.html' },
+            { name: 'AI内容', url: 'pages/addon/index.html' },
+            { name: '卡密订单', url: 'pages/card/index.html' },
+            { name: '直播管理', url: 'pages/addon/index.html' },
+            { name: '聊天室', url: 'pages/addon/index.html' }
+        ]},
+        { name: '系统', icon: 'layui-icon-set', sub: [
+            { name: '系统设置', url: 'pages/system/config.html' },
+            { name: '安全配置', url: 'pages/safety/index.html' },
+            { name: '友情链接', url: 'pages/link/index.html' },
+            { name: '附件管理', url: 'pages/annex/index.html' }
+        ]}
+    ];
+
+    // 动态生成顶部菜单
+    function renderTopMenu() {
+        var html = '';
+        MENUS.forEach(function(item, i) {
+            var cls = i === 0 ? 'layui-nav-item layui-this main-nav mob-nav' : 'layui-nav-item main-nav mob-nav';
+            html += '<li class="' + cls + '" data-i="' + (i+1) + '">';
+            html += '<a href="javascript:;" data-i="' + (i+1) + '">' + item.name + '</a>';
+            html += '</li>';
+        });
+        document.getElementById('topMenu').innerHTML = html;
+    }
+
+    // 动态生成左侧菜单
+    function renderSideMenu() {
+        var navBar = document.getElementById('navBar');
+        navBar.innerHTML = '';
+        MENUS.forEach(function(item, i) {
+            var ul = document.createElement('ul');
+            ul.className = 'layui-nav layui-nav-tree';
+            if (i !== 0) ul.style.display = 'none';
+
+            var li = document.createElement('li');
+            li.className = 'layui-nav-item layui-nav-itemed';
+            var aHtml = '<a href="javascript:;"><i class="' + item.icon + '"></i>' + item.name + '<span class="layui-nav-more"></span></a>';
+            aHtml += '<dl class="layui-nav-child">';
+            item.sub.forEach(function(sub, j) {
+                var dataId = (i+1) + '' + (j+1);
+                aHtml += '<dd><a class="admin-nav-item" data-id="' + dataId + '" href="' + sub.url + '"><i class="' + (sub.icon||'') + '"></i> ' + sub.name + '</a></dd>';
+            });
+            aHtml += '</dl>';
+            li.innerHTML = aHtml;
+            ul.appendChild(li);
+            navBar.appendChild(ul);
+        });
+    }
+
+    // 初始化菜单
+    renderTopMenu();
+    renderSideMenu();
+
+    $('#admin_name').click(function(){
+        $('body').toggleClass('drawer-body-right');
+    });
+
+    layui.use(['element', 'layer'], function() {
+        var $ = layui.jquery, element = layui.element, layer = layui.layer;
+        $('.layui-tab-content').height($(window).height() - 145);
+
+        var tab = {
+            add: function(title, url, id) {
+                element.tabAdd('macTab', {
+                    title: title,
+                    content: '<iframe width="100%" height="100%" lay-id="'+id+'" frameborder="0" src="'+url+'" scrolling="yes" class="x-iframe"></iframe>',
+                    id: id
+                });
+            },
+            change: function(id) {
+                element.tabChange('macTab', id);
+            }
+        };
+
+        // 顶部菜单切换
+        $(document).on('click', '.main-nav', function() {
+            var i = $(this).attr('data-i');
+            $('.main-nav').removeClass('layui-this');
+            $(this).addClass('layui-this');
+            $('#navBar ul').hide();
+            $('#navBar ul').eq(i-1).show();
+        });
+
+        // 左侧菜单点击
+        $(document).on('click', '.admin-nav-item', function(event) {
+            var that = $(this);
+            var id = that.attr('data-id');
+            if ($('iframe[lay-id="'+id+'"]')[0]) {
+                tab.change(id);
+                event.stopPropagation();
+                $("iframe[lay-id='"+id+"']")[0].contentWindow.location.reload(true);
+                return false;
+            }
+            if ($('iframe').length == 10) {
+                layer.msg("最多打开10个标签页");
+                return false;
+            }
+            that.css({color:'#fff'});
+            tab.add(that.text(), that.attr('href'), that.attr('data-id'));
+            tab.change(that.attr('data-id'));
+            event.stopPropagation();
+            return false;
+        });
+
+        $(document).on('click', '.layui-tab-close', function() {
+            $('.layui-nav-child a[data-id="'+$(this).parent('li').attr('lay-id')+'"]').css({color:'rgba(255,255,255,.7)'});
+        });
+
+        // Tab 位置判断
+        function showTab(li) {
+            if (li.length) {
+                var ul = $('#B_history'),
+                    li_offset = li.offset(),
+                    li_width = li.outerWidth(true),
+                    next_left = $('#page-next').offset().left,
+                    prev_right = $('#page-prev').offset().left + $('#page-prev').outerWidth(true);
+                if (li_offset.left + li_width > next_left) {
+                    var distance = li_offset.left + li_width - next_left;
+                    ul.animate({ left: '-=' + distance }, 200, 'swing');
+                } else if (li_offset.left < prev_right) {
+                    var distance = prev_right - li_offset.left;
+                    ul.animate({ left: '+=' + distance }, 200, 'swing');
+                }
+                li.trigger('click');
+            }
+        }
+
+        // 上一个选项卡
+        $('#page-prev').click(function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var ul = $('#B_history'),
+                current = ul.find('.layui-this'),
+                li = current.prev('li');
+            showTab(li);
+        });
+
+        // 下一个选项卡
+        $('#page-next').click(function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var ul = $('#B_history'),
+                current = ul.find('.layui-this'),
+                li = current.next('li');
+            showTab(li);
+        });
+
+        // 刷新
+        $('#J_refresh').click(function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var index = layer.load();
+            var id = $('#B_history .layui-this').attr('lay-id'),
+                iframe = $("iframe[lay-id='"+id+"']")[0];
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.location.reload(true);
+                layer.close(index);
+            }
+        });
+
+        // 关闭全部
+        $(".closePageAll").on("click", function() {
+            if ($("#B_history li").length > 1) {
+                $("#B_history li").each(function() {
+                    var data_id = $(this).attr('lay-id');
+                    if (data_id != '' && data_id != '111') {
+                        element.tabDelete("macTab", data_id);
+                        $("iframe[lay-id='"+data_id+"']").remove();
+                    }
+                });
+            } else {
+                layer.msg("没有可关闭的标签页");
+            }
+        });
+
+        // 关闭其他
+        $(".closePageOther").on("click", function() {
+            if ($("#B_history li").length > 1) {
+                var cid = $('#B_history .layui-this').attr('lay-id');
+                $("#B_history li").each(function() {
+                    var data_id = $(this).attr('lay-id');
+                    if (data_id != '' && data_id != '111' && data_id != cid) {
+                        element.tabDelete("macTab", data_id);
+                        $("iframe[lay-id='"+data_id+"']").remove();
+                    }
+                });
+            } else {
+                layer.msg("没有可关闭的标签页");
+            }
+        });
+
+        $('.mob-nav').on("click", function() {
+            $('.site-tree-mobile').click();
+        });
+
+        var treeMobile = $('.site-tree-mobile'),
+            shadeMobile = $('.site-mobile-shade');
+        treeMobile.on('click', function() {
+            $('body').addClass('site-mobile');
+            $('.Menus-winner').removeClass('topLevelMenus');
+            $('.Menus-winner').addClass('topLevelMenus-winner');
+        });
+        shadeMobile.on('click', function() {
+            $('body').removeClass('site-mobile');
+            $('.Menus-winner').addClass('topLevelMenus');
+        });
+    });
+
+    // 清除缓存
+    function clearCache() {
+        API.post('/admin/api/clearCache').then(function(r) {
+            layui.layer.msg(r.msg || '缓存已清除', {time: 1800});
+        }).catch(function() {
+            layui.layer.msg('操作完成', {time: 1800});
+        });
+    }
+
+    // 退出登录
+    function logout() {
+        API.post('/admin/api/logout').then(function(r) {
+            window.location.href = 'pages/index/login.html';
+        }).catch(function() {
+            window.location.href = 'pages/index/login.html';
+        });
+    }
+
+    // 版本切换
+    function chanage_version() {
+        API.post('/admin/api/configVersion', {version: 1}).then(function(r) {
+            layui.layer.msg(r.msg || '操作完成', {time: 1800});
+            setTimeout(function() { location.reload(); }, 1800);
+        });
+    }
+
+    // 检查缓存
+    setInterval(function() {
+        API.get('/admin/api/checkCache').then(function(r) {
+            if (r === 'haved') {
+                layui.layer.msg('缓存数据已更新', {time: 3000});
+            }
+        }).catch(function(){});
+    }, 30000);
+</script>
+</body>
+</html>

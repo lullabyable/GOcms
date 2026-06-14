@@ -2,6 +2,7 @@ package admin
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -180,4 +181,84 @@ func trimWhitespace(s string) string {
 		end--
 	}
 	return s[start:end]
+}
+
+// ==================== 资源站管理 ====================
+
+// CollectSourceModel 资源站模型
+type CollectSourceModel struct {
+	ID        int    `gorm:"primaryKey;column:id" json:"id"`
+	Name      string `gorm:"column:name;size:100" json:"name"`
+	APIURL    string `gorm:"column:api_url;size:500" json:"api_url"`
+	UpRule    string `gorm:"column:up_rule;size:10" json:"up_rule"`
+	Status    int    `gorm:"column:status" json:"status"`
+	Priority  int    `gorm:"column:priority" json:"priority"`
+	LastSync  int64  `gorm:"column:last_sync" json:"last_sync"`
+	CreatedAt int64  `gorm:"column:created_at" json:"created_at"`
+}
+
+func (CollectSourceModel) TableName() string { return "mac_collect_source" }
+
+// SourceList 资源站列表
+func (h *CollectHandler) SourceList(c *fiber.Ctx) error {
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	pageSize, _ := strconv.Atoi(c.Query("page_size", "20"))
+
+	var total int64
+	h.db.Model(&CollectSourceModel{}).Count(&total)
+
+	var list []CollectSourceModel
+	h.db.Order("priority ASC, id DESC").Offset((page - 1) * pageSize).Limit(pageSize).Find(&list)
+
+	return c.JSON(fiber.Map{
+		"code": 1,
+		"data": fiber.Map{"list": list, "total": total, "page": page, "page_size": pageSize},
+	})
+}
+
+// SourceDetail 资源站详情
+func (h *CollectHandler) SourceDetail(c *fiber.Ctx) error {
+	id, _ := strconv.Atoi(c.Params("id"))
+	var source CollectSourceModel
+	if err := h.db.First(&source, id).Error; err != nil {
+		return c.JSON(fiber.Map{"code": 0, "msg": "资源站不存在"})
+	}
+	return c.JSON(fiber.Map{"code": 1, "data": source})
+}
+
+// SourceSave 保存资源站
+func (h *CollectHandler) SourceSave(c *fiber.Ctx) error {
+	id, _ := strconv.Atoi(c.FormValue("id"))
+	name := c.FormValue("name")
+	apiURL := c.FormValue("api_url")
+	if name == "" || apiURL == "" {
+		return c.JSON(fiber.Map{"code": 0, "msg": "名称和API地址不能为空"})
+	}
+
+	source := CollectSourceModel{
+		Name:   name,
+		APIURL: apiURL,
+		UpRule: c.FormValue("up_rule"),
+	}
+	if s, err := strconv.Atoi(c.FormValue("status")); err == nil {
+		source.Status = s
+	}
+	if p, err := strconv.Atoi(c.FormValue("priority")); err == nil {
+		source.Priority = p
+	}
+
+	if id > 0 {
+		source.ID = id
+		h.db.Model(&CollectSourceModel{}).Where("id = ?", id).Updates(map[string]interface{}{
+			"name":     source.Name,
+			"api_url":  source.APIURL,
+			"up_rule":  source.UpRule,
+			"status":   source.Status,
+			"priority": source.Priority,
+		})
+	} else {
+		source.CreatedAt = time.Now().Unix()
+		h.db.Create(&source)
+	}
+	return c.JSON(fiber.Map{"code": 1, "msg": "保存成功"})
 }

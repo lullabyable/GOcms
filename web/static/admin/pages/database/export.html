@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>数据库管理</title><link rel="stylesheet" href="../../layui/css/layui.css"><link rel="stylesheet" href="../../css/admin_style.css"></head><body>
+<div class="page-container p10">
+    <div class="my-toolbar-box">
+        <div class="layui-btn-group">
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="doBackup()"><i class="layui-icon">&#xe654;</i>备份数据库</a>
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="doRestore()"><i class="layui-icon">&#xe654;</i>恢复数据库</a>
+        </div>
+    </div>
+    <form class="layui-form" id="pageListForm">
+        <table class="layui-table" lay-size="sm">
+            <thead><tr><th width="40">ID</th><th>表名</th><th width="100">记录数</th><th width="120">数据大小</th><th width="120">索引大小</th><th width="100">引擎</th></tr></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </form>
+</div>
+<script type="text/javascript" src="../../layui/layui.js"></script><script type="text/javascript" src="../../js/app.js"></script><script>
+function loadData(){API.get('/admin/api/database/list').then(function(r){if(r.code===1){var h='';(r.data||[]).forEach(function(v,i){h+='<tr><td>'+(i+1)+'</td><td>'+v.name+'</td><td>'+v.rows+'</td><td>'+v.data_size+'</td><td>'+v.index_size+'</td><td>'+v.engine+'</td></tr>';});document.getElementById('tableBody').innerHTML=h;}});}
+function doBackup(){layui.use('layer',function(){layui.layer.confirm('确定备份数据库？',function(i){API.post('/admin/api/database/backup').then(function(r){layui.layer.msg(r.msg||'备份完成',{time:2000});});layui.layer.close(i);});});}
+function doRestore(){layui.use('layer',function(){layui.layer.msg('请到数据库恢复页面操作',{time:2000});});}
+loadData();
+</script></body></html>

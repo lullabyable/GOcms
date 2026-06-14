@@ -68,6 +68,16 @@ func (h *UserHandler) Delete(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"code": 1, "msg": "删除成功"})
 }
 
+// Detail 用户详情
+func (h *UserHandler) Detail(c *fiber.Ctx) error {
+	id, _ := strconv.Atoi(c.Params("id"))
+	var user model.User
+	if err := h.db.First(&user, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"code": 0, "msg": "用户不存在"})
+	}
+	return c.JSON(fiber.Map{"code": 1, "data": user})
+}
+
 func (h *UserHandler) ToggleStatus(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
 	var user model.User

@@ -151,19 +151,35 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	plogH := admin.NewPlogHandler(db)
 	dataReplaceH := admin.NewDataReplaceHandler(db)
 
-	// 页面渲染处理器（原版 maccms10 模板兼容）
-	pageH := admin.NewPageHandler(db, cfg.Template.Dir+"/admin")
+	// Phase 7 handlers — 统一 JSON API 规范
+	systemSettingsH := admin.NewSystemSettingsHandler(db)
+	safetyH := admin.NewSafetyHandler(db)
+	annexH := admin.NewAnnexHandler(db, cfg.Upload.Dir)
+	visitH := admin.NewVisitHandler(db)
+	domainH := admin.NewDomainHandler(db)
+	makeH := admin.NewMakeHandler(db)
+	cjH := admin.NewCJHandler(db)
 
 	a := app.Group("/admin")
 
-	// 后台首页 → 主框架
-	a.Get("/", pageH.Index)
+	// SPA 静态资源（公开）
+	a.Static("/layui", "./web/static/admin/layui")
+	a.Static("/css", "./web/static/admin/css")
+	a.Static("/images", "./web/static/admin/images")
 
-	// 登录页面
-	a.Get("/login", pageH.Login)
-	// 兼容原版 URL 模式
-	a.Get("/index/login", pageH.Login)
-	a.Get("/index/index", pageH.Index)
+	// SPA 主入口（公开）
+	a.Get("/", func(c *fiber.Ctx) error {
+		return c.SendFile("./web/static/admin/index.html")
+	})
+	a.Get("/login", func(c *fiber.Ctx) error {
+		return c.SendFile("./web/static/admin/pages/index/login.html")
+	})
+	a.Get("/index/login", func(c *fiber.Ctx) error {
+		return c.Redirect("/admin/login")
+	})
+	a.Get("/index/index", func(c *fiber.Ctx) error {
+		return c.Redirect("/admin/")
+	})
 	a.Get("/index/welcome", func(c *fiber.Ctx) error {
 		return c.Redirect("/admin/page/welcome")
 	})
@@ -289,6 +305,10 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 
 	auth := a.Group("", middleware.AdminAuth(sm))
 
+	// SPA 静态资源（需登录）
+	auth.Static("/js", "./web/static/admin/js")
+	auth.Static("/pages", "./web/static/admin/pages")
+
 	// --- 原有路由 ---
 	auth.Get("/dashboard", dashboard.Index)
 	auth.Get("/api/dashboard", dashboard.API) // SPA 纯 JSON 数据接口
@@ -325,12 +345,14 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	auth.Post("/role/save", roleH.Save)
 	auth.Post("/role/delete", roleH.Delete)
 	auth.Get("/user/list", userH.List)
+	auth.Get("/user/detail/:id", userH.Detail)
 	auth.Post("/user/save", userH.Save)
 	auth.Post("/user/delete", userH.Delete)
 	auth.Post("/user/toggle/:id", userH.ToggleStatus)
 	auth.Get("/group/list", groupH.List)
 	auth.Post("/group/save", groupH.Save)
 	auth.Get("/admin/list", adminH.List)
+	auth.Get("/admin/detail/:id", adminH.Detail)
 	auth.Post("/admin/save", adminH.Save)
 	auth.Post("/admin/delete/:id", adminH.Delete)
 	auth.Get("/comment/list", commentH.List)
@@ -341,6 +363,9 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	auth.Post("/gbook/delete", gbookH.Delete)
 	auth.Post("/collect/test", collectH.TestConnection)
 	auth.Post("/collect/start", collectH.StartCollect)
+	auth.Get("/collect/source/list", collectH.SourceList)
+	auth.Get("/collect/source/detail/:id", collectH.SourceDetail)
+	auth.Post("/collect/source/save", collectH.SourceSave)
 
 	// --- Phase 4 路由 ---
 	auth.Get("/danmaku/list", danmakuH.AdminList)
@@ -441,49 +466,107 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	// 数据替换
 	auth.Post("/datareplace/execute", dataReplaceH.Execute)
 
-	// --- 原版模板渲染页面（iframe 加载） ---
-	auth.Get("/page/welcome", pageH.Welcome)
-	auth.Get("/page/vod/data", pageH.VodData)
-	auth.Get("/page/vod/info", pageH.VodInfo)
-	auth.Get("/page/vod/info/:id", pageH.VodInfo)
-	auth.Get("/page/art/data", pageH.ArtData)
-	auth.Get("/page/art/info", pageH.ArtInfo)
-	auth.Get("/page/art/info/:id", pageH.ArtInfo)
-	auth.Get("/page/topic/data", pageH.TopicData)
-	auth.Get("/page/topic/info", pageH.TopicInfo)
-	auth.Get("/page/topic/info/:id", pageH.TopicInfo)
-	auth.Get("/page/link/index", pageH.LinkIndex)
-	auth.Get("/page/link/info", pageH.LinkInfo)
-	auth.Get("/page/link/info/:id", pageH.LinkInfo)
-	auth.Get("/page/type/index", pageH.TypeIndex)
-	auth.Get("/page/type/info", pageH.TypeInfo)
-	auth.Get("/page/type/info/:id", pageH.TypeInfo)
-	auth.Get("/page/actor/data", pageH.ActorData)
-	auth.Get("/page/actor/info", pageH.ActorInfo)
-	auth.Get("/page/actor/info/:id", pageH.ActorInfo)
-	auth.Get("/page/role/data", pageH.RoleData)
-	auth.Get("/page/role/info", pageH.RoleInfo)
-	auth.Get("/page/role/info/:id", pageH.RoleInfo)
-	auth.Get("/page/user/data", pageH.UserIndex)
-	auth.Get("/page/user/info", pageH.UserInfo)
-	auth.Get("/page/user/info/:id", pageH.UserInfo)
-	auth.Get("/page/admin/index", pageH.AdminIndex)
-	auth.Get("/page/admin/info", pageH.AdminInfo)
-	auth.Get("/page/admin/info/:id", pageH.AdminInfo)
-	auth.Get("/page/comment/data", pageH.CommentIndex)
-	auth.Get("/page/gbook/data", pageH.GbookIndex)
-	auth.Get("/page/database/export", pageH.DatabaseExport)
-	auth.Get("/page/database/sql", pageH.DatabaseSQL)
-	auth.Get("/page/database/rep", pageH.DatabaseRep)
-	auth.Get("/page/template/index", pageH.TemplateIndex)
-	auth.Get("/page/plog/index", pageH.PlogIndex)
-	auth.Get("/page/collect/index", pageH.CollectIndex)
-	auth.Get("/page/order/index", pageH.OrderIndex)
-	auth.Get("/page/manga/data", pageH.MangaData)
-	auth.Get("/page/manga/info", pageH.MangaInfo)
-	auth.Get("/page/manga/info/:id", pageH.MangaInfo)
-	auth.Get("/page/live/index", pageH.LiveIndex)
-	auth.Get("/page/system/config", pageH.SystemConfig)
+	// --- Phase 7 路由 — 统一 JSON API ---
+	// 系统设置
+	auth.Get("/system/settings", systemSettingsH.GetAllConfig)
+	auth.Get("/system/settings/group/:group", systemSettingsH.GetGroupConfig)
+	auth.Post("/system/settings/save", systemSettingsH.SaveConfig)
+	auth.Post("/system/test-email", systemSettingsH.TestEmail)
+	auth.Post("/system/test-cache", systemSettingsH.TestCache)
+	auth.Get("/system/groups", systemSettingsH.GetConfigGroupList)
+
+	// 安全配置
+	auth.Get("/safety/config", safetyH.GetConfig)
+	auth.Post("/safety/save", safetyH.SaveConfig)
+	auth.Get("/safety/ipblacklist", safetyH.IPBlacklistList)
+	auth.Post("/safety/ipblacklist/add", safetyH.IPBlacklistAdd)
+	auth.Post("/safety/ipblacklist/delete", safetyH.IPBlacklistDelete)
+
+	// 附件管理
+	auth.Get("/annex/list", annexH.List)
+	auth.Post("/annex/delete", annexH.Delete)
+	auth.Post("/annex/batch-delete", annexH.BatchDelete)
+
+	// 访问日志
+	auth.Get("/visit/list", visitH.List)
+	auth.Get("/visit/stats", visitH.Stats)
+
+	// 域名管理
+	auth.Get("/domain/list", domainH.List)
+	auth.Post("/domain/save", domainH.Save)
+	auth.Post("/domain/delete", domainH.Delete)
+
+	// 静态生成
+	auth.Post("/make/start", makeH.Start)
+	auth.Get("/make/status", makeH.Status)
+
+	// 自定义采集
+	auth.Get("/cj/list", cjH.List)
+	auth.Post("/cj/save", cjH.Save)
+	auth.Post("/cj/run", cjH.Run)
+
+	// --- SPA 页面路由（替换原 Go 模板渲染） ---
+	spaPage := func(file string) fiber.Handler {
+		return func(c *fiber.Ctx) error {
+			return c.SendFile("./web/static/admin/pages/" + file)
+		}
+	}
+	auth.Get("/page/welcome", spaPage("index/welcome.html"))
+	auth.Get("/page/vod/data", spaPage("vod/index.html"))
+	auth.Get("/page/vod/info", spaPage("vod/info.html"))
+	auth.Get("/page/vod/info/:id", spaPage("vod/info.html"))
+	auth.Get("/page/art/data", spaPage("art/index.html"))
+	auth.Get("/page/art/info", spaPage("art/info.html"))
+	auth.Get("/page/art/info/:id", spaPage("art/info.html"))
+	auth.Get("/page/topic/data", spaPage("topic/index.html"))
+	auth.Get("/page/topic/info", spaPage("topic/info.html"))
+	auth.Get("/page/topic/info/:id", spaPage("topic/info.html"))
+	auth.Get("/page/link/index", spaPage("link/index.html"))
+	auth.Get("/page/link/info", spaPage("link/info.html"))
+	auth.Get("/page/link/info/:id", spaPage("link/info.html"))
+	auth.Get("/page/type/index", spaPage("type/index.html"))
+	auth.Get("/page/type/info", spaPage("type/info.html"))
+	auth.Get("/page/type/info/:id", spaPage("type/info.html"))
+	auth.Get("/page/actor/data", spaPage("actor/index.html"))
+	auth.Get("/page/actor/info", spaPage("actor/info.html"))
+	auth.Get("/page/actor/info/:id", spaPage("actor/info.html"))
+	auth.Get("/page/role/data", spaPage("role/index.html"))
+	auth.Get("/page/role/info", spaPage("role/info.html"))
+	auth.Get("/page/role/info/:id", spaPage("role/info.html"))
+	auth.Get("/page/user/data", spaPage("user/index.html"))
+	auth.Get("/page/user/info", spaPage("user/info.html"))
+	auth.Get("/page/user/info/:id", spaPage("user/info.html"))
+	auth.Get("/page/admin/index", spaPage("admin/index.html"))
+	auth.Get("/page/admin/info", spaPage("admin/info.html"))
+	auth.Get("/page/admin/info/:id", spaPage("admin/info.html"))
+	auth.Get("/page/comment/data", spaPage("comment/index.html"))
+	auth.Get("/page/gbook/data", spaPage("gbook/index.html"))
+	auth.Get("/page/database/export", spaPage("database/export.html"))
+	auth.Get("/page/database/sql", spaPage("database/sql.html"))
+	auth.Get("/page/database/rep", spaPage("database/rep.html"))
+	auth.Get("/page/template/index", spaPage("template/index.html"))
+	auth.Get("/page/plog/index", spaPage("plog/index.html"))
+	auth.Get("/page/collect/index", spaPage("collect/index.html"))
+	auth.Get("/page/order/index", spaPage("card/index.html"))
+	auth.Get("/page/manga/data", spaPage("manga/index.html"))
+	auth.Get("/page/manga/info", spaPage("manga/info.html"))
+	auth.Get("/page/manga/info/:id", spaPage("manga/info.html"))
+	auth.Get("/page/live/index", spaPage("addon/index.html"))
+	auth.Get("/page/system/config", spaPage("system/config.html"))
+	auth.Get("/page/safety/index", spaPage("safety/index.html"))
+	auth.Get("/page/annex/index", spaPage("annex/index.html"))
+	auth.Get("/page/visit/index", spaPage("visit/index.html"))
+	auth.Get("/page/timming/index", spaPage("timming/index.html"))
+	auth.Get("/page/cj/index", spaPage("cj/index.html"))
+	auth.Get("/page/danmaku/index", spaPage("comment/index.html"))
+	auth.Get("/page/plugin/index", spaPage("addon/index.html"))
+	auth.Get("/page/ai/index", spaPage("addon/index.html"))
+	auth.Get("/page/chat/index", spaPage("addon/index.html"))
+	auth.Get("/page/urlsend/index", spaPage("urlsend/index.html"))
+	auth.Get("/page/urlsend/sitemap", spaPage("urlsend/index.html"))
+	auth.Get("/page/database/index", spaPage("database/index.html"))
+	auth.Get("/page/gbook/index", spaPage("gbook/index.html"))
+	auth.Get("/page/comment/index", spaPage("comment/index.html"))
 
 	// 登出
 	auth.Post("/logout", func(c *fiber.Ctx) error {

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>GOcms 后台登录</title>
+    <link rel="stylesheet" href="../../layui/css/layui.css?v=1024">
+    <link rel="stylesheet" href="../../css/admin_style.css?v=1024">
+    <style type="text/css">
+        body {
+            color:#999;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size:cover;
+        }
+    </style>
+</head>
+<body class="login-body body">
+<div class="login-head">
+    <h1><a href="#">GOcms 后台管理系统</a></h1>
+</div>
+<div class="login-box">
+    <form class="layui-form layui-form-pane" id="loginForm">
+        <div class="layui-form-item">
+            <h3>后台登录</h3>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">账号：</label>
+            <div class="layui-input-block">
+                <input type="text" name="admin_name" class="layui-input" lay-verify="admin_name" placeholder="请输入管理员账号" autocomplete="on" maxlength="20"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">密码：</label>
+            <div class="layui-input-block">
+                <input type="password" name="admin_pwd" class="layui-input" lay-verify="admin_pwd" placeholder="请输入密码" maxlength="20"/>
+            </div>
+        </div>
+        <div class="layui-form-item" id="verifyRow" style="display:none;">
+            <label class="layui-form-label">验证码：</label>
+            <div class="layui-input-block">
+                <input type="number" name="verify" class="layui-input" lay-verify="verify" placeholder="验证码" maxlength="4" max="9999"/>
+                <img id="verify_img" src="/admin/api/verify" onclick="this.src = this.src+'?'">
+            </div>
+        </div>
+        <button type="button" class="layui-btn btn-submit" lay-submit="" lay-filter="sub">登 录</button>
+    </form>
+    <div class="copyright">
+        Powered by GOcms
+    </div>
+
+    <fieldset class="layui-elem-field">
+        <legend>声明</legend>
+        <div class="layui-field-box">
+            本系统仅供学习研究使用，请勿用于商业用途。
+        </div>
+    </fieldset>
+</div>
+
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/app.js"></script>
+<script type="text/javascript">
+    layui.use(['form', 'layer'], function () {
+        var form = layui.form,
+            layer = layui.layer,
+            $ = layui.jquery;
+
+        // 验证
+        form.verify({
+            admin_name: function (value) {
+                if (value == "") {
+                    return "请输入管理员账号";
+                }
+            },
+            admin_pwd: function (value) {
+                if (value == "") {
+                    return "请输入密码";
+                }
+            },
+            verify: function (value) {
+                if (value == "") {
+                    return "请输入验证码";
+                }
+            }
+        });
+
+        // 检查是否需要验证码
+        API.get('/admin/api/config').then(function(r) {
+            if (r.code === 1 && r.data && r.data.admin_login_verify !== '0') {
+                document.getElementById('verifyRow').style.display = 'block';
+            }
+        }).catch(function(){});
+
+        // 提交监听
+        form.on('submit(sub)', function (data) {
+            layer.msg("正在登录...", {time: 500000});
+            API.post('/admin/api/login', data.field).then(function(r) {
+                if (r.code === 1) {
+                    layer.msg('登录成功', {time: 1000});
+                    setTimeout(function() {
+                        window.location.href = '../../index.html';
+                    }, 1000);
+                } else {
+                    layer.msg(r.msg || '登录失败', {time: 1800});
+                    document.getElementById('verify_img').click();
+                }
+            }).catch(function() {
+                layer.msg('网络错误', {time: 1800});
+            });
+            return false;
+        });
+
+        $("input[name='admin_name']").bind('keypress', function(event) {
+            if (event.keyCode == "13") {
+                if ($("input[name='admin_name']").val() != '') {
+                    $("input[name='admin_pwd']").focus();
+                }
+            }
+        });
+
+        $("input[name='admin_pwd']").bind('keypress', function(event) {
+            if (event.keyCode == "13") {
+                if ($("input[name='admin_pwd']").val() != '') {
+                    $("input[name='verify']").focus();
+                }
+            }
+        });
+
+        $("input[name='verify']").bind('keypress', function(event) {
+            if (event.keyCode == "13") {
+                if ($("input[name='verify']").val() != '') {
+                    $('.btn-submit').click();
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

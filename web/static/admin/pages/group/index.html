@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>用户组管理</title><link rel="stylesheet" href="../../layui/css/layui.css"><link rel="stylesheet" href="../../css/admin_style.css"></head><body>
+<div class="page-container p10">
+    <div class="my-toolbar-box">
+        <div class="layui-btn-group">
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="window.location.href='info.html'"><i class="layui-icon">&#xe654;</i>添加</a>
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="batchDel()"><i class="layui-icon">&#xe640;</i>删除</a>
+        </div>
+    </div>
+    <form class="layui-form" id="pageListForm">
+        <table class="layui-table" lay-size="sm">
+            <thead><tr><th width="25"><input type="checkbox" lay-skin="primary" lay-filter="allChoose"></th><th width="40">ID</th><th>名称</th><th width="100">状态</th><th width="200">操作</th></tr></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </form>
+</div>
+<script type="text/javascript" src="../../layui/layui.js"></script><script type="text/javascript" src="../../js/app.js"></script><script>
+function loadData(){API.get('/admin/api/group/list').then(function(r){if(r.code===1){var h='';(r.data.list||r.data||[]).forEach(function(vo){h+='<tr><td><input type="checkbox" name="ids[]" value="'+vo.group_id+'" class="layui-checkbox checkbox-ids" lay-skin="primary"></td><td>'+vo.group_id+'</td><td>'+htmlspecialchars(vo.group_name||'')+'</td><td>'+(vo.group_status==1?'开启':'关闭')+'</td><td><a href="javascript:;" class="layui-btn layui-btn-primary" onclick="window.location.href=\'info.html?id='+vo.group_id+'\'">编辑</a> <a href="javascript:;" class="layui-btn layui-btn-danger" onclick="delItem('+vo.group_id+')">删除</a></td></tr>';});document.getElementById('tableBody').innerHTML=h;layui.use('form',function(){layui.form.render('checkbox');});}});}
+function delItem(id){layui.use('layer',function(){layui.layer.confirm('确定删除？',function(i){API.post('/admin/api/group/del',{ids:id.toString()}).then(function(r){layui.layer.msg(r.msg||'操作完成',{time:1500});if(r.code===1)loadData();});layui.layer.close(i);});});}
+function batchDel(){var ids=[];document.querySelectorAll('input.checkbox-ids:checked').forEach(function(e){ids.push(e.value);});if(!ids.length){layui.use('layer',function(){layui.layer.msg('请先选择');});return;}layui.use('layer',function(){layui.layer.confirm('确定删除'+ids.length+'条？',function(i){API.post('/admin/api/group/del',{ids:ids.join(',')}).then(function(r){layui.layer.msg(r.msg||'操作完成',{time:1500});if(r.code===1)loadData();});layui.layer.close(i);});});}
+loadData();
+</script></body></html>
