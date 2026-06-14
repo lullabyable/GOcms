@@ -14,6 +14,23 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             background-size:cover;
         }
+        /* 验证码并排显示 */
+        #verifyRow .layui-input-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #verifyRow .layui-input-block input[name="verify"] {
+            flex: 1;
+            display: block;
+            width: auto;
+        }
+        #verifyRow .layui-input-block img {
+            height: 38px;
+            cursor: pointer;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body class="login-body body">

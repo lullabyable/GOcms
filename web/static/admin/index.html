@@ -238,7 +238,7 @@
         navBar.innerHTML = '';
         MENUS.forEach(function(item, i) {
             var ul = document.createElement('ul');
-            ul.className = 'layui-nav layui-nav-tree';
+            ul.className = 'layui-nav layui-nav-tree nav-panel';
             if (i !== 0) ul.style.display = 'none';
 
             var li = document.createElement('li');
@@ -282,12 +282,21 @@
         };
 
         // 顶部菜单切换
-        $(document).on('click', '.main-nav', function() {
+        $(document).on('click', '#topMenu .main-nav', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             var i = $(this).attr('data-i');
-            $('.main-nav').removeClass('layui-this');
+            console.log('[Nav] clicked, data-i=' + i);
+            $('#topMenu .main-nav').removeClass('layui-this');
             $(this).addClass('layui-this');
-            $('#navBar ul').hide();
-            $('#navBar ul').eq(i-1).show();
+            var panels = $('#navBar .nav-panel');
+            console.log('[Nav] panels found: ' + panels.length);
+            panels.hide();
+            var target = panels.eq(i-1);
+            console.log('[Nav] showing panel index: ' + (i-1) + ', found: ' + target.length);
+            target.show();
+            target.find('.layui-nav-child').show();
+            return false;
         });
 
         // 左侧菜单点击
