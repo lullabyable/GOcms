@@ -101,6 +101,8 @@ a:hover{background:#4338ca}
 	app.Static("/layui", "./web/static/admin/layui")
 	app.Static("/css", "./web/static/admin/css")
 	app.Static("/images", "./web/static/admin/images")
+	app.Static("/js", "./web/static/admin/js")
+	app.Static("/pages", "./web/static/admin/pages")
 
 	// 后台路由
 	setupAdmin(app, sm, db, analyticsSvc, schedulerSvc, urlPushMgr, pluginMgr, aiSvc, paymentSvc, chatSvc, cfg)
@@ -189,9 +191,6 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	})
 
 	// SPA 静态资源（公开）
-	a.Static("/layui", "./web/static/admin/layui")
-	a.Static("/css", "./web/static/admin/css")
-	a.Static("/images", "./web/static/admin/images")
 
 	// 验证码（无需认证）
 	verifyH := admin.NewVerifyHandler()
@@ -374,8 +373,8 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	auth := a.Group("", middleware.AdminAuth(sm))
 
 	// SPA 静态资源（需登录）
-	auth.Static("/js", "./web/static/admin/js")
-	auth.Static("/pages", "./web/static/admin/pages")
+	// js served from root (public)
+	// pages served from root (public)
 
 	// --- 原有路由 ---
 	auth.Get("/dashboard", dashboard.Index)
