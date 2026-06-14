@@ -84,13 +84,14 @@ func (m *Manager) Destroy(c *fiber.Ctx) {
 	if sid != "" {
 		m.store.Delete(sid)
 	}
-	c.Cookie(&fiber.Cookie{Name: m.cookieName, Value: "", MaxAge: -1, HTTPOnly: true, Secure: m.secure, SameSite: "Lax"})
+	c.Cookie(&fiber.Cookie{Name: m.cookieName, Value: "", Path: "/", MaxAge: -1, HTTPOnly: true, Secure: m.secure, SameSite: "Lax"})
 }
 
 func (m *Manager) setCookie(c *fiber.Ctx, sid string) {
 	c.Cookie(&fiber.Cookie{
 		Name:     m.cookieName,
 		Value:    sid,
+		Path:     "/",
 		MaxAge:   int(m.maxAge.Seconds()),
 		HTTPOnly: true,
 		Secure:   m.secure,
