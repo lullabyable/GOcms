@@ -147,7 +147,7 @@
     var artId = getQueryParam('id');
     var contentArrLen = 0;
     function loadTypes() {
-        API.get('/admin/api/type/list?mid=2').then(function(r) {
+        API.get('/admin/type/list?mid=2').then(function(r) {
             if (r.code === 1 && r.data) {
                 var s = document.getElementById('type_id');
                 s.innerHTML = '<option value="">选择分类</option>';
@@ -179,7 +179,7 @@
     document.querySelector('.j-editor-add').addEventListener('click', function(){ addContentPage(); });
     function loadDetail() {
         if (!artId) { addContentPage(); return; }
-        API.get('/admin/api/art/detail?id='+artId).then(function(r) {
+        API.get('/admin/art/detail/'+artId).then(function(r) {
             if (r.code === 1 && r.data) {
                 var info = r.data;
                 var form = document.getElementById('editForm');
@@ -193,13 +193,13 @@
         });
     }
     loadTypes(); loadDetail();
-    bindForm('editForm', '/admin/api/art/save', function(r) {
+    bindForm('editForm', '/admin/art/save', function(r) {
         if (!artId && r.data && r.data.art_id) { artId=r.data.art_id; document.getElementById('art_id').value=artId; }
     });
     document.getElementById('btn_rnd').addEventListener('click', function() {
         ['art_hits','art_hits_month','art_hits_week','art_hits_day','art_up','art_down','art_score','art_score_all','art_score_num'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=rndNum(5000,9999); });
     });
-    layui.use('form', function(){ layui.form.on('select(type_id)', function(data){ if(data.value) API.post('/admin/api/type/extend',{id:data.value}).then(function(r){ if(r.code===1&&r.data) Object.keys(r.data).forEach(function(k){ var l=document.querySelector('.art_'+k+'_label'); if(l){ l.innerHTML=''; if(r.data[k]) r.data[k].forEach(function(v){ l.innerHTML+='<a class="layui-btn layui-btn-xs extend" href="javascript:;" data-id="art_'+k+'">'+v+'</a>'; }); } }); }); }); });
+    layui.use('form', function(){ layui.form.on('select(type_id)', function(data){ if(data.value) API.post('/admin/type/extend',{id:data.value}).then(function(r){ if(r.code===1&&r.data) Object.keys(r.data).forEach(function(k){ var l=document.querySelector('.art_'+k+'_label'); if(l){ l.innerHTML=''; if(r.data[k]) r.data[k].forEach(function(v){ l.innerHTML+='<a class="layui-btn layui-btn-xs extend" href="javascript:;" data-id="art_'+k+'">'+v+'</a>'; }); } }); }); }); });
     document.addEventListener('click', function(e){ if(e.target.classList.contains('extend')){ var id=e.target.getAttribute('data-id'),inp=document.getElementById(id); if(inp){ if(id==='art_class'){var v=inp.value;if(v&&v.indexOf(e.target.textContent)===-1) inp.value=v+','+e.target.textContent;else if(!v) inp.value=e.target.textContent;} else inp.value=e.target.textContent; } } });
 </script>
 </body>

@@ -119,7 +119,7 @@
 
     // 加载分类数据
     function loadTypes() {
-        API.get('/admin/api/type/list?mid=1').then(function(r) {
+        API.get('/admin/type/list?mid=1').then(function(r) {
             if (r.code === 1 && r.data) {
                 var select = document.getElementById('searchType');
                 r.data.forEach(function(vo) {
@@ -157,7 +157,7 @@
             return k + '=' + encodeURIComponent(formData[k]);
         }).join('&');
 
-        API.get('/admin/api/vod/list?' + queryStr).then(function(r) {
+        API.get('/admin/vod/list?' + queryStr).then(function(r) {
             if (r.code === 1) {
                 renderTable(r.data.list || []);
                 renderPagination(r.data.total || 0);
@@ -235,7 +235,7 @@
     function delItem(id) {
         layui.use('layer', function() {
             layui.layer.confirm('确定要删除吗？', function(index) {
-                API.post('/admin/api/vod/del', { ids: id.toString() }).then(function(r) {
+                API.post('/admin/vod/delete', { ids: id.toString() }).then(function(r) {
                     layui.layer.msg(r.msg || '操作成功', {time: 1500});
                     if (r.code === 1) loadData(currentPage);
                 });
@@ -256,7 +256,7 @@
         }
         layui.use('layer', function() {
             layui.layer.confirm('确定要删除选中的 ' + ids.length + ' 条数据吗？', function(index) {
-                API.post('/admin/api/vod/del', { ids: ids.join(',') }).then(function(r) {
+                API.post('/admin/vod/delete', { ids: ids.join(',') }).then(function(r) {
                     layui.layer.msg(r.msg || '操作成功', {time: 1500});
                     if (r.code === 1) loadData(currentPage);
                 });

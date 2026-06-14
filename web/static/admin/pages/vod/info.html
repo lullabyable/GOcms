@@ -437,7 +437,7 @@
 
     // 加载分类列表
     function loadTypes() {
-        API.get('/admin/api/type/list?mid=1').then(function(r) {
+        API.get('/admin/type/list?mid=1').then(function(r) {
             if (r.code === 1 && r.data) {
                 var select = document.getElementById('type_id');
                 select.innerHTML = '<option value="">选择分类</option>';
@@ -456,7 +456,7 @@
 
     // 加载播放器列表
     function loadPlayers() {
-        API.get('/admin/api/player/list').then(function(r) {
+        API.get('/admin/player/list').then(function(r) {
             if (r.code === 1 && r.data) {
                 playerSelectHtml = '<option value="no">选择播放器.</option>';
                 serverSelectHtml = '<option value="no">选择服务器.</option>';
@@ -467,7 +467,7 @@
                 });
             }
         });
-        API.get('/admin/api/server/list').then(function(r) {
+        API.get('/admin/server/list').then(function(r) {
             if (r.code === 1 && r.data) {
                 r.data.forEach(function(vo) {
                     if (vo.status == 1) {
@@ -476,7 +476,7 @@
                 });
             }
         });
-        API.get('/admin/api/downer/list').then(function(r) {
+        API.get('/admin/downer/list').then(function(r) {
             if (r.code === 1 && r.data) {
                 downerSelectHtml = '<option value="no">选择下载器.</option>';
                 r.data.forEach(function(vo) {
@@ -596,7 +596,7 @@
     // 加载编辑数据
     function loadDetail() {
         if (!vodId) return;
-        API.get('/admin/api/vod/detail?id=' + vodId).then(function(r) {
+        API.get('/admin/vod/detail/' + vodId).then(function(r) {
             if (r.code === 1 && r.data) {
                 var info = r.data;
                 // 填充基础字段
@@ -671,7 +671,7 @@
     });
 
     // 表单提交
-    bindForm('editForm', '/admin/api/vod/save', function(r) {
+    bindForm('editForm', '/admin/vod/save', function(r) {
         if (!vodId && r.data && r.data.vod_id) {
             vodId = r.data.vod_id;
             document.getElementById('vod_id').value = vodId;
@@ -703,7 +703,7 @@
     layui.use('form', function() {
         layui.form.on('select(type_id)', function(data) {
             if (data.value) {
-                API.post('/admin/api/type/extend', { id: data.value }).then(function(r) {
+                API.post('/admin/type/extend', { id: data.value }).then(function(r) {
                     if (r.code === 1 && r.data) {
                         Object.keys(r.data).forEach(function(key) {
                             var label = document.querySelector('.vod_' + key + '_label');

@@ -162,6 +162,27 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 
 	a := app.Group("/admin")
 
+	// API 路径兼容：/admin/api/* → /admin/*
+	a.Use("/api", func(c *fiber.Ctx) error {
+		// 去掉 /api 前缀
+		newPath := "/" + c.Params("*")
+
+		// /del → /delete 兼容
+		if strings.HasSuffix(newPath, "/del") {
+			newPath = strings.TrimSuffix(newPath, "/del") + "/delete"
+		}
+
+		// 重写路径
+		c.Path(newPath)
+
+		// 如果有 ?id=X 参数且目标路由用 /:id 格式，转换一下
+		if id := c.Query("id"); id != "" && !strings.Contains(newPath, "/"+id) {
+			c.Path(newPath + "/" + id)
+		}
+
+		return c.Next()
+	})
+
 	// SPA 静态资源（公开）
 	a.Static("/layui", "./web/static/admin/layui")
 	a.Static("/css", "./web/static/admin/css")
@@ -199,8 +220,21 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 			return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("登录失败次数过多，请 %d 分钟后重试", remaining)})
 		}
 
-		name := c.FormValue("admin_name")
-		pwd := c.FormValue("admin_pwd")
+		// 兼容 JSON body 和 form-data
+		getVal := func(key string) string {
+			if v := c.FormValue(key); v != "" {
+				return v
+			}
+			var body map[string]string
+			if strings.Contains(c.Get("Content-Type"), "json") {
+				if c.BodyParser(&body) == nil {
+					return body[key]
+				}
+			}
+			return ""
+		}
+		name := getVal("admin_name")
+		pwd := getVal("admin_pwd")
 		var adm model.Admin
 		if err := db.Where("admin_name = ?", name).First(&adm).Error; err != nil {
 			// 记录失败
@@ -260,8 +294,21 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 			}
 			return c.JSON(fiber.Map{"code": 0, "msg": fmt.Sprintf("登录失败次数过多，请 %d 分钟后重试", remaining)})
 		}
-		name := c.FormValue("admin_name")
-		pwd := c.FormValue("admin_pwd")
+		// 兼容 JSON body 和 form-data
+		getVal := func(key string) string {
+			if v := c.FormValue(key); v != "" {
+				return v
+			}
+			var body map[string]string
+			if strings.Contains(c.Get("Content-Type"), "json") {
+				if c.BodyParser(&body) == nil {
+					return body[key]
+				}
+			}
+			return ""
+		}
+		name := getVal("admin_name")
+		pwd := getVal("admin_pwd")
 		var adm model.Admin
 		if err := db.Where("admin_name = ?", name).First(&adm).Error; err != nil {
 			ban.IP = ip
@@ -504,6 +551,28 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	auth.Get("/cj/list", cjH.List)
 	auth.Post("/cj/save", cjH.Save)
 	auth.Post("/cj/run", cjH.Run)
+
+	// --- SPA 补充路由（前端需要但原路由未覆盖的） ---
+	// 登录页需要的站点配置
+	auth.Get("/config", systemH.GetConfig)
+	// 欢迎页系统信息
+	auth.Get("/systemInfo", dashboard.API)
+	// 播放器/服务器/下载源列表（视频编辑页需要）— 暂返空
+	auth.Get("/player/list", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "data": []interface{}{}, "msg": "success"})
+	})
+	auth.Get("/server/list", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "data": []interface{}{}, "msg": "success"})
+	})
+	auth.Get("/downer/list", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "data": []interface{}{}, "msg": "success"})
+	})
+	// 分类扩展字段
+	auth.Post("/type/extend", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "data": map[string]interface{}{}, "msg": "success"})
+	})
+	// 安全列表 → IP黑名单
+	auth.Get("/safety/list", safetyH.IPBlacklistList)
 
 	// --- SPA 页面路由（替换原 Go 模板渲染） ---
 	spaPage := func(file string) fiber.Handler {

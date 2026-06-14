@@ -41,7 +41,7 @@
             <label class="layui-form-label">验证码：</label>
             <div class="layui-input-block">
                 <input type="number" name="verify" class="layui-input" lay-verify="verify" placeholder="验证码" maxlength="4" max="9999"/>
-                <img id="verify_img" src="/admin/api/verify" onclick="this.src = this.src+'?'">
+                <img id="verify_img" src="/admin/verify" onclick="this.src = this.src+'?'">
             </div>
         </div>
         <button type="button" class="layui-btn btn-submit" lay-submit="" lay-filter="sub">登 录</button>
@@ -86,7 +86,7 @@
         });
 
         // 检查是否需要验证码
-        API.get('/admin/api/config').then(function(r) {
+        API.get('/admin/system/settings').then(function(r) {
             if (r.code === 1 && r.data && r.data.admin_login_verify !== '0') {
                 document.getElementById('verifyRow').style.display = 'block';
             }
@@ -95,7 +95,7 @@
         // 提交监听
         form.on('submit(sub)', function (data) {
             layer.msg("正在登录...", {time: 500000});
-            API.post('/admin/api/login', data.field).then(function(r) {
+            API.post('/admin/login', data.field).then(function(r) {
                 if (r.code === 1) {
                     layer.msg('登录成功', {time: 1000});
                     setTimeout(function() {

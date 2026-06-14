@@ -42,7 +42,7 @@
         var fd={};new FormData(document.getElementById('searchForm')).forEach(function(v,k){if(v)fd[k]=v;});
         fd.page=currentPage;fd.limit=pageLimit;
         var qs=Object.keys(fd).map(function(k){return k+'='+encodeURIComponent(fd[k]);}).join('&');
-        API.get('/admin/api/user/list?'+qs).then(function(r){
+        API.get('/admin/user/list?'+qs).then(function(r){
             if(r.code===1){renderTable(r.data.list||[]);renderPag(r.data.total||0);}
         });
     }
@@ -61,8 +61,8 @@
     }
     function renderPag(total){layui.use(['laypage'],function(){layui.laypage.render({elem:'pages',count:total,limit:pageLimit,curr:currentPage,layout:['count','prev','page','next','limit','skip'],jump:function(o,f){if(!f)loadData(o.curr);}});});}
     function doSearch(){loadData(1);}
-    function delItem(id){layui.use('layer',function(){layui.layer.confirm('确定删除？',function(i){API.post('/admin/api/user/del',{ids:id.toString()}).then(function(r){layui.layer.msg(r.msg||'操作完成',{time:1500});if(r.code===1)loadData(currentPage);});layui.layer.close(i);});});}
-    function batchDel(){var ids=[];document.querySelectorAll('input.checkbox-ids:checked').forEach(function(e){ids.push(e.value);});if(!ids.length){layui.use('layer',function(){layui.layer.msg('请先选择');});return;}layui.use('layer',function(){layui.layer.confirm('确定删除'+ids.length+'条？',function(i){API.post('/admin/api/user/del',{ids:ids.join(',')}).then(function(r){layui.layer.msg(r.msg||'操作完成',{time:1500});if(r.code===1)loadData(currentPage);});layui.layer.close(i);});});}
+    function delItem(id){layui.use('layer',function(){layui.layer.confirm('确定删除？',function(i){API.post('/admin/user/delete',{ids:id.toString()}).then(function(r){layui.layer.msg(r.msg||'操作完成',{time:1500});if(r.code===1)loadData(currentPage);});layui.layer.close(i);});});}
+    function batchDel(){var ids=[];document.querySelectorAll('input.checkbox-ids:checked').forEach(function(e){ids.push(e.value);});if(!ids.length){layui.use('layer',function(){layui.layer.msg('请先选择');});return;}layui.use('layer',function(){layui.layer.confirm('确定删除'+ids.length+'条？',function(i){API.post('/admin/user/delete',{ids:ids.join(',')}).then(function(r){layui.layer.msg(r.msg||'操作完成',{time:1500});if(r.code===1)loadData(currentPage);});layui.layer.close(i);});});}
     loadData(1);
     initTable({total:0,limit:pageLimit,page:1,onPageChange:function(p,l){pageLimit=l;loadData(p);}});
 </script>

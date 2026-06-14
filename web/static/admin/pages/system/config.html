@@ -298,7 +298,7 @@
 <script type="text/javascript" src="../../js/app.js"></script>
 <script type="text/javascript">
     // 加载配置数据
-    API.get('/admin/api/system/config').then(function(r) {
+    API.get('/admin/system/config').then(function(r) {
         if (r.code === 1 && r.data) {
             var config = r.data;
             var form = document.getElementById('editForm');
@@ -379,7 +379,7 @@
         var upload = layui.upload;
         upload.render({
             elem: '.layui-upload',
-            url: '/admin/api/upload',
+            url: '/admin/upload',
             method: 'post',
             before: function() { layui.layer.msg("上传中...", {time: 3000000}); },
             done: function(res) {
@@ -422,7 +422,7 @@
         var db = form.querySelector('input[name="app[cache_db]"]').value;
 
         layui.layer.msg('测试中...', {time: 500000});
-        API.post('/admin/api/system/testCache', {
+        API.post('/admin/system/test-cache', {
             type: type, host: host, port: port,
             username: username, password: password, db: db
         }).then(function(r) {
@@ -435,7 +435,7 @@
     }
 
     // 表单提交
-    bindForm('editForm', '/admin/api/system/saveConfig');
+    bindForm('editForm', '/admin/system/settings/save');
 </script>
 </body>
 </html>
