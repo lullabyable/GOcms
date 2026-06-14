@@ -17,8 +17,7 @@
         .layui-tab-title li {border-right:1px solid #e6e6e6;}
         /* 防止 tab 行触发页面滚动 */
         .layui-tab-title {overflow-x:auto;overflow-y:hidden;}
-        .layui-body {overflow:hidden!important;}
-        .footer{position:fixed;left:200px;right:0;bottom:0;z-index:998;}
+        .layui-body {overflow:hidden!important;bottom:0!important;}
         /* 侧边栏一级菜单样式 */
         .sidebar-menu .layui-nav-tree .layui-nav-item > a {padding-left:20px;font-size:15px;}
         .sidebar-menu .layui-nav-tree .layui-nav-child a {padding-left:45px;font-size:13px;}
@@ -81,8 +80,7 @@
         </div>
     </div>
 
-    <div class="layui-footer footer">
-    </div>
+
 </div>
 
 <script type="text/javascript" src="/layui/layui.js"></script>
@@ -206,7 +204,7 @@
     layui.use(['element', 'layer'], function() {
         var $ = layui.jquery, element = layui.element, layer = layui.layer;
 
-        $('.layui-tab-content').height($(window).height() - 105);
+        $('.layui-tab-content').height($(window).height() - 60);
 
         var tab = {
             add: function(title, url, id) {
