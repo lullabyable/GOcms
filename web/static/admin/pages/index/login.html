@@ -99,7 +99,7 @@
                 if (r.code === 1) {
                     layer.msg('登录成功', {time: 1000});
                     setTimeout(function() {
-                        window.location.href = '../../index.html';
+                        window.location.href = '/admin/';
                     }, 1000);
                 } else {
                     layer.msg(r.msg || '登录失败', {time: 1800});
