@@ -10,84 +10,48 @@
     <link rel="stylesheet" href="/css/admin_style.css?v=1024">
     <style type="text/css">
         .hs-iframe{width:100%;height:100%;}
-        .layui-tab-content {top: 41px; position: absolute; bottom: 0; width: 100%; padding: 0; }
+        .layui-tab-content {top:41px;position:absolute;bottom:0;width:100%;padding:0;}
         .layui-tab-item{height:100%;}
-        .layui-tab-title .layui-this {background-color: #009688; color: #fff; }
-        .layui-tab-title .layui-this:after {border: none; }
-        .layui-tab-title li { border-right: 1px solid #e6e6e6;}
-        .footer{position:fixed;left:0;bottom:0;z-index:998;}
+        .layui-tab-title .layui-this {background-color:#009688;color:#fff;}
+        .layui-tab-title .layui-this:after {border:none;}
+        .layui-tab-title li {border-right:1px solid #e6e6e6;}
+        .footer{position:fixed;left:200px;right:0;bottom:0;z-index:998;}
+        /* 侧边栏一级菜单样式 */
+        .sidebar-menu .layui-nav-tree .layui-nav-item > a {padding-left:20px;font-size:15px;}
+        .sidebar-menu .layui-nav-tree .layui-nav-child a {padding-left:45px;font-size:13px;}
+        .sidebar-menu .layui-nav-tree {width:200px;}
     </style>
 </head>
 <body>
 <div class="layui-layout layui-layout-admin">
-    <div class="layui-header header-top">
-        <div class="top-logo">GOcms</div>
-        <ul class="layout-right" lay-filter="">
-            <li class="nav-item">
-                <a href="javascript:void(0);" onclick="chanage_version()">New</a>
+    <!-- 顶部导航：仅 logo + 操作按钮 -->
+    <div class="layui-header">
+        <div class="fl header-logo">GOcms</div>
+        <ul class="layui-nav layui-layout-right" lay-filter="">
+            <li class="layui-nav-item layui-hide-xs">
+                <a href="/" target="_blank"><i class="layui-icon layui-icon-home"></i> 前台</a>
             </li>
-            <li class="nav-item">
-                <a href="/" target="_blank"><i class="layui-icon layui-icon-home size-14"></i></a>
-            </li>
-            <li class="nav-item">
-                <a href="javascript:;" class="j-ajax" onclick="clearCache()"><i class="layui-icon layui-icon-delete size-16"></i></a>
-            </li>
-            <li class="nav-item">
-                <a href="javascript:;" id="admin_name">
-                    <i class="layui-icon layui-icon-app size-14"></i>
-                </a>
+            <li class="layui-nav-item layui-hide-xs">
+                <a href="javascript:void(0);">操作 <span class="layui-nav-more"></span></a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;" onclick="clearCache()">清除缓存</a></dd>
+                    <dd><a href="javascript:void(0);" id="lockScreen">锁屏</a></dd>
+                    <dd><a href="javascript:;" onclick="logout()">退出登录</a></dd>
+                </dl>
             </li>
         </ul>
     </div>
 
-    <div class="layui-header">
-        <div class="fl header-logo">GOcms</div>
-        <div class="fl header-fold topLevelMenus"><a href="javascript:;" title="菜单切换" class="aicon ai-caidan" id="foldSwitch"><i class="layui-icon">&#xe65f;</i></a></div>
-        <a href="javascript:;" class="site-tree-mobile layui-mobile layui-show-xs-block layui-hide-lg"><i class="layui-icon layui-icon-spread-left size-20"></i></a>
-        <div class="bottom-nav">
-            <ul class="layui-nav fl nobg main-nav" id="topMenu">
-            </ul>
-            <ul class="layui-nav layui-layout-right" lay-filter="">
-                <li class="layui-nav-item layui-hide-xs"></li>
-                <li class="layui-nav-item layui-hide-xs">
-                    <a href="javascript:void(0);">操作&nbsp;&nbsp;</a>
-                    <dl class="layui-nav-child">
-                        <dd><a href="javascript:;" onclick="clearCache()">清除缓存</a></dd>
-                        <dd><a href="javascript:void(0);" id="lockScreen">锁屏</a></dd>
-                        <dd><a href="javascript:;" onclick="logout()">退出登录</a></dd>
-                    </dl>
-                </li>
-                <li class="layui-nav-item layui-hide-xs">
-                    <a href="/" target="_blank">前台首页</a>
-                </li>
-                <li class="layui-nav-item layui-hide-xs">
-                    <a href="javascript:void(0);" onclick="chanage_version()">新版切换</a>
-                </li>
+    <!-- 左侧菜单 -->
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll sidebar-menu">
+            <ul class="layui-nav layui-nav-tree" id="sideMenu" lay-filter="sideMenu">
             </ul>
         </div>
     </div>
 
-    <div class="nav-item-ul">
-        <div class="">
-            <ul class="layui-nav">
-                <li class="layui-nav-item"><a href="/" target="_blank">前台首页</a></li>
-                <li class="layui-nav-item"><a href="javascript:void(0);" id="lockScreen2">锁屏</a></li>
-                <li class="layui-nav-item"><a href="javascript:;" onclick="clearCache()">清除缓存</a></li>
-                <li class="layui-nav-item"><a href="javascript:;" onclick="logout()">退出登录</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="layui-side layui-bg-black" id="switchNav">
-        <div class="layui-side-scroll navBar" id="navBar">
-        </div>
-    </div>
-    <div class="site-tree-mobile layui-hide">
-        <i class="layui-icon">&#xe65f;</i>
-    </div>
-    <div class="site-mobile-shade"></div>
-
-    <div class="layui-body" id="switchBody">
+    <!-- 主内容区 -->
+    <div class="layui-body">
         <div class="layui-tab mag0" id="top_tabs_box" lay-filter="macTab" lay-allowClose="true">
             <div class="tab-go-refresh" id="J_refresh"><i class="layui-icon layui-icon-refresh"></i></div>
             <div class="tab-go-left" id="page-prev"><i class="layui-icon layui-icon-zuozuo"></i></div>
@@ -115,7 +79,6 @@
     </div>
 
     <div class="layui-footer footer">
-        <div class="fl"></div>
         <div class="fr">Powered by GOcms</div>
     </div>
 </div>
@@ -123,9 +86,6 @@
 <script type="text/javascript" src="/layui/layui.js"></script>
 <script type="text/javascript" src="/js/app.js"></script>
 <script type="text/javascript">
-    window.localStorage.clear();
-    var LAYUI_OFFSET = 60;
-
     // 菜单数据
     var MENUS = [
         { name: '首页', icon: 'layui-icon-home', sub: [
@@ -220,53 +180,31 @@
         ]}
     ];
 
-    // 动态生成顶部菜单
-    function renderTopMenu() {
+    // 生成左侧菜单（一级菜单 + 二级菜单嵌套）
+    function renderSideMenu() {
+        var menu = document.getElementById('sideMenu');
         var html = '';
         MENUS.forEach(function(item, i) {
-            var cls = i === 0 ? 'layui-nav-item layui-this main-nav mob-nav' : 'layui-nav-item main-nav mob-nav';
-            html += '<li class="' + cls + '" data-i="' + (i+1) + '">';
-            html += '<a href="javascript:;" data-i="' + (i+1) + '">' + item.name + '</a>';
-            html += '</li>';
-        });
-        document.getElementById('topMenu').innerHTML = html;
-    }
-
-    // 动态生成左侧菜单
-    function renderSideMenu() {
-        var navBar = document.getElementById('navBar');
-        navBar.innerHTML = '';
-        MENUS.forEach(function(item, i) {
-            var ul = document.createElement('ul');
-            ul.className = 'layui-nav layui-nav-tree nav-panel';
-            if (i !== 0) ul.style.display = 'none';
-
-            var li = document.createElement('li');
-            li.className = 'layui-nav-item layui-nav-itemed';
-            var aHtml = '<a href="javascript:;"><i class="' + item.icon + '"></i>' + item.name + '<span class="layui-nav-more"></span></a>';
-            aHtml += '<dl class="layui-nav-child">';
+            var cls = i === 0 ? 'layui-nav-item layui-nav-itemed' : 'layui-nav-item';
+            html += '<li class="' + cls + '">';
+            html += '<a href="javascript:;"><i class="layui-icon ' + item.icon + '"></i>' + item.name + '</a>';
+            html += '<dl class="layui-nav-child">';
             item.sub.forEach(function(sub, j) {
                 var dataId = (i+1) + '' + (j+1);
-                aHtml += '<dd><a class="admin-nav-item" data-id="' + dataId + '" href="' + sub.url + '"><i class="' + (sub.icon||'') + '"></i> ' + sub.name + '</a></dd>';
+                html += '<dd><a class="admin-nav-item" data-id="' + dataId + '" href="' + sub.url + '">' + sub.name + '</a></dd>';
             });
-            aHtml += '</dl>';
-            li.innerHTML = aHtml;
-            ul.appendChild(li);
-            navBar.appendChild(ul);
+            html += '</dl>';
+            html += '</li>';
         });
+        menu.innerHTML = html;
     }
 
-    // 初始化菜单
-    renderTopMenu();
     renderSideMenu();
 
     layui.use(['element', 'layer'], function() {
         var $ = layui.jquery, element = layui.element, layer = layui.layer;
 
-        $('#admin_name').click(function(){
-            $('body').toggleClass('drawer-body-right');
-        });
-        $('.layui-tab-content').height($(window).height() - 145);
+        $('.layui-tab-content').height($(window).height() - 105);
 
         var tab = {
             add: function(title, url, id) {
@@ -281,25 +219,7 @@
             }
         };
 
-        // 顶部菜单切换
-        $(document).on('click', '#topMenu .main-nav', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var i = $(this).attr('data-i');
-            console.log('[Nav] clicked, data-i=' + i);
-            $('#topMenu .main-nav').removeClass('layui-this');
-            $(this).addClass('layui-this');
-            var panels = $('#navBar .nav-panel');
-            console.log('[Nav] panels found: ' + panels.length);
-            panels.hide();
-            var target = panels.eq(i-1);
-            console.log('[Nav] showing panel index: ' + (i-1) + ', found: ' + target.length);
-            target.show();
-            target.find('.layui-nav-child').show();
-            return false;
-        });
-
-        // 左侧菜单点击
+        // 左侧菜单点击 → 打开 tab
         $(document).on('click', '.admin-nav-item', function(event) {
             var that = $(this);
             var id = that.attr('data-id');
@@ -313,7 +233,7 @@
                 layer.msg("最多打开10个标签页");
                 return false;
             }
-            that.css({color:'#fff'});
+            that.css({color:'#009688'});
             tab.add(that.text(), that.attr('href'), that.attr('data-id'));
             tab.change(that.attr('data-id'));
             event.stopPropagation();
@@ -321,10 +241,10 @@
         });
 
         $(document).on('click', '.layui-tab-close', function() {
-            $('.layui-nav-child a[data-id="'+$(this).parent('li').attr('lay-id')+'"]').css({color:'rgba(255,255,255,.7)'});
+            $('.layui-nav-child a[data-id="'+$(this).parent('li').attr('lay-id')+'"]').css({color:''});
         });
 
-        // Tab 位置判断
+        // Tab 导航
         function showTab(li) {
             if (li.length) {
                 var ul = $('#B_history'),
@@ -333,50 +253,24 @@
                     next_left = $('#page-next').offset().left,
                     prev_right = $('#page-prev').offset().left + $('#page-prev').outerWidth(true);
                 if (li_offset.left + li_width > next_left) {
-                    var distance = li_offset.left + li_width - next_left;
-                    ul.animate({ left: '-=' + distance }, 200, 'swing');
+                    ul.animate({ left: '-=' + (li_offset.left + li_width - next_left) }, 200, 'swing');
                 } else if (li_offset.left < prev_right) {
-                    var distance = prev_right - li_offset.left;
-                    ul.animate({ left: '+=' + distance }, 200, 'swing');
+                    ul.animate({ left: '+=' + (prev_right - li_offset.left) }, 200, 'swing');
                 }
                 li.trigger('click');
             }
         }
+        $('#page-prev').click(function(e) { e.preventDefault(); e.stopPropagation(); showTab($('#B_history .layui-this').prev('li')); });
+        $('#page-next').click(function(e) { e.preventDefault(); e.stopPropagation(); showTab($('#B_history .layui-this').next('li')); });
 
-        // 上一个选项卡
-        $('#page-prev').click(function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var ul = $('#B_history'),
-                current = ul.find('.layui-this'),
-                li = current.prev('li');
-            showTab(li);
-        });
-
-        // 下一个选项卡
-        $('#page-next').click(function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var ul = $('#B_history'),
-                current = ul.find('.layui-this'),
-                li = current.next('li');
-            showTab(li);
-        });
-
-        // 刷新
         $('#J_refresh').click(function(e) {
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault(); e.stopPropagation();
             var index = layer.load();
-            var id = $('#B_history .layui-this').attr('lay-id'),
-                iframe = $("iframe[lay-id='"+id+"']")[0];
-            if (iframe && iframe.contentWindow) {
-                iframe.contentWindow.location.reload(true);
-                layer.close(index);
-            }
+            var iframe = $("iframe[lay-id='"+$('#B_history .layui-this').attr('lay-id')+"']")[0];
+            if (iframe && iframe.contentWindow) { iframe.contentWindow.location.reload(true); }
+            layer.close(index);
         });
 
-        // 关闭全部
         $(".closePageAll").on("click", function() {
             if ($("#B_history li").length > 1) {
                 $("#B_history li").each(function() {
@@ -386,12 +280,9 @@
                         $("iframe[lay-id='"+data_id+"']").remove();
                     }
                 });
-            } else {
-                layer.msg("没有可关闭的标签页");
-            }
+            } else { layer.msg("没有可关闭的标签页"); }
         });
 
-        // 关闭其他
         $(".closePageOther").on("click", function() {
             if ($("#B_history li").length > 1) {
                 var cid = $('#B_history .layui-this').attr('lay-id');
@@ -402,52 +293,21 @@
                         $("iframe[lay-id='"+data_id+"']").remove();
                     }
                 });
-            } else {
-                layer.msg("没有可关闭的标签页");
-            }
-        });
-
-        $('.mob-nav').on("click", function() {
-            $('.site-tree-mobile').click();
-        });
-
-        var treeMobile = $('.site-tree-mobile'),
-            shadeMobile = $('.site-mobile-shade');
-        treeMobile.on('click', function() {
-            $('body').addClass('site-mobile');
-            $('.Menus-winner').removeClass('topLevelMenus');
-            $('.Menus-winner').addClass('topLevelMenus-winner');
-        });
-        shadeMobile.on('click', function() {
-            $('body').removeClass('site-mobile');
-            $('.Menus-winner').addClass('topLevelMenus');
+            } else { layer.msg("没有可关闭的标签页"); }
         });
     });
 
-    // 清除缓存
     function clearCache() {
         API.post('/admin/system/cache/clear').then(function(r) {
             layui.layer.msg(r.msg || '缓存已清除', {time: 1800});
-        }).catch(function() {
-            layui.layer.msg('操作完成', {time: 1800});
-        });
+        }).catch(function() { layui.layer.msg('操作完成', {time: 1800}); });
     }
 
-    // 退出登录
     function logout() {
         API.post('/admin/logout').then(function(r) {
             window.location.href = '/admin/login';
-        }).catch(function() {
-            window.location.href = '/admin/login';
-        });
+        }).catch(function() { window.location.href = '/admin/login'; });
     }
-
-    // 版本切换
-    function chanage_version() {
-        layui.layer.msg('操作完成', {time: 1800});
-    }
-
-
 </script>
 </body>
 </html>
