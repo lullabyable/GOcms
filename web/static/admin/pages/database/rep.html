@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>数据替换</title><link rel="stylesheet" href="../../layui/css/layui.css"><link rel="stylesheet" href="../../css/admin_style.css"></head><body>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>数据替换</title><link rel="stylesheet" href="/layui/css/layui.css"><link rel="stylesheet" href="/css/admin_style.css"></head><body>
 <div class="page-container p10"><form class="layui-form layui-form-pane" id="editForm">
 <div class="layui-form-item"><label class="layui-form-label">数据表：</label><div class="layui-input-inline"><select name="table"><option value="vod">视频表</option><option value="art">文章表</option><option value="actor">演员表</option><option value="role">角色表</option></select></div></div>
 <div class="layui-form-item"><label class="layui-form-label">字段：</label><div class="layui-input-inline"><select name="field"><option value="vod_name">名称</option><option value="vod_content">内容</option><option value="vod_tag">标签</option></select></div></div>
@@ -6,6 +6,6 @@
 <div class="layui-form-item"><label class="layui-form-label">替换：</label><div class="layui-input-block"><input type="text" class="layui-input" name="replace" placeholder="替换内容"></div></div>
 <div class="layui-form-item center"><div class="layui-input-block"><button type="button" class="layui-btn" onclick="doReplace()">执行替换</button></div></div>
 </form></div>
-<script type="text/javascript" src="../../layui/layui.js"></script><script type="text/javascript" src="../../js/app.js"></script><script>
+<script type="text/javascript" src="/layui/layui.js"></script><script type="text/javascript" src="/js/app.js"></script><script>
 function doReplace(){var f=document.getElementById('editForm');var data={table:f.querySelector('[name=table]').value,field:f.querySelector('[name=field]').value,search:f.querySelector('[name=search]').value,replace:f.querySelector('[name=replace]').value};if(!data.search){layui.use('layer',function(){layui.layer.msg('请输入查找内容');});return;}layui.use('layer',function(){layui.layer.confirm('确定执行替换？',function(i){API.post('/admin/datareplace/execute',data).then(function(r){layui.layer.msg(r.msg||'替换完成',{time:2000});});layui.layer.close(i);});});}
 </script></body></html>

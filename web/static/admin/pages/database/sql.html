@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>SQL执行</title><link rel="stylesheet" href="../../layui/css/layui.css"><link rel="stylesheet" href="../../css/admin_style.css"></head><body>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>SQL执行</title><link rel="stylesheet" href="/layui/css/layui.css"><link rel="stylesheet" href="/css/admin_style.css"></head><body>
 <div class="page-container p10">
 <blockquote class="layui-elem-quote layui-quote-nm mt10"><p class="f-14 text-danger">⚠️ 警告：SQL执行功能非常危险，请谨慎操作！建议在操作前备份数据库。</p></blockquote>
 <form class="layui-form layui-form-pane" id="editForm">
@@ -7,6 +7,6 @@
 </form>
 <div id="result" style="margin-top:20px;"></div>
 </div>
-<script type="text/javascript" src="../../layui/layui.js"></script><script type="text/javascript" src="../../js/app.js"></script><script>
+<script type="text/javascript" src="/layui/layui.js"></script><script type="text/javascript" src="/js/app.js"></script><script>
 function doSql(){var sql=document.querySelector('[name=sql]').value;if(!sql.trim()){layui.use('layer',function(){layui.layer.msg('请输入SQL语句');});return;}layui.use('layer',function(){layui.layer.confirm('确定执行SQL？',function(i){API.post('/admin/database/sql',{sql:sql}).then(function(r){layui.layer.msg(r.msg||'执行完成',{time:2000});if(r.data){document.getElementById('result').innerHTML='<pre>'+JSON.stringify(r.data,null,2)+'</pre>';}});layui.layer.close(i);});});}
 </script></body></html>

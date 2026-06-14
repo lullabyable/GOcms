@@ -260,12 +260,12 @@
     renderTopMenu();
     renderSideMenu();
 
-    $('#admin_name').click(function(){
-        $('body').toggleClass('drawer-body-right');
-    });
-
     layui.use(['element', 'layer'], function() {
         var $ = layui.jquery, element = layui.element, layer = layui.layer;
+
+        $('#admin_name').click(function(){
+            $('body').toggleClass('drawer-body-right');
+        });
         $('.layui-tab-content').height($(window).height() - 145);
 
         var tab = {

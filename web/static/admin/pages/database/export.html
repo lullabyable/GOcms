@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>数据库管理</title><link rel="stylesheet" href="../../layui/css/layui.css"><link rel="stylesheet" href="../../css/admin_style.css"></head><body>
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>数据库管理</title><link rel="stylesheet" href="/layui/css/layui.css"><link rel="stylesheet" href="/css/admin_style.css"></head><body>
 <div class="page-container p10">
     <div class="my-toolbar-box">
         <div class="layui-btn-group">
@@ -13,7 +13,7 @@
         </table>
     </form>
 </div>
-<script type="text/javascript" src="../../layui/layui.js"></script><script type="text/javascript" src="../../js/app.js"></script><script>
+<script type="text/javascript" src="/layui/layui.js"></script><script type="text/javascript" src="/js/app.js"></script><script>
 function loadData(){API.get('/admin/database/list').then(function(r){if(r.code===1){var h='';(r.data||[]).forEach(function(v,i){h+='<tr><td>'+(i+1)+'</td><td>'+v.name+'</td><td>'+v.rows+'</td><td>'+v.data_size+'</td><td>'+v.index_size+'</td><td>'+v.engine+'</td></tr>';});document.getElementById('tableBody').innerHTML=h;}});}
 function doBackup(){layui.use('layer',function(){layui.layer.confirm('确定备份数据库？',function(i){API.post('/admin/database/backup').then(function(r){layui.layer.msg(r.msg||'备份完成',{time:2000});});layui.layer.close(i);});});}
 function doRestore(){layui.use('layer',function(){layui.layer.msg('请到数据库恢复页面操作',{time:2000});});}
