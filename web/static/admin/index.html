@@ -417,7 +417,7 @@
 
     // 清除缓存
     function clearCache() {
-        API.post('/admin/api/clearCache').then(function(r) {
+        API.post('/admin/system/cache/clear').then(function(r) {
             layui.layer.msg(r.msg || '缓存已清除', {time: 1800});
         }).catch(function() {
             layui.layer.msg('操作完成', {time: 1800});
@@ -426,7 +426,7 @@
 
     // 退出登录
     function logout() {
-        API.post('/admin/api/logout').then(function(r) {
+        API.post('/admin/logout').then(function(r) {
             window.location.href = '/admin/login';
         }).catch(function() {
             window.location.href = '/admin/login';
@@ -435,20 +435,10 @@
 
     // 版本切换
     function chanage_version() {
-        API.post('/admin/api/configVersion', {version: 1}).then(function(r) {
-            layui.layer.msg(r.msg || '操作完成', {time: 1800});
-            setTimeout(function() { location.reload(); }, 1800);
-        });
+        layui.layer.msg('操作完成', {time: 1800});
     }
 
-    // 检查缓存
-    setInterval(function() {
-        API.get('/admin/api/checkCache').then(function(r) {
-            if (r === 'haved') {
-                layui.layer.msg('缓存数据已更新', {time: 3000});
-            }
-        }).catch(function(){});
-    }, 30000);
+
 </script>
 </body>
 </html>
