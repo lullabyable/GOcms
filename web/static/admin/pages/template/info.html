@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>模板编辑</title>
+    <link rel="stylesheet" href="../../layui/css/layui.css">
+    <link rel="stylesheet" href="../../css/admin_style.css">
+    <style>
+        .editor-container { position: relative; }
+        #editorContent {
+            width: 100%; height: 600px;
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: 13px; line-height: 1.6;
+            tab-size: 4; padding: 10px;
+            border: 1px solid #e6e6e6;
+            resize: vertical;
+        }
+        #editorContent:focus { border-color: #1E9FFF; outline: none; }
+        .editor-toolbar { padding: 10px 0; }
+        .file-info { padding: 8px 0; color: #666; font-size: 13px; }
+    </style>
+</head>
+<body>
+<div class="page-container p10">
+    <div class="file-info">
+        <span>当前文件：<strong id="filePath">-</strong></span>
+        <span style="margin-left:20px;">大小：<span id="fileSize">-</span></span>
+    </div>
+    <div class="editor-container">
+        <div class="editor-toolbar">
+            <a href="javascript:;" class="layui-btn layui-btn-normal" onclick="saveFile()"><i class="layui-icon">&#xe605;</i>保存</a>
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="goBack()"><i class="layui-icon">&#xe65e;</i>返回列表</a>
+            <a href="javascript:;" class="layui-btn layui-btn-warm" onclick="resetContent()"><i class="layui-icon">&#xe669;</i>重置</a>
+        </div>
+        <textarea id="editorContent" spellcheck="false"></textarea>
+    </div>
+</div>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/app.js"></script>
+<script type="text/javascript">
+    var currentPath = '';
+    var originalContent = '';
+
+    // 获取URL参数
+    function getParam(name) {
+        var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) return decodeURIComponent(r[2]);
+        return null;
+    }
+
+    // Tab键支持
+    document.getElementById('editorContent').addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            var start = this.selectionStart;
+            var end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 4;
+        }
+        // Ctrl+S 保存
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveFile();
+        }
+    });
+
+    // 加载文件内容
+    function loadFile(path) {
+        if (!path) {
+            layui.use('layer', function() { layui.layer.msg('未指定文件路径'); });
+            return;
+        }
+        currentPath = path;
+        document.getElementById('filePath').textContent = path;
+
+        API.get('/admin/template/read?path=' + encodeURIComponent(path)).then(function(r) {
+            if (r.code === 1 && r.data) {
+                var content = r.data.content || '';
+                originalContent = content;
+                document.getElementById('editorContent').value = content;
+                document.getElementById('fileSize').textContent = formatSize(content.length);
+            } else {
+                layui.use('layer', function() { layui.layer.msg(r.msg || '读取文件失败', {time: 2000}); });
+            }
+        });
+    }
+
+    // 格式化大小
+    function formatSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    // 保存文件
+    function saveFile() {
+        if (!currentPath) {
+            layui.use('layer', function() { layui.layer.msg('无文件可保存'); });
+            return;
+        }
+        var content = document.getElementById('editorContent').value;
+        var fd = new FormData();
+        fd.append('path', currentPath);
+        fd.append('content', content);
+
+        layui.use('layer', function() {
+            var idx = layui.layer.msg('正在保存...', {time: 30000});
+            API.form('/admin/template/save', fd).then(function(r) {
+                layui.layer.close(idx);
+                if (r.code === 1) {
+                    originalContent = content;
+                    layui.layer.msg('保存成功', {time: 1500});
+                } else {
+                    layui.layer.msg(r.msg || '保存失败', {time: 2000});
+                }
+            }).catch(function() {
+                layui.layer.close(idx);
+                layui.layer.msg('保存失败', {time: 2000});
+            });
+        });
+    }
+
+    // 重置内容
+    function resetContent() {
+        layui.use('layer', function() {
+            layui.layer.confirm('确定要重置为原始内容吗？', function(i) {
+                document.getElementById('editorContent').value = originalContent;
+                layui.layer.close(i);
+            });
+        });
+    }
+
+    // 返回列表
+    function goBack() {
+        window.location.href = 'index.html';
+    }
+
+    // 初始化
+    var path = getParam('path');
+    if (path) {
+        loadFile(path);
+    }
+</script>
+</body>
+</html>

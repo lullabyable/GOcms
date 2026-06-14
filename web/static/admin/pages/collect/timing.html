@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>采集定时任务</title>
+    <link rel="stylesheet" href="../../layui/css/layui.css">
+    <link rel="stylesheet" href="../../css/admin_style.css">
+</head>
+<body>
+<div class="page-container p10">
+    <blockquote class="layui-elem-quote">定时采集任务配置<br>注：不需要定时操作的模块，请填写0</blockquote>
+
+    <form class="layui-form" id="timingForm">
+        <table class="layui-table" lay-size="sm">
+            <thead><tr>
+                <th width="200">任务名称</th>
+                <th width="200">频率（分钟/次）</th>
+                <th>说明</th>
+            </tr></thead>
+            <tbody>
+            <tr>
+                <td>视频采集</td>
+                <td><input type="number" name="cj_interval" class="layui-input" value="5" min="0" style="width:100px;"></td>
+                <td>定时从资源站抓取视频数据，填写0关闭</td>
+            </tr>
+            <tr>
+                <td>内容生成</td>
+                <td><input type="number" name="makeinfo_interval" class="layui-input" value="6" min="0" style="width:100px;"></td>
+                <td>定时生成内容页，填写0关闭</td>
+            </tr>
+            <tr>
+                <td>首页生成</td>
+                <td><input type="number" name="makeindex_interval" class="layui-input" value="20" min="0" style="width:100px;"></td>
+                <td>定时生成首页，填写0关闭</td>
+            </tr>
+            <tr>
+                <td>栏目页生成</td>
+                <td><input type="number" name="maketype_interval" class="layui-input" value="120" min="0" style="width:100px;"></td>
+                <td>定时生成栏目页，填写0关闭</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="center" style="margin-top: 15px;">
+            <button type="button" class="layui-btn" id="btnStart" onclick="startTiming()">执行任务</button>
+            <button type="button" class="layui-btn layui-btn-warm" id="btnStop" onclick="stopTiming()" disabled>停止执行</button>
+            <button type="button" class="layui-btn layui-btn-normal" onclick="saveConfig()">保存配置</button>
+        </div>
+    </form>
+
+    <div id="taskLog" style="display:none; margin-top: 20px;">
+        <fieldset class="layui-elem-field">
+            <legend>任务执行日志</legend>
+            <div class="layui-field-box" id="logContent" style="height:300px;overflow-y:auto;font-size:12px;font-family:Consolas,monospace;background:#f8f8f8;padding:10px;">
+            </div>
+        </fieldset>
+    </div>
+
+    <!-- 已有定时任务列表 -->
+    <fieldset class="layui-elem-field" style="margin-top: 20px;">
+        <legend>已配置的定时任务</legend>
+        <div class="layui-field-box">
+            <table class="layui-table" lay-size="sm">
+                <thead><tr>
+                    <th width="50">ID</th>
+                    <th>任务名称</th>
+                    <th width="100">频率</th>
+                    <th width="80">状态</th>
+                    <th width="150">上次执行</th>
+                    <th width="150">操作</th>
+                </tr></thead>
+                <tbody id="taskBody"></tbody>
+            </table>
+        </div>
+    </fieldset>
+</div>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/app.js"></script>
+<script type="text/javascript">
+    var timingIntervals = {};
+    var isRunning = false;
+
+    // 加载已有任务
+    function loadTasks() {
+        API.get('/admin/timming/list').then(function(r) {
+            if (r.code === 1 && r.data) {
+                var list = r.data.list || r.data || [];
+                var h = '';
+                if (list.length === 0) {
+                    h = '<tr><td colspan="6" style="text-align:center;color:#999;">暂无定时任务</td></tr>';
+                } else {
+                    list.forEach(function(vo) {
+                        h += '<tr>';
+                        h += '<td>' + (vo.id || vo.timming_id || '-') + '</td>';
+                        h += '<td>' + htmlspecialchars(vo.name || vo.timming_name || '') + '</td>';
+                        h += '<td>' + (vo.interval || vo.timming_interval || 0) + ' 分钟</td>';
+                        h += '<td>' + (vo.status == 1 ? '<span class="layui-badge layui-bg-green">启用</span>' : '<span class="layui-badge">禁用</span>') + '</td>';
+                        h += '<td>' + (vo.last_run ? mac_day(vo.last_run, 'color') : '-') + '</td>';
+                        h += '<td>';
+                        h += '<a href="javascript:;" class="layui-btn layui-btn-xs layui-btn-primary" onclick="toggleTask(' + (vo.id || vo.timming_id) + ', ' + (vo.status == 1 ? 0 : 1) + ')">' + (vo.status == 1 ? '禁用' : '启用') + '</a> ';
+                        h += '<a href="javascript:;" class="layui-btn layui-btn-xs layui-btn-danger" onclick="deleteTask(' + (vo.id || vo.timming_id) + ')">删除</a>';
+                        h += '</td></tr>';
+                    });
+                }
+                document.getElementById('taskBody').innerHTML = h;
+            }
+        });
+    }
+
+    // 开始定时任务
+    function startTiming() {
+        var form = document.getElementById('timingForm');
+        var fd = {};
+        new FormData(form).forEach(function(v, k) { fd[k] = parseInt(v) || 0; });
+
+        isRunning = true;
+        document.getElementById('btnStart').disabled = true;
+        document.getElementById('btnStop').disabled = false;
+        document.getElementById('taskLog').style.display = '';
+
+        addLog('定时任务已启动');
+
+        // 采集
+        if (fd.cj_interval > 0) {
+            timingIntervals.cj = setInterval(function() {
+                addLog('开始采集...');
+                API.post('/admin/collect/start', { ac: 'cjall' }).then(function(r) {
+                    addLog('采集完成: ' + (r.msg || 'ok'));
+                }).catch(function() { addLog('采集失败'); });
+            }, fd.cj_interval * 60 * 1000);
+        }
+
+        // 内容生成
+        if (fd.makeinfo_interval > 0) {
+            timingIntervals.makeinfo = setInterval(function() {
+                addLog('开始生成内容页...');
+                API.post('/admin/make/run', { ac: 'info' }).then(function(r) {
+                    addLog('内容生成完成: ' + (r.msg || 'ok'));
+                }).catch(function() { addLog('内容生成失败'); });
+            }, fd.makeinfo_interval * 60 * 1000);
+        }
+
+        // 首页生成
+        if (fd.makeindex_interval > 0) {
+            timingIntervals.makeindex = setInterval(function() {
+                addLog('开始生成首页...');
+                API.post('/admin/make/run', { ac: 'index' }).then(function(r) {
+                    addLog('首页生成完成: ' + (r.msg || 'ok'));
+                }).catch(function() { addLog('首页生成失败'); });
+            }, fd.makeindex_interval * 60 * 1000);
+        }
+
+        // 栏目生成
+        if (fd.maketype_interval > 0) {
+            timingIntervals.maketype = setInterval(function() {
+                addLog('开始生成栏目页...');
+                API.post('/admin/make/run', { ac: 'type' }).then(function(r) {
+                    addLog('栏目页生成完成: ' + (r.msg || 'ok'));
+                }).catch(function() { addLog('栏目页生成失败'); });
+            }, fd.maketype_interval * 60 * 1000);
+        }
+    }
+
+    // 停止定时任务
+    function stopTiming() {
+        isRunning = false;
+        Object.keys(timingIntervals).forEach(function(k) {
+            clearInterval(timingIntervals[k]);
+        });
+        timingIntervals = {};
+        document.getElementById('btnStart').disabled = false;
+        document.getElementById('btnStop').disabled = true;
+        addLog('定时任务已停止');
+    }
+
+    // 添加日志
+    function addLog(msg) {
+        var logDiv = document.getElementById('logContent');
+        var time = new Date().toLocaleString();
+        logDiv.innerHTML += '<div>[' + time + '] ' + msg + '</div>';
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // 保存配置
+    function saveConfig() {
+        var form = document.getElementById('timingForm');
+        var fd = {};
+        new FormData(form).forEach(function(v, k) { fd[k] = parseInt(v) || 0; });
+
+        API.post('/admin/timming/create', fd).then(function(r) {
+            layui.use('layer', function() {
+                layui.layer.msg(r.msg || (r.code === 1 ? '保存成功' : '保存失败'), {time: 1500});
+            });
+            if (r.code === 1) loadTasks();
+        });
+    }
+
+    // 切换任务状态
+    function toggleTask(id, status) {
+        API.post('/admin/timming/update', { id: id, status: status }).then(function(r) {
+            layui.use('layer', function() { layui.layer.msg(r.msg || '操作完成', {time: 1500}); });
+            if (r.code === 1) loadTasks();
+        });
+    }
+
+    // 删除任务
+    function deleteTask(id) {
+        layui.use('layer', function() {
+            layui.layer.confirm('确定要删除此定时任务吗？', function(i) {
+                layui.layer.close(i);
+                API.post('/admin/timming/delete', { ids: id.toString() }).then(function(r) {
+                    layui.layer.msg(r.msg || '操作完成', {time: 1500});
+                    if (r.code === 1) loadTasks();
+                });
+            });
+        });
+    }
+
+    loadTasks();
+    layui.use('form', function() { layui.form.render(); });
+</script>
+</body>
+</html>

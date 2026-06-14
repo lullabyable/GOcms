@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>数据库导入</title>
+    <link rel="stylesheet" href="../../layui/css/layui.css">
+    <link rel="stylesheet" href="../../css/admin_style.css">
+</head>
+<body>
+<div class="page-container p10">
+    <div class="my-toolbar-box">
+        <ul class="layui-tab-title mb10" style="border-bottom: 1px solid #e6e6e6; padding-bottom: 10px;">
+            <li><a href="export.html" style="text-decoration:none;">数据库备份</a></li>
+            <li class="layui-this"><a href="javascript:;" style="text-decoration:none;">数据库恢复</a></li>
+        </ul>
+    </div>
+
+    <form id="pageListForm" class="layui-form">
+        <table class="layui-table" lay-even="" lay-skin="row">
+            <thead>
+            <tr>
+                <th>备份名称</th>
+                <th width="100">分卷数</th>
+                <th width="100">压缩方式</th>
+                <th width="100">文件大小</th>
+                <th width="160">备份时间</th>
+                <th width="150">操作</th>
+            </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </form>
+</div>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/app.js"></script>
+<script type="text/javascript">
+    function loadData() {
+        API.get('/admin/database/backups').then(function(r) {
+            if (r.code === 1 && r.data) {
+                renderTable(r.data.list || r.data || []);
+            } else {
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">暂无备份数据</td></tr>';
+            }
+        }).catch(function() {
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">加载失败</td></tr>';
+        });
+    }
+
+    function renderTable(list) {
+        if (!list || list.length === 0) {
+            document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">暂无备份数据</td></tr>';
+            return;
+        }
+        var h = '';
+        list.forEach(function(vo) {
+            h += '<tr>';
+            h += '<td>' + htmlspecialchars(vo.name || vo.time || '') + '</td>';
+            h += '<td>' + (vo.part || 1) + '</td>';
+            h += '<td>' + (vo.compress || '-') + '</td>';
+            h += '<td>' + (vo.size ? (vo.size / 1024).toFixed(2) + ' KB' : '-') + '</td>';
+            h += '<td>' + (vo.time_str || mac_day(vo.time)) + '</td>';
+            h += '<td>';
+            h += '<a href="javascript:;" class="layui-btn layui-btn-xs layui-btn-normal" onclick="doRestore(\'' + htmlspecialchars(vo.id || vo.name || '') + '\')">恢复</a> ';
+            h += '<a href="javascript:;" class="layui-btn layui-btn-xs layui-btn-danger" onclick="doDelete(\'' + htmlspecialchars(vo.id || vo.name || '') + '\')">删除</a>';
+            h += '</td></tr>';
+        });
+        document.getElementById('tableBody').innerHTML = h;
+    }
+
+    function doRestore(id) {
+        layui.use('layer', function() {
+            layui.layer.confirm('确定要恢复此备份吗？此操作将覆盖当前数据库！', {icon: 3, title: '警告'}, function(i) {
+                layui.layer.close(i);
+                layui.layer.msg('正在恢复数据库，请勿关闭页面...', {time: 120000});
+                API.post('/admin/database/restore', { id: id }).then(function(r) {
+                    layui.layer.closeAll();
+                    layui.layer.msg(r.msg || (r.code === 1 ? '恢复成功' : '恢复失败'), {time: 3000});
+                }).catch(function() {
+                    layui.layer.closeAll();
+                    layui.layer.msg('恢复失败', {time: 2000});
+                });
+            });
+        });
+    }
+
+    function doDelete(id) {
+        layui.use('layer', function() {
+            layui.layer.confirm('确定要删除此备份吗？', function(i) {
+                layui.layer.close(i);
+                API.post('/admin/database/backup-delete', { id: id }).then(function(r) {
+                    layui.layer.msg(r.msg || '操作完成', {time: 1500});
+                    if (r.code === 1) loadData();
+                });
+            });
+        });
+    }
+
+    loadData();
+</script>
+</body>
+</html>

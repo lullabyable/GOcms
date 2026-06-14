@@ -261,10 +261,35 @@
                     </div>
 
                     <div class="layui-form-item">
+                        <label class="layui-form-label">截图：</label>
+                        <div class="layui-input-inline w400">
+                            <div class="layui-btn-group">
+                                <button type="button" class="layui-btn screenshot"><i class="layui-icon layui-icon-upload"></i> 上传图片</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <textarea id="vod_pic_screenshot" name="vod_pic_screenshot" placeholder="截图地址，每行一个" type="text/plain" style="width:100%;height:150px;"></textarea>
+                            <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+                                <legend>截图预览</legend>
+                            </fieldset>
+                            <div class="screenshot_list"></div>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
                         <label class="layui-form-label">简介：</label>
                         <div class="layui-input-block">
                             <textarea name="vod_blurb" cols="" rows="3" class="layui-textarea" placeholder="不填则自动截取内容前200字" style="height:40px;"></textarea>
                         </div>
+                    </div>
+
+                    <!-- 剧情管理 -->
+                    <div id="plot_list" class="contents"></div>
+                    <div class="layui-form-item">
+                        <label class=""><button class="layui-btn radius j-plot-add" type="button">+ 添加剧情</button></label>
+                        <div class="layui-input-block"></div>
                     </div>
 
                     <!-- 播放源配置 -->
@@ -418,6 +443,8 @@
         <div class="layui-form-item center">
             <div class="layui-input-block">
                 <button type="submit" class="layui-btn" lay-submit="" lay-filter="formSubmit">保存</button>
+                <button type="button" class="layui-btn layui-btn-normal" id="btn_ai_seo_generate">AI SEO 生成</button>
+                <span id="seo_ai_status_badge" class="layui-badge layui-bg-gray">未优化</span>
                 <button class="layui-btn layui-btn-warm" type="reset">重置</button>
                 <button type="button" class="layui-btn layui-btn-normal" onclick="history.back()">返回</button>
             </div>
@@ -431,6 +458,7 @@
     var vodId = getQueryParam('id');
     var playersArrLen = 0;
     var downersArrLen = 0;
+    var plotArrLen = 0;
     var playerSelectHtml = '';
     var downerSelectHtml = '';
     var serverSelectHtml = '';
@@ -499,7 +527,7 @@
             '<div class="layui-input-inline w150"><select name="vod_play_from[]">' + playerSelectHtml + '</select></div>' +
             '<div class="layui-input-inline w150"><select name="vod_play_server[]">' + serverSelectHtml + '</select></div>' +
             '<div class="layui-input-inline w150"><input type="text" name="vod_play_note[]" class="layui-input" value="' + (data ? data.note : '') + '" placeholder="备注"></div>' +
-            '<div class="layui-input-inline w400 p10"><a href="javascript:void(0)" class="j-editor-clear">清空</a>&nbsp;<a href="javascript:void(0)" class="j-editor-remove">删除</a>&nbsp;<a href="javascript:void(0)" class="j-editor-up">上移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-down">下移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-xz">整理</a>&nbsp;<a href="javascript:void(0)" class="j-editor-order">倒序</a>&nbsp;<a href="javascript:void(0)" class="j-editor-dn">去前缀</a></div>' +
+            '<div class="layui-input-inline w400 p10"><a href="javascript:void(0)" class="j-editor-clear">清空</a>&nbsp;<a href="javascript:void(0)" class="j-editor-remove">删除</a>&nbsp;<a href="javascript:void(0)" class="j-editor-up">上移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-down">下移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-xz">整理</a>&nbsp;<a href="javascript:void(0)" class="j-editor-order">倒序</a>&nbsp;<a href="javascript:void(0)" class="j-editor-dn">去前缀</a>&nbsp;<a href="javascript:void(0)" class="j-editor-upload">上传</a></div>' +
             '<div class="p10 m20"></div>' +
             '<div class="layui-input-block"><textarea id="vod_play_url' + i + '" name="vod_play_url[]" style="width:100%;height:150px">' + (data ? data.url.replace(/\$/g, '\n') : '') + '</textarea></div>';
         document.getElementById('player_list').appendChild(div);
@@ -526,7 +554,7 @@
             '<div class="layui-input-inline w150"><select name="vod_down_from[]">' + downerSelectHtml + '</select></div>' +
             '<div class="layui-input-inline w150"><select name="vod_down_server[]">' + serverSelectHtml + '</select></div>' +
             '<div class="layui-input-inline w150"><input type="text" name="vod_down_note[]" class="layui-input" value="' + (data ? data.note : '') + '" placeholder="备注"></div>' +
-            '<div class="layui-input-inline w400 p10"><a href="javascript:void(0)" class="j-editor-clear">清空</a>&nbsp;<a href="javascript:void(0)" class="j-editor-remove">删除</a>&nbsp;<a href="javascript:void(0)" class="j-editor-up">上移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-down">下移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-xz">整理</a>&nbsp;<a href="javascript:void(0)" class="j-editor-order">倒序</a>&nbsp;<a href="javascript:void(0)" class="j-editor-dn">去前缀</a></div>' +
+            '<div class="layui-input-inline w400 p10"><a href="javascript:void(0)" class="j-editor-clear">清空</a>&nbsp;<a href="javascript:void(0)" class="j-editor-remove">删除</a>&nbsp;<a href="javascript:void(0)" class="j-editor-up">上移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-down">下移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-xz">整理</a>&nbsp;<a href="javascript:void(0)" class="j-editor-order">倒序</a>&nbsp;<a href="javascript:void(0)" class="j-editor-dn">去前缀</a>&nbsp;<a href="javascript:void(0)" class="j-editor-upload">上传</a></div>' +
             '<div class="p10"></div>' +
             '<div class="layui-input-block"><textarea id="vod_down_url' + i + '" name="vod_down_url[]" style="width:100%;height:150px">' + (data ? data.url.replace(/\$/g, '\n') : '') + '</textarea></div>';
         document.getElementById('downer_list').appendChild(div);
@@ -628,6 +656,15 @@
                 if (info.vod_content) {
                     document.getElementById('vod_content').value = info.vod_content;
                 }
+                // 填充剧情
+                if (info.vod_plot_list) {
+                    info.vod_plot_list.forEach(function(p) { addPlotGroup(p); });
+                }
+                // 填充截图
+                if (info.vod_pic_screenshot) {
+                    document.getElementById('vod_pic_screenshot').value = info.vod_pic_screenshot;
+                    updateScreenshotPreview();
+                }
 
                 layui.use('form', function() { layui.form.render(); });
             }
@@ -649,6 +686,22 @@
     // 添加播放/下载组
     document.querySelector('.j-player-add').addEventListener('click', function() { addPlayerGroup(); });
     document.querySelector('.j-downer-add').addEventListener('click', function() { addDownerGroup(); });
+
+    // 添加剧情组
+    function addPlotGroup(data) {
+        plotArrLen++;
+        var i = plotArrLen;
+        var div = document.createElement('div');
+        div.className = 'layui-form-item';
+        div.setAttribute('data-i', i);
+        div.innerHTML = '<label class="layui-form-label">剧情' + i + '：</label>' +
+            '<div class="layui-input-inline w500"><input type="text" name="vod_plot_name[]" class="layui-input" placeholder="剧情名称" value="' + (data ? (data.name || '') : '') + '"></div>' +
+            '<div class="layui-input-inline w400 p10"><a href="javascript:void(0)" class="j-editor-clear">清空</a>&nbsp;<a href="javascript:void(0)" class="j-editor-remove">删除</a>&nbsp;<a href="javascript:void(0)" class="j-editor-up">上移</a>&nbsp;<a href="javascript:void(0)" class="j-editor-down">下移</a>&nbsp;</div>' +
+            '<div class="p10 m20"></div>' +
+            '<div class="layui-input-block"><textarea id="vod_plot_detail' + i + '" name="vod_plot_detail[]" style="width:100%;height:150px">' + (data ? (data.detail || '') : '') + '</textarea></div>';
+        document.getElementById('plot_list').appendChild(div);
+    }
+    document.querySelector('.j-plot-add').addEventListener('click', function() { addPlotGroup(); });
 
     // 随机生成
     document.getElementById('btn_rnd').addEventListener('click', function() {
@@ -719,6 +772,101 @@
                     }
                 });
             }
+        });
+    });
+
+    // 截图预览
+    function updateScreenshotPreview() {
+        var ta = document.getElementById('vod_pic_screenshot');
+        if (!ta) return;
+        var html = '';
+        var lines = ta.value.split(/[\r\n]+/);
+        lines.forEach(function(line) {
+            line = line.trim();
+            if (!line) return;
+            if (line.indexOf('$') > -1) {
+                line = line.substring(line.indexOf('$') + 1);
+            }
+            html += '<div data-src="' + line + '"><a href="javascript:;" class="del_screenshot">删除</a><img src="' + line + '" alt="" class="layui-upload-img screenshot-img" style="max-height:100px;margin:5px;"></div>';
+        });
+        document.querySelector('.screenshot_list').innerHTML = html;
+    }
+    document.getElementById('vod_pic_screenshot').addEventListener('keyup', updateScreenshotPreview);
+
+    // 截图删除
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('del_screenshot')) {
+            var src = e.target.parentElement.getAttribute('data-src');
+            e.target.parentElement.remove();
+            var ta = document.getElementById('vod_pic_screenshot');
+            var lines = ta.value.split(/[\r\n]+/);
+            var newLines = lines.filter(function(l) { return l.trim() && l.trim() !== src; });
+            ta.value = newLines.join('\r\n');
+        }
+    });
+
+    // 截图多图上传
+    layui.use('upload', function() {
+        layui.upload.render({
+            elem: '.screenshot',
+            url: '/admin/upload/image',
+            multiple: true,
+            done: function(res) {
+                if (res.code === 1 && res.data) {
+                    var ta = document.getElementById('vod_pic_screenshot');
+                    var val = res.data.file || res.data.url || '';
+                    if (ta.value) ta.value += '\r\n';
+                    ta.value += val;
+                    updateScreenshotPreview();
+                } else {
+                    layui.layer.msg(res.msg || '上传失败');
+                }
+            }
+        });
+
+        // 播放器/下载器文件上传
+        layui.upload.render({
+            elem: '.j-editor-upload',
+            url: '/admin/upload/file',
+            method: 'post',
+            exts: 'mp4|mp3|mkv|torrent|zip|txt|rar',
+            before: function() { layui.layer.msg("上传中...", {time: 3000000}); },
+            done: function(res) {
+                layui.layer.closeAll();
+                if (res.code === 1 && res.data) {
+                    var txt = this.item.closest('.layui-form-item').querySelector('textarea');
+                    if (txt) {
+                        var val = res.data.file || res.data.url || '';
+                        if (txt.value) txt.value += "\r\n";
+                        txt.value += val;
+                    }
+                } else {
+                    layui.layer.msg(res.msg || '上传失败');
+                }
+            }
+        });
+    });
+
+    // AI SEO 生成
+    document.getElementById('btn_ai_seo_generate').addEventListener('click', function() {
+        if (!vodId) { layui.layer.msg('请先保存视频'); return; }
+        layui.layer.msg('生成中...', {time: 500000});
+        API.post('/admin/ai/generate', { type: 'vod', id: vodId, fields: ['vod_name','vod_blurb','vod_content','vod_tag'] }).then(function(r) {
+            layui.layer.closeAll();
+            if (r.code === 1 && r.data) {
+                if (r.data.vod_name) document.getElementById('vod_name').value = r.data.vod_name;
+                if (r.data.vod_blurb) document.querySelector('textarea[name="vod_blurb"]').value = r.data.vod_blurb;
+                if (r.data.vod_tag) document.getElementById('vod_tag').value = r.data.vod_tag;
+                if (r.data.vod_content) document.getElementById('vod_content').value = r.data.vod_content;
+                document.getElementById('seo_ai_status_badge').textContent = '已优化';
+                document.getElementById('seo_ai_status_badge').className = 'layui-badge layui-bg-green';
+                layui.layer.msg('AI SEO 生成完成');
+            } else {
+                layui.layer.msg(r.msg || '生成失败');
+            }
+        }).catch(function() {
+            layui.layer.closeAll();
+            layui.layer.msg('请求失败');
         });
     });
 </script>

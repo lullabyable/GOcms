@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>广告管理</title>
+    <link rel="stylesheet" href="../../layui/css/layui.css">
+    <link rel="stylesheet" href="../../css/admin_style.css">
+    <style>
+        .ad-code { font-size: 12px; color: #666; font-family: Consolas, monospace; }
+        .editor-wrap { display:none; margin-top: 10px; }
+        .editor-wrap textarea { width: 100%; height: 400px; font-family: Consolas, monospace; font-size: 13px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+<div class="page-container p10">
+    <div class="my-toolbar-box">
+        <div class="layui-btn-group">
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="addAd()"><i class="layui-icon">&#xe654;</i>添加广告</a>
+        </div>
+    </div>
+
+    <table class="layui-table" lay-size="sm">
+        <thead><tr>
+            <th>广告位名称</th>
+            <th width="150">描述</th>
+            <th width="150">大小</th>
+            <th width="150">修改时间</th>
+            <th width="250">调用代码</th>
+            <th width="150">操作</th>
+        </tr></thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <!-- 编辑器弹层 -->
+    <div class="editor-wrap" id="editorWrap">
+        <div style="margin-bottom:10px;">
+            <strong id="editFileName"></strong>
+            <a href="javascript:;" class="layui-btn layui-btn-sm layui-btn-normal" style="float:right;" onclick="saveFile()">保存</a>
+            <a href="javascript:;" class="layui-btn layui-btn-sm layui-btn-primary" style="float:right;margin-right:10px;" onclick="closeEditor()">关闭</a>
+        </div>
+        <textarea id="editorContent" style="width:100%;height:400px;font-family:Consolas,monospace;font-size:13px;line-height:1.5;"></textarea>
+    </div>
+</div>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/app.js"></script>
+<script type="text/javascript">
+    var editingPath = '';
+
+    function loadData() {
+        API.get('/admin/template/list').then(function(r) {
+            if (r.code === 1 && r.data) {
+                var files = (r.data.files || []).filter(function(f) {
+                    return !f.is_dir && (f.name.indexOf('ad') !== -1 || f.name.indexOf('ads') !== -1 || f.name.indexOf('guanggao') !== -1);
+                });
+                // 如果没有过滤到广告文件，显示所有非目录文件
+                if (files.length === 0) {
+                    files = (r.data.files || []).filter(function(f) { return !f.is_dir; });
+                }
+                renderTable(files);
+            }
+        });
+    }
+
+    function renderTable(list) {
+        var h = '';
+        list.forEach(function(vo) {
+            h += '<tr>';
+            h += '<td>' + htmlspecialchars(vo.name || '') + '</td>';
+            h += '<td>' + htmlspecialchars(vo.note || vo.name || '') + '</td>';
+            h += '<td>' + (vo.size_str || '-') + '</td>';
+            h += '<td>' + mac_day(vo.mod_time) + '</td>';
+            h += '<td><input type="text" class="layui-input ad-code" value="&lt;script src=&quot;/static/ads/' + htmlspecialchars(vo.name) + '&quot;&gt;&lt;/script&gt;" readonly onclick="this.select()"></td>';
+            h += '<td>';
+            h += '<a href="javascript:;" class="layui-btn layui-btn-xs layui-btn-primary" onclick="openFile(\'' + (vo.path || vo.name) + '\')">编辑</a> ';
+            h += '<a href="javascript:;" class="layui-btn layui-btn-xs layui-btn-danger" onclick="delFile(\'' + (vo.path || vo.name) + '\')">删除</a>';
+            h += '</td></tr>';
+        });
+        document.getElementById('tableBody').innerHTML = h;
+    }
+
+    function openFile(path) {
+        editingPath = path;
+        API.get('/admin/template/read?path=' + encodeURIComponent(path)).then(function(r) {
+            if (r.code === 1 && r.data) {
+                document.getElementById('editFileName').textContent = path;
+                document.getElementById('editorContent').value = r.data.content || '';
+                document.getElementById('editorWrap').style.display = 'block';
+                window.scrollTo(0, document.getElementById('editorWrap').offsetTop);
+            } else {
+                layui.use('layer', function() { layui.layer.msg(r.msg || '读取失败', {time: 2000}); });
+            }
+        });
+    }
+
+    function saveFile() {
+        if (!editingPath) return;
+        var content = document.getElementById('editorContent').value;
+        var fd = new FormData();
+        fd.append('path', editingPath);
+        fd.append('content', content);
+        layui.use('layer', function() {
+            layui.layer.msg('正在保存...', {time: 30000});
+            API.form('/admin/template/save', fd).then(function(r) {
+                layui.layer.closeAll();
+                layui.layer.msg(r.msg || (r.code === 1 ? '保存成功' : '保存失败'), {time: 2000});
+            }).catch(function() {
+                layui.layer.closeAll();
+                layui.layer.msg('保存失败', {time: 2000});
+            });
+        });
+    }
+
+    function closeEditor() {
+        document.getElementById('editorWrap').style.display = 'none';
+        editingPath = '';
+    }
+
+    function addAd() {
+        layui.use('layer', function() {
+            layui.layer.prompt({title: '输入广告位名称（如 ad_banner.html）', formType: 0}, function(val, index) {
+                layui.layer.close(index);
+                if (!val) return;
+                editingPath = val;
+                document.getElementById('editFileName').textContent = val;
+                document.getElementById('editorContent').value = '<div class="ad-container">\n    <!-- 在此粘贴广告代码 -->\n</div>';
+                document.getElementById('editorWrap').style.display = 'block';
+            });
+        });
+    }
+
+    function delFile(path) {
+        layui.use('layer', function() {
+            layui.layer.confirm('确定要删除此广告文件吗？', function(i) {
+                API.post('/admin/template/delete', { path: path }).then(function(r) {
+                    layui.layer.msg(r.msg || '操作完成', {time: 1500});
+                    if (r.code === 1) loadData();
+                });
+                layui.layer.close(i);
+            });
+        });
+    }
+
+    loadData();
+</script>
+</body>
+</html>

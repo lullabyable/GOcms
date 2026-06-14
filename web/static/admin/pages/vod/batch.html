@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>视频批量操作</title>
+    <link rel="stylesheet" href="../../layui/css/layui.css">
+    <link rel="stylesheet" href="../../css/admin_style.css">
+</head>
+<body>
+<div class="page-container p10">
+    <form class="layui-form" id="batchForm">
+        <div class="my-toolbar-box">
+            <div class="center mb10">
+                <div class="layui-input-inline w150">
+                    <select name="type" id="searchType">
+                        <option value="">选择分类</option>
+                    </select>
+                </div>
+                <div class="layui-input-inline w150">
+                    <select name="status">
+                        <option value="">选择状态</option>
+                        <option value="0">未审核</option>
+                        <option value="1">已审核</option>
+                    </select>
+                </div>
+                <div class="layui-input-inline w150">
+                    <select name="level">
+                        <option value="">选择推荐</option>
+                        <option value="9">推荐9-幻灯</option>
+                        <option value="1">推荐1</option>
+                        <option value="2">推荐2</option>
+                        <option value="3">推荐3</option>
+                        <option value="4">推荐4</option>
+                        <option value="5">推荐5</option>
+                        <option value="6">推荐6</option>
+                        <option value="7">推荐7</option>
+                        <option value="8">推荐8</option>
+                    </select>
+                </div>
+                <div class="layui-input-inline w150">
+                    <select name="lock">
+                        <option value="">选择锁定</option>
+                        <option value="0">正常</option>
+                        <option value="1">锁定</option>
+                    </select>
+                </div>
+                <div class="layui-input-inline">
+                    <input type="text" autocomplete="off" placeholder="关键词" class="layui-input" name="wd">
+                </div>
+                <button type="button" class="layui-btn mgl-20" onclick="loadPreview()">筛选预览</button>
+            </div>
+        </div>
+
+        <fieldset class="layui-elem-field">
+            <legend>批量删除</legend>
+            <div class="layui-field-box">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label"><input type="radio" lay-ignore value="recycle" name="del_mode">移至回收站</label>
+                        <label class="layui-form-label"><input type="radio" lay-ignore value="purge" name="del_mode">彻底删除</label>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <button type="button" class="layui-btn layui-btn-danger" onclick="batchAction('delete')">批量删除</button>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="layui-elem-field">
+            <legend>批量设置</legend>
+            <div class="layui-field-box">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">
+                            <input lay-skin="primary" type="checkbox" value="1" name="ck_level" title="推荐" />
+                        </div>
+                        <div class="layui-input-inline" style="width: 100px;">
+                            <select name="val_level">
+                                <option value="">选择推荐</option>
+                                <option value="9">推荐9-幻灯</option>
+                                <option value="1">推荐1</option>
+                                <option value="2">推荐2</option>
+                                <option value="3">推荐3</option>
+                                <option value="4">推荐4</option>
+                                <option value="5">推荐5</option>
+                                <option value="6">推荐6</option>
+                                <option value="7">推荐7</option>
+                                <option value="8">推荐8</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">
+                            <input type="checkbox" lay-skin="primary" value="1" name="ck_lock" title="锁定" />
+                        </div>
+                        <div class="layui-input-inline" style="width: 100px;">
+                            <select name="val_lock">
+                                <option value="">选择操作</option>
+                                <option value="0">正常</option>
+                                <option value="1">锁定</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">
+                            <input type="checkbox" lay-skin="primary" value="1" name="ck_status" title="审核" />
+                        </div>
+                        <div class="layui-input-inline" style="width: 100px;">
+                            <select name="val_status">
+                                <option value="">选择状态</option>
+                                <option value="0">未审核</option>
+                                <option value="1">已审核</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <div class="layui-form-label">
+                            <input type="checkbox" lay-skin="primary" value="1" name="ck_type" title="分类" />
+                        </div>
+                        <div class="layui-input-inline" style="width: 150px;">
+                            <select name="val_type" id="batchType">
+                                <option value="">选择分类</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">每批数量</label>
+                        <div class="layui-input-inline" style="width: 100px;">
+                            <input type="text" name="limit" value="100" class="layui-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <button type="button" class="layui-btn" onclick="batchAction('update')">执行批量设置</button>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+
+    <div id="previewBox" style="display:none; margin-top: 15px;">
+        <fieldset class="layui-elem-field">
+            <legend>筛选预览 (<span id="previewCount">0</span> 条)</legend>
+            <div class="layui-field-box">
+                <table class="layui-table" lay-size="sm">
+                    <thead><tr><th width="50">ID</th><th>名称</th><th width="80">分类</th><th width="60">状态</th></tr></thead>
+                    <tbody id="previewBody"></tbody>
+                </table>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/app.js"></script>
+<script type="text/javascript">
+    // 加载分类
+    function loadTypes() {
+        API.get('/admin/type/list?mid=1').then(function(r) {
+            if (r.code === 1 && r.data) {
+                var selects = ['searchType', 'batchType'];
+                selects.forEach(function(sid) {
+                    var sel = document.getElementById(sid);
+                    r.data.forEach(function(vo) {
+                        var opt = document.createElement('option');
+                        opt.value = vo.type_id;
+                        opt.textContent = vo.type_name;
+                        sel.appendChild(opt);
+                        if (vo.child) {
+                            vo.child.forEach(function(ch) {
+                                var opt2 = document.createElement('option');
+                                opt2.value = ch.type_id;
+                                opt2.textContent = '    ├ ' + ch.type_name;
+                                sel.appendChild(opt2);
+                            });
+                        }
+                    });
+                });
+                layui.use('form', function() { layui.form.render('select'); });
+            }
+        });
+    }
+
+    // 加载预览
+    function loadPreview() {
+        var fd = {};
+        new FormData(document.getElementById('batchForm')).forEach(function(v, k) {
+            if (v && ['type','status','level','lock','wd'].indexOf(k) !== -1) fd[k] = v;
+        });
+        fd.page = 1;
+        fd.limit = 50;
+        var qs = Object.keys(fd).map(function(k) { return k + '=' + encodeURIComponent(fd[k]); }).join('&');
+        API.get('/admin/vod/list?' + qs).then(function(r) {
+            if (r.code === 1 && r.data) {
+                var list = r.data.list || [];
+                document.getElementById('previewCount').textContent = r.data.total || 0;
+                var h = '';
+                list.forEach(function(vo) {
+                    h += '<tr><td>' + vo.vod_id + '</td><td>' + htmlspecialchars(vo.vod_name || '') + '</td>';
+                    h += '<td>' + (vo.type ? vo.type.type_name : '') + '</td>';
+                    h += '<td>' + (vo.vod_status == 1 ? '<span class="layui-badge layui-bg-green">已审</span>' : '<span class="layui-badge">未审</span>') + '</td></tr>';
+                });
+                document.getElementById('previewBody').innerHTML = h;
+                document.getElementById('previewBox').style.display = '';
+            }
+        });
+    }
+
+    // 批量操作
+    function batchAction(action) {
+        var form = document.getElementById('batchForm');
+        var fd = {};
+        new FormData(form).forEach(function(v, k) { fd[k] = v; });
+
+        var postData = { action: action };
+
+        if (action === 'delete') {
+            if (!fd.del_mode) {
+                layui.use('layer', function() { layui.layer.msg('请选择删除方式'); });
+                return;
+            }
+            postData.del_mode = fd.del_mode;
+        } else {
+            // update
+            var fields = {};
+            if (fd.ck_level && fd.val_level) fields.vod_level = fd.val_level;
+            if (fd.ck_lock && fd.val_lock !== '') fields.vod_lock = fd.val_lock;
+            if (fd.ck_status && fd.val_status !== '') fields.vod_status = fd.val_status;
+            if (fd.ck_type && fd.val_type) fields.type_id = fd.val_type;
+            if (Object.keys(fields).length === 0) {
+                layui.use('layer', function() { layui.layer.msg('请至少选择一项要设置的内容'); });
+                return;
+            }
+            postData.fields = fields;
+        }
+
+        // 筛选条件
+        var filters = {};
+        ['type','status','level','lock','wd'].forEach(function(k) {
+            if (fd[k]) filters[k] = fd[k];
+        });
+        postData.filters = filters;
+        postData.limit = parseInt(fd.limit) || 100;
+
+        layui.use('layer', function() {
+            layui.layer.confirm('确定执行批量操作？此操作不可撤销！', function(i) {
+                layui.layer.close(i);
+                layui.layer.msg('正在执行...', {time: 60000});
+                API.post('/admin/vod/batch', postData).then(function(r) {
+                    layui.layer.closeAll();
+                    layui.layer.msg(r.msg || '操作完成', {time: 2000});
+                    if (r.code === 1) loadPreview();
+                }).catch(function() {
+                    layui.layer.closeAll();
+                    layui.layer.msg('操作失败', {time: 2000});
+                });
+            });
+        });
+    }
+
+    loadTypes();
+    layui.use('form', function() { layui.form.render(); });
+</script>
+</body>
+</html>

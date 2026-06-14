@@ -135,16 +135,20 @@
             { name: '视频列表', url: 'pages/vod/index.html' },
             { name: '视频管理', url: 'pages/vod/info.html' },
             { name: '视频分类', url: 'pages/type/index.html' },
-            { name: '视频采集', url: 'pages/collect/index.html' }
+            { name: '视频采集', url: 'pages/collect/index.html' },
+            { name: '批量操作', url: 'pages/vod/batch.html' }
         ]},
         { name: '文章', icon: 'layui-icon-read', sub: [
             { name: '文章列表', url: 'pages/art/index.html' },
             { name: '文章管理', url: 'pages/art/info.html' },
-            { name: '文章分类', url: 'pages/type/index.html' }
+            { name: '文章分类', url: 'pages/type/index.html' },
+            { name: '批量操作', url: 'pages/art/batch.html' }
         ]},
         { name: '漫画', icon: 'layui-icon-picture', sub: [
             { name: '漫画列表', url: 'pages/manga/index.html' },
-            { name: '漫画管理', url: 'pages/manga/info.html' }
+            { name: '漫画管理', url: 'pages/manga/info.html' },
+            { name: '漫画分类', url: 'pages/type/index.html' },
+            { name: '批量操作', url: 'pages/manga/batch.html' }
         ]},
         { name: '演员', icon: 'layui-icon-user', sub: [
             { name: '演员列表', url: 'pages/actor/index.html' },
@@ -161,11 +165,13 @@
         { name: '用户', icon: 'layui-icon-group', sub: [
             { name: '用户列表', url: 'pages/user/index.html' },
             { name: '用户管理', url: 'pages/user/info.html' },
-            { name: '用户组', url: 'pages/group/index.html' }
+            { name: '用户组', url: 'pages/group/index.html' },
+            { name: '签到管理', url: 'pages/user/reward.html' }
         ]},
         { name: '管理员', icon: 'layui-icon-username', sub: [
             { name: '管理员列表', url: 'pages/admin/index.html' },
-            { name: '管理员管理', url: 'pages/admin/info.html' }
+            { name: '管理员管理', url: 'pages/admin/info.html' },
+            { name: '审计日志', url: 'pages/plog/index.html' }
         ]},
         { name: '互动', icon: 'layui-icon-survey', sub: [
             { name: '留言管理', url: 'pages/gbook/index.html' },
@@ -174,6 +180,8 @@
         { name: '采集', icon: 'layui-icon-upload-drag', sub: [
             { name: '资源站采集', url: 'pages/collect/index.html' },
             { name: '自定义采集', url: 'pages/cj/index.html' },
+            { name: '采集视频', url: 'pages/collect/vod.html' },
+            { name: '定时采集', url: 'pages/collect/timing.html' },
             { name: '弹幕管理', url: 'pages/comment/index.html' }
         ]},
         { name: '推广', icon: 'layui-icon-snowflake', sub: [
@@ -182,11 +190,13 @@
         ]},
         { name: '数据', icon: 'layui-icon-template-1', sub: [
             { name: '数据库管理', url: 'pages/database/export.html' },
+            { name: '数据库导入', url: 'pages/database/import.html' },
             { name: '数据替换', url: 'pages/database/rep.html' },
             { name: 'SQL执行', url: 'pages/database/sql.html' }
         ]},
         { name: '模板', icon: 'layui-icon-code-circle', sub: [
-            { name: '模板管理', url: 'pages/template/index.html' }
+            { name: '模板管理', url: 'pages/template/index.html' },
+            { name: '广告管理', url: 'pages/template/ads.html' }
         ]},
         { name: '运营', icon: 'layui-icon-chart', sub: [
             { name: '访问统计', url: 'pages/visit/index.html' },
@@ -204,6 +214,8 @@
             { name: '系统设置', url: 'pages/system/config.html' },
             { name: '安全配置', url: 'pages/safety/index.html' },
             { name: '友情链接', url: 'pages/link/index.html' },
+            { name: '域名管理', url: 'pages/link/index.html' },
+            { name: '缓存管理', url: 'pages/system/config.html' },
             { name: '附件管理', url: 'pages/annex/index.html' }
         ]}
     ];

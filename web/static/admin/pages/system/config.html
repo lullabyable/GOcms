@@ -18,6 +18,12 @@
                 <li lay-id="config_2">性能优化</li>
                 <li lay-id="config_3">参数设置</li>
                 <li lay-id="config_4">后台设置</li>
+                <li lay-id="config_5">播放器设置</li>
+                <li lay-id="config_6">邮箱设置</li>
+                <li lay-id="config_7">上传设置</li>
+                <li lay-id="config_8">SEO设置</li>
+                <li lay-id="config_9">API设置</li>
+                <li lay-id="config_10">会员设置</li>
             </ul>
             <div class="layui-tab-content">
                 <!-- 基本设置 -->
@@ -278,6 +284,173 @@
                                 <option value="zh-cn">zh-cn</option>
                                 <option value="en">en</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 播放器设置 -->
+                <div class="layui-tab-item">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">播放器排序：</label>
+                        <div class="layui-input-inline">
+                            <input type="radio" name="play[player_sort]" value="0" title="添加" checked>
+                            <input type="radio" name="play[player_sort]" value="1" title="全局">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">播放加密：</label>
+                        <div class="layui-input-inline">
+                            <select style="width:150px;" name="play[encrypt]">
+                                <option value="0">不加密</option>
+                                <option value="1">escape</option>
+                                <option value="2">base64</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">来源标识：</label>
+                        <div class="layui-input-block"><input type="text" name="play[player_from]" placeholder="" value="" class="layui-input"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">播放器列表：</label>
+                        <div class="layui-input-block"><textarea name="play[player_list]" class="layui-textarea" placeholder="每行一个，格式：from@show"></textarea></div>
+                    </div>
+                </div>
+
+                <!-- 邮箱设置 -->
+                <div class="layui-tab-item">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">SMTP主机：</label>
+                        <div class="layui-input-block"><input type="text" name="email[email_host]" placeholder="smtp.exmail.qq.com" value="" class="layui-input"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">SMTP端口：</label>
+                        <div class="layui-input-inline"><input type="text" name="email[email_port]" placeholder="465" value="" class="layui-input w150"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">SMTP用户名：</label>
+                        <div class="layui-input-block"><input type="text" name="email[email_username]" placeholder="" value="" class="layui-input"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">SMTP密码：</label>
+                        <div class="layui-input-block"><input type="password" name="email[email_password]" placeholder="" value="" class="layui-input"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">发件人邮箱：</label>
+                        <div class="layui-input-block"><input type="text" name="email[email_from]" placeholder="" value="" class="layui-input"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">加密方式：</label>
+                        <div class="layui-input-inline">
+                            <select style="width:150px;" name="email[email_secure]">
+                                <option value="">无</option>
+                                <option value="ssl">SSL</option>
+                                <option value="tls">TLS</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 上传设置 -->
+                <div class="layui-tab-item">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">上传目录：</label>
+                        <div class="layui-input-block"><input type="text" name="upload[upload_dir]" placeholder="upload" value="" class="layui-input"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">最大上传：</label>
+                        <div class="layui-input-inline"><input type="text" name="upload[upload_max_size]" placeholder="10" value="" class="layui-input w150"></div>
+                        <div class="layui-form-mid layui-word-aux">单位：MB</div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">允许扩展名：</label>
+                        <div class="layui-input-block"><input type="text" name="upload[upload_allow_ext]" placeholder="jpg,png,gif,mp4,mp3" value="" class="layui-input"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">图床Key：</label>
+                        <div class="layui-input-block"><input type="text" name="upload[img_key]" placeholder="" value="" class="layui-input"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">图床API：</label>
+                        <div class="layui-input-block"><input type="text" name="upload[img_api]" placeholder="" value="" class="layui-input"></div>
+                    </div>
+                </div>
+
+                <!-- SEO设置 -->
+                <div class="layui-tab-item">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">首页SEO标题：</label>
+                        <div class="layui-input-block"><input type="text" name="seo[seo_title]" placeholder="" value="" class="layui-input"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">首页关键词：</label>
+                        <div class="layui-input-block"><input type="text" name="seo[seo_keywords]" placeholder="" value="" class="layui-input"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">首页描述：</label>
+                        <div class="layui-input-block"><textarea name="seo[seo_description]" class="layui-textarea"></textarea></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">视频页标题模板：</label>
+                        <div class="layui-input-block"><input type="text" name="seo[vod_title]" placeholder="例：{vod_name} - {site_name}" value="" class="layui-input"></div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">文章页标题模板：</label>
+                        <div class="layui-input-block"><input type="text" name="seo[art_title]" placeholder="例：{art_name} - {site_name}" value="" class="layui-input"></div>
+                    </div>
+                </div>
+
+                <!-- API设置 -->
+                <div class="layui-tab-item">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">API开关：</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="api[api_open]" value="0" title="关闭">
+                            <input type="radio" name="api[api_open]" value="1" title="开启" checked>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">状态：</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="api[api_status]" value="0" title="关闭">
+                            <input type="radio" name="api[api_status]" value="1" title="开启" checked>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">缓存时间：</label>
+                        <div class="layui-input-inline"><input type="text" name="api[api_cache]" placeholder="600" value="" class="layui-input w150"></div>
+                        <div class="layui-form-mid layui-word-aux">单位：秒</div>
+                    </div>
+                </div>
+
+                <!-- 会员设置 -->
+                <div class="layui-tab-item">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">会员开关：</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="user[user_status]" value="0" title="关闭">
+                            <input type="radio" name="user[user_status]" value="1" title="开启" checked>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">注册开关：</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="user[user_reg]" value="0" title="关闭">
+                            <input type="radio" name="user[user_reg]" value="1" title="开启" checked>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">邮箱验证：</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="user[user_email_check]" value="0" title="关闭">
+                            <input type="radio" name="user[user_email_check]" value="1" title="开启" checked>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">注册验证码：</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="user[user_yzm]" value="0" title="关闭">
+                            <input type="radio" name="user[user_yzm]" value="1" title="开启" checked>
                         </div>
                     </div>
                 </div>
