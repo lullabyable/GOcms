@@ -262,3 +262,44 @@ func (h *CollectHandler) SourceSave(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"code": 1, "msg": "保存成功"})
 }
+
+// VodList 采集视频列表（已入库的视频，支持按关键词筛选）
+func (h *CollectHandler) VodList(c *fiber.Ctx) error {
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "20"))
+	if limit < 1 {
+		limit = 20
+	}
+	keyword := c.Query("wd")
+
+	type vodRow struct {
+		VodID        int    `json:"vod_id"`
+		VodName      string `json:"vod_name"`
+		TypeName     string `json:"type_name"`
+		VodPlayFrom  string `json:"vod_play_from"`
+		VodTime      string `json:"vod_time"`
+		VodRemarks   string `json:"vod_remarks"`
+		VodPic       string `json:"vod_pic"`
+		VodArea      string `json:"vod_area"`
+		VodYear      string `json:"vod_year"`
+	}
+
+	query := h.db.Table("mac_vod").
+		Select("mac_vod.vod_id, mac_vod.vod_name, mac_type.type_name, mac_vod.vod_play_from, mac_vod.vod_time, mac_vod.vod_remarks, mac_vod.vod_pic, mac_vod.vod_area, mac_vod.vod_year").
+		Joins("LEFT JOIN mac_type ON mac_type.type_id = mac_vod.type_id")
+
+	if keyword != "" {
+		query = query.Where("mac_vod.vod_name LIKE ?", "%"+keyword+"%")
+	}
+
+	var total int64
+	query.Count(&total)
+
+	var list []vodRow
+	query.Order("mac_vod.vod_id DESC").Offset((page - 1) * limit).Limit(limit).Find(&list)
+
+	return c.JSON(fiber.Map{
+		"code": 1,
+		"data": fiber.Map{"list": list, "total": total, "page": page, "limit": limit},
+	})
+}

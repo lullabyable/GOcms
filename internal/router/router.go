@@ -438,6 +438,7 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	auth.Get("/collect/source/list", collectH.SourceList)
 	auth.Get("/collect/source/detail/:id", collectH.SourceDetail)
 	auth.Post("/collect/source/save", collectH.SourceSave)
+	auth.Get("/collect/vod/list", collectH.VodList)
 
 	// --- Phase 4 路由 ---
 	auth.Get("/danmaku/list", danmakuH.AdminList)
