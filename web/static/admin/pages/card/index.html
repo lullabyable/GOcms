@@ -42,7 +42,7 @@
         var fd={};new FormData(document.getElementById('searchForm')).forEach(function(v,k){if(v)fd[k]=v;});
         fd.page=currentPage;fd.limit=pageLimit;
         var qs=Object.keys(fd).map(function(k){return k+'='+encodeURIComponent(fd[k]);}).join('&');
-        API.get('/admin/card/list?'+qs).then(function(r){
+        API.get('/admin/order/cards?'+qs).then(function(r){
             if(r.code===1){renderTable(r.data.list||[]);renderPag(r.data.total||0);}
         });
     }

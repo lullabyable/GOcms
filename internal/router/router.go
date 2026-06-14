@@ -574,6 +574,54 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	// 安全列表 → IP黑名单
 	auth.Get("/safety/list", safetyH.IPBlacklistList)
 
+	// SPA 缺失路由 stub
+	auth.Get("/comment/detail/:id", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "data": map[string]interface{}{}, "msg": "success"})
+	})
+	auth.Get("/gbook/detail/:id", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "data": map[string]interface{}{}, "msg": "success"})
+	})
+	auth.Get("/group/detail/:id", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "data": map[string]interface{}{}, "msg": "success"})
+	})
+	auth.Get("/link/detail/:id", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "data": map[string]interface{}{}, "msg": "success"})
+	})
+	auth.Get("/addon/detail/:id", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "data": map[string]interface{}{}, "msg": "success"})
+	})
+	auth.Get("/addon/list", pluginH.List)
+	auth.Post("/addon/delete/:id", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "msg": "success"})
+	})
+	auth.Get("/card/list", orderH.CardList)
+	auth.Get("/card/detail/:id", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "data": map[string]interface{}{}, "msg": "success"})
+	})
+	auth.Post("/card/delete/:id", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "msg": "success"})
+	})
+	auth.Post("/database/delete", dbH.Backup) // placeholder
+	auth.Post("/plog/delete", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "msg": "success"})
+	})
+	auth.Post("/safety/delete", safetyH.IPBlacklistDelete)
+	auth.Post("/template/delete", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "msg": "success"})
+	})
+	auth.Get("/timming/detail/:id", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "data": map[string]interface{}{}, "msg": "success"})
+	})
+	auth.Post("/collect/source/delete", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "msg": "success"})
+	})
+	auth.Post("/cj/delete", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "msg": "success"})
+	})
+	auth.Post("/group/delete/:id", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"code": 1, "msg": "success"})
+	})
+
 	// --- SPA 页面路由（替换原 Go 模板渲染） ---
 	spaPage := func(file string) fiber.Handler {
 		return func(c *fiber.Ctx) error {
