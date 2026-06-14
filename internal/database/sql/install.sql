@@ -341,6 +341,28 @@ CREATE TABLE IF NOT EXISTS `mac_cj_rule` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `mac_collect_bind` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `collect_flag` varchar(100) NOT NULL DEFAULT '',
+  `remote_type_id` int NOT NULL DEFAULT 0,
+  `remote_name` varchar(100) NOT NULL DEFAULT '',
+  `local_type_id` int NOT NULL DEFAULT 0,
+  `local_name` varchar(100) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_flag` (`collect_flag`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_collect_config` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `config_key` varchar(50) NOT NULL DEFAULT '',
+  `config_value` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_key` (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO `mac_collect_config` (`config_key`, `config_value`) VALUES
+('collect_global', '{"workers":5,"batch_size":50,"rate_limit":10,"buffer_size":500,"timeout":30,"status":1,"hits_start":0,"hits_end":0,"updown_start":0,"updown_end":0,"score_random":0,"inrule":"a","uprule":"a","filter":"","pic_sync":0}');
+
 -- 插入默认管理员 (admin / admin123)
 INSERT INTO `mac_admin` (`admin_name`, `admin_pwd`, `admin_role`, `admin_status`) VALUES
 ('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1, 1);

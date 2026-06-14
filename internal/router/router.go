@@ -16,6 +16,7 @@ import (
 	"gocms/internal/service/aicontent"
 	"gocms/internal/service/analytics"
 	"gocms/internal/service/chat"
+	"gocms/internal/service/collect"
 	"gocms/internal/service/payment"
 	"gocms/internal/service/plugin"
 	"gocms/internal/service/scheduler"
@@ -139,7 +140,8 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	systemH := admin.NewSystemHandler(db)
 	commentH := admin.NewCommentHandler(db)
 	gbookH := admin.NewGbookHandler(db)
-	collectH := admin.NewCollectHandler(db)
+	collectEngine := collect.NewConcurrentEngine(db, collect.DefaultConfig())
+	collectH := admin.NewCollectHandler(db, collectEngine)
 	danmakuH := frontend.NewDanmakuHandler(db)
 
 	// Phase 4 handlers
@@ -435,12 +437,25 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	auth.Get("/gbook/list", gbookH.List)
 	auth.Post("/gbook/reply/:id", gbookH.Reply)
 	auth.Post("/gbook/delete", gbookH.Delete)
-	auth.Post("/collect/test", collectH.TestConnection)
-	auth.Post("/collect/start", collectH.StartCollect)
+	// 采集管理（兼容 maccms10 协议）
 	auth.Get("/collect/source/list", collectH.SourceList)
 	auth.Get("/collect/source/detail/:id", collectH.SourceDetail)
 	auth.Post("/collect/source/save", collectH.SourceSave)
+	auth.Post("/collect/source/delete", collectH.SourceDelete)
+	auth.Post("/collect/test", collectH.TestConnection)
+	auth.Post("/collect/start", collectH.CollectStart)
+	auth.Get("/collect/api", collectH.CollectAPI)              // 兼容 maccms10 collect/api
 	auth.Get("/collect/vod/list", collectH.VodList)
+	// 分类绑定
+	auth.Get("/collect/bind/list", collectH.BindList)
+	auth.Post("/collect/bind/save", collectH.BindSave)
+	// 采集配置
+	auth.Get("/collect/config", collectH.ConfigGet)
+	auth.Post("/collect/config", collectH.ConfigSave)
+	// 任务管理
+	auth.Get("/collect/job/list", collectH.JobList)
+	auth.Get("/collect/job/status", collectH.JobStatus)
+	auth.Post("/collect/job/stop", collectH.JobStop)
 
 	// --- Phase 4 路由 ---
 	auth.Get("/danmaku/list", danmakuH.AdminList)
@@ -643,9 +658,6 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	})
 	auth.Get("/timming/detail/:id", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"code": 1, "data": map[string]interface{}{}, "msg": "success"})
-	})
-	auth.Post("/collect/source/delete", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{"code": 1, "msg": "success"})
 	})
 	auth.Post("/cj/delete", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"code": 1, "msg": "success"})
