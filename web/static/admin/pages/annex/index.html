@@ -12,21 +12,23 @@
     <div class="my-toolbar-box">
         <div class="center mb10">
             <form class="layui-form" id="searchForm">
-                <div class="layui-input-inline"><input type="text" autocomplete="off" placeholder="关键词" class="layui-input" name="wd"></div>
+                <div class="layui-input-inline"><input type="text" autocomplete="off" placeholder="文件名关键词" class="layui-input" name="wd"></div>
                 <button type="button" class="layui-btn mgl-20" onclick="doSearch()">搜索</button>
             </form>
         </div>
         <div class="layui-btn-group">
-            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="window.location.href='info.html'"><i class="layui-icon">&#xe654;</i>添加</a>
-            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="batchDel()"><i class="layui-icon">&#xe640;</i>删除</a>
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="batchDel()"><i class="layui-icon">&#xe640;</i>批量删除</a>
         </div>
     </div>
     <form class="layui-form" id="pageListForm">
         <table class="layui-table" lay-size="sm">
             <thead><tr>
                 <th width="25"><input type="checkbox" lay-skin="primary" lay-filter="allChoose"></th>
-                <th width="40">ID</th><th>名称</th><th width="200">路径</th>
-                <th width="120">更新时间</th><th width="200">操作</th>
+                <th>文件名</th>
+                <th width="250">路径</th>
+                <th width="100">大小</th>
+                <th width="150">修改时间</th>
+                <th width="120">操作</th>
             </tr></thead>
             <tbody id="tableBody"></tbody>
         </table>
@@ -37,32 +39,88 @@
 <script type="text/javascript" src="../../js/app.js"></script>
 <script type="text/javascript">
     var currentPage=1,pageLimit=20;
+
+    function formatSize(bytes){
+        if(!bytes||bytes===0)return '0 B';
+        var units=['B','KB','MB','GB','TB'];
+        var i=Math.floor(Math.log(bytes)/Math.log(1024));
+        return (bytes/Math.pow(1024,i)).toFixed(2)+' '+units[i];
+    }
+
     function loadData(page){
         currentPage=page||1;
-        var fd={};new FormData(document.getElementById('searchForm')).forEach(function(v,k){if(v)fd[k]=v;});
+        var fd={};
+        new FormData(document.getElementById('searchForm')).forEach(function(v,k){if(v)fd[k]=v;});
         fd.page=currentPage;fd.limit=pageLimit;
         var qs=Object.keys(fd).map(function(k){return k+'='+encodeURIComponent(fd[k]);}).join('&');
         API.get('/admin/annex/list?'+qs).then(function(r){
-            if(r.code===1){renderTable(r.data.list||[]);renderPag(r.data.total||0);}
+            if(r.code===1){
+                var list=r.data.list||r.data||[];
+                renderTable(list);
+                renderPag(r.data.total||list.length||0);
+            }
         });
     }
+
     function renderTable(list){
         var h='';
         list.forEach(function(vo){
-            h+='<tr><td><input type="checkbox" name="ids[]" value="'+vo.annex_id+'" class="layui-checkbox checkbox-ids" lay-skin="primary"></td>';
-            h+='<td>'+vo.annex_id+'</td><td>'+htmlspecialchars(vo.annex_name||'')+'</td>';
-            
-            h+='<td>'+mac_day(vo.annex_time||vo.update_time,'color')+'</td>';
-            h+='<td><a href="javascript:;" class="layui-btn layui-btn-primary" onclick="window.location.href=\'info.html?id='+vo.annex_id+'\'">编辑</a> ';
-            h+='<a href="javascript:;" class="layui-btn layui-btn-danger" onclick="delItem('+vo.annex_id+')">删除</a></td></tr>';
+            var name=vo.name||'';
+            var path=vo.path||'';
+            var size=vo.size||0;
+            var modTime=vo.mod_time||0;
+            h+='<tr>';
+            h+='<td><input type="checkbox" name="ids[]" value="'+htmlspecialchars(path)+'" class="layui-checkbox checkbox-ids" lay-skin="primary"></td>';
+            h+='<td>'+htmlspecialchars(name)+'</td>';
+            h+='<td>'+htmlspecialchars(path)+'</td>';
+            h+='<td>'+formatSize(size)+'</td>';
+            h+='<td>'+mac_day(modTime,'color')+'</td>';
+            h+='<td><a href="javascript:;" class="layui-btn layui-btn-danger layui-btn-xs" onclick="delItem(\''+htmlspecialchars(path).replace(/'/g,"\\'")+'\')">删除</a></td>';
+            h+='</tr>';
         });
         document.getElementById('tableBody').innerHTML=h;
         layui.use('form',function(){layui.form.render('checkbox');});
     }
-    function renderPag(total){layui.use(['laypage'],function(){layui.laypage.render({elem:'pages',count:total,limit:pageLimit,curr:currentPage,layout:['count','prev','page','next','limit','skip'],jump:function(o,f){if(!f)loadData(o.curr);}});});}
+
+    function renderPag(total){
+        layui.use(['laypage'],function(){
+            layui.laypage.render({
+                elem:'pages',count:total,limit:pageLimit,curr:currentPage,
+                layout:['count','prev','page','next','limit','skip'],
+                jump:function(o,f){if(!f)loadData(o.curr);}
+            });
+        });
+    }
+
     function doSearch(){loadData(1);}
-    function delItem(id){layui.use('layer',function(){layui.layer.confirm('确定删除？',function(i){API.post('/admin/annex/delete',{ids:id.toString()}).then(function(r){layui.layer.msg(r.msg||'操作完成',{time:1500});if(r.code===1)loadData(currentPage);});layui.layer.close(i);});});}
-    function batchDel(){var ids=[];document.querySelectorAll('input.checkbox-ids:checked').forEach(function(e){ids.push(e.value);});if(!ids.length){layui.use('layer',function(){layui.layer.msg('请先选择');});return;}layui.use('layer',function(){layui.layer.confirm('确定删除'+ids.length+'条？',function(i){API.post('/admin/annex/delete',{ids:ids.join(',')}).then(function(r){layui.layer.msg(r.msg||'操作完成',{time:1500});if(r.code===1)loadData(currentPage);});layui.layer.close(i);});});}
+
+    function delItem(path){
+        layui.use('layer',function(){
+            layui.layer.confirm('确定删除该文件？',function(i){
+                API.post('/admin/annex/delete',{path:path}).then(function(r){
+                    layui.layer.msg(r.msg||'操作完成',{time:1500});
+                    if(r.code===1)loadData(currentPage);
+                });
+                layui.layer.close(i);
+            });
+        });
+    }
+
+    function batchDel(){
+        var paths=[];
+        document.querySelectorAll('input.checkbox-ids:checked').forEach(function(e){paths.push(e.value);});
+        if(!paths.length){layui.use('layer',function(){layui.layer.msg('请先选择文件');});return;}
+        layui.use('layer',function(){
+            layui.layer.confirm('确定删除选中的 '+paths.length+' 个文件？',function(i){
+                API.post('/admin/annex/batch-delete',{paths:paths}).then(function(r){
+                    layui.layer.msg(r.msg||'操作完成',{time:1500});
+                    if(r.code===1)loadData(currentPage);
+                });
+                layui.layer.close(i);
+            });
+        });
+    }
+
     loadData(1);
     initTable({total:0,limit:pageLimit,page:1,onPageChange:function(p,l){pageLimit=l;loadData(p);}});
 </script>

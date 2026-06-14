@@ -1,12 +1,114 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>留言管理</title><link rel="stylesheet" href="../../layui/css/layui.css"><link rel="stylesheet" href="../../css/admin_style.css"></head><body>
-<div class="page-container p10"><form class="layui-form layui-form-pane" id="editForm"><input type="hidden" name="gbook_id" id="gbook_id" value="">
-<div class="layui-form-item"><label class="layui-form-label">姓名：</label><div class="layui-input-inline w300"><input type="text" class="layui-input" value="" name="gbook_name"></div></div>
-<div class="layui-form-item"><label class="layui-form-label">联系方式：</label><div class="layui-input-inline w300"><input type="text" class="layui-input" value="" name="gbook_contact"></div></div>
-<div class="layui-form-item"><label class="layui-form-label">内容：</label><div class="layui-input-block"><textarea name="gbook_content" class="layui-textarea"></textarea></div></div>
-<div class="layui-form-item"><label class="layui-form-label">回复：</label><div class="layui-input-block"><textarea name="gbook_reply" class="layui-textarea"></textarea></div></div>
-<div class="layui-form-item"><label class="layui-form-label">状态：</label><div class="layui-input-inline"><select name="gbook_status"><option value="0">未审核</option><option value="1">已审核</option></select></div></div>
-<div class="layui-form-item center"><div class="layui-input-block"><button type="submit" class="layui-btn" lay-submit="" lay-filter="formSubmit">保存</button><button type="button" class="layui-btn layui-btn-normal" onclick="history.back()">返回</button></div></div>
-</form></div>
-<script type="text/javascript" src="../../layui/layui.js"></script><script type="text/javascript" src="../../js/app.js"></script><script>
-var itemId=getQueryParam('id');function loadDetail(){if(!itemId)return;API.get('/admin/gbook/detail/'+itemId).then(function(r){if(r.code===1&&r.data){var info=r.data,f=document.getElementById('editForm');Object.keys(info).forEach(function(k){var el=f.querySelector('[name="'+k+'"]');if(el){if(el.type==='checkbox')el.checked=!!info[k];else if(el.type==='radio')f.querySelectorAll('[name="'+k+'"]').forEach(function(rd){rd.checked=(rd.value==info[k]);});else el.value=info[k]||'';}});layui.use('form',function(){layui.form.render();});}});}loadDetail();bindForm('editForm','/admin/gbook/save',function(r){if(!itemId&&r.data&&r.data.gbook_id){itemId=r.data.gbook_id;document.getElementById('gbook_id').value=itemId;}});
-</script></body></html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>留言回复</title>
+    <link rel="stylesheet" href="../../layui/css/layui.css">
+    <link rel="stylesheet" href="../../css/admin_style.css">
+</head>
+<body>
+<div class="page-container p10">
+    <form class="layui-form layui-form-pane" id="editForm">
+        <input type="hidden" name="gbook_id" id="gbook_id" value="">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户ID：</label>
+            <div class="layui-input-inline w300">
+                <input type="text" class="layui-input" value="" name="user_id" readonly>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">留言时间：</label>
+            <div class="layui-input-inline w300">
+                <input type="text" class="layui-input" value="" id="gbook_time_display" readonly>
+            </div>
+        </div>
+
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">留言内容：</label>
+            <div class="layui-input-block">
+                <textarea name="gbook_content" class="layui-textarea" readonly style="height:100px;"></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态：</label>
+            <div class="layui-input-inline">
+                <select name="gbook_status">
+                    <option value="0">未审核</option>
+                    <option value="1">已审核</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">回复内容：</label>
+            <div class="layui-input-block">
+                <textarea name="gbook_reply" class="layui-textarea" placeholder="请输入回复内容" style="height:120px;"></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item center">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="formSubmit">保存回复</button>
+                <button type="button" class="layui-btn layui-btn-normal" onclick="history.back()">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/app.js"></script>
+<script type="text/javascript">
+    var itemId = getQueryParam('id');
+
+    function loadDetail() {
+        if (!itemId) return;
+        API.get('/admin/gbook/detail/' + itemId).then(function(r) {
+            if (r.code === 1 && r.data) {
+                var info = r.data;
+                var form = document.getElementById('editForm');
+                Object.keys(info).forEach(function(k) {
+                    var el = form.querySelector('[name="' + k + '"]');
+                    if (el) {
+                        if (el.type === 'checkbox') el.checked = !!info[k];
+                        else if (el.type === 'radio') {
+                            form.querySelectorAll('[name="' + k + '"]').forEach(function(rd) {
+                                rd.checked = (rd.value == info[k]);
+                            });
+                        } else el.value = info[k] || '';
+                    }
+                });
+                // 显示格式化时间
+                if (info.gbook_time) {
+                    document.getElementById('gbook_time_display').value = mac_day(info.gbook_time);
+                }
+                layui.use('form', function() { layui.form.render(); });
+            }
+        });
+    }
+
+    loadDetail();
+
+    // 使用 API.form 提交回复
+    layui.use(['form', 'layer'], function() {
+        var form = layui.form, layer = layui.layer;
+        form.on('submit(formSubmit)', function(data) {
+            var fd = new FormData();
+            fd.append('reply', data.field.gbook_reply || '');
+            fd.append('status', data.field.gbook_status || '0');
+            layer.msg('正在提交...', {time: 500000});
+            API.form('/admin/gbook/reply/' + itemId, fd).then(function(r) {
+                layer.closeAll();
+                layer.msg(r.msg || (r.code === 1 ? '保存成功' : '保存失败'), {time: 1500});
+            }).catch(function() {
+                layer.closeAll();
+                layer.msg('请求失败', {time: 2000});
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

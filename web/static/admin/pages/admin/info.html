@@ -1,10 +1,108 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>管理员管理</title><link rel="stylesheet" href="../../layui/css/layui.css"><link rel="stylesheet" href="../../css/admin_style.css"></head><body>
-<div class="page-container p10"><form class="layui-form layui-form-pane" id="editForm"><input type="hidden" name="admin_id" id="admin_id" value="">
-<div class="layui-form-item"><label class="layui-form-label">用户名：</label><div class="layui-input-inline w300"><input type="text" class="layui-input" value="" name="admin_name"></div></div>
-<div class="layui-form-item"><label class="layui-form-label">密码：</label><div class="layui-input-inline w300"><input type="password" class="layui-input" value="" placeholder="不修改请留空" name="admin_pwd"></div></div>
-<div class="layui-form-item"><label class="layui-form-label">状态：</label><div class="layui-input-inline"><select name="admin_status"><option value="1">启用</option><option value="0">禁用</option></select></div></div>
-<div class="layui-form-item center"><div class="layui-input-block"><button type="submit" class="layui-btn" lay-submit="" lay-filter="formSubmit">保存</button><button type="button" class="layui-btn layui-btn-normal" onclick="history.back()">返回</button></div></div>
-</form></div>
-<script type="text/javascript" src="../../layui/layui.js"></script><script type="text/javascript" src="../../js/app.js"></script><script>
-var itemId=getQueryParam('id');function loadDetail(){if(!itemId)return;API.get('/admin/admin/detail/'+itemId).then(function(r){if(r.code===1&&r.data){var info=r.data,f=document.getElementById('editForm');Object.keys(info).forEach(function(k){var el=f.querySelector('[name="'+k+'"]');if(el){if(el.type==='checkbox')el.checked=!!info[k];else el.value=info[k]||'';}});layui.use('form',function(){layui.form.render();});}});}loadDetail();bindForm('editForm','/admin/admin/save',function(r){if(!itemId&&r.data&&r.data.admin_id){itemId=r.data.admin_id;document.getElementById('admin_id').value=itemId;}});
-</script></body></html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>管理员编辑</title>
+    <link rel="stylesheet" href="../../layui/css/layui.css">
+    <link rel="stylesheet" href="../../css/admin_style.css">
+</head>
+<body>
+<div class="page-container p10">
+    <form class="layui-form layui-form-pane" id="editForm">
+        <input type="hidden" name="admin_id" id="admin_id" value="">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户名：</label>
+            <div class="layui-input-inline w300">
+                <input type="text" class="layui-input" value="" name="admin_name" placeholder="请输入管理员用户名">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">密码：</label>
+            <div class="layui-input-inline w300">
+                <input type="password" class="layui-input" value="" name="admin_pwd" placeholder="不修改请留空">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">角色：</label>
+            <div class="layui-input-inline">
+                <select name="admin_role">
+                    <option value="1">超级管理员</option>
+                    <option value="2">普通管理员</option>
+                    <option value="3">只读管理员</option>
+                </select>
+            </div>
+            <label class="layui-form-label">状态：</label>
+            <div class="layui-input-inline">
+                <select name="admin_status">
+                    <option value="1">启用</option>
+                    <option value="0">禁用</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">最后登录：</label>
+            <div class="layui-input-inline w200">
+                <input type="text" class="layui-input" value="" id="admin_last_time_display" readonly>
+            </div>
+            <label class="layui-form-label">登录次数：</label>
+            <div class="layui-input-inline w150">
+                <input type="text" class="layui-input" value="" id="admin_login_num_display" readonly>
+            </div>
+        </div>
+
+        <div class="layui-form-item center">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="formSubmit">保存</button>
+                <button class="layui-btn layui-btn-warm" type="reset">重置</button>
+                <button type="button" class="layui-btn layui-btn-normal" onclick="history.back()">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/app.js"></script>
+<script>
+    var itemId = getQueryParam('id');
+
+    function loadDetail() {
+        if (!itemId) return;
+        API.get('/admin/admin/detail/' + itemId).then(function(r) {
+            if (r.code === 1 && r.data) {
+                var info = r.data;
+                var f = document.getElementById('editForm');
+                Object.keys(info).forEach(function(k) {
+                    var el = f.querySelector('[name="' + k + '"]');
+                    if (el) {
+                        if (el.type === 'checkbox') el.checked = !!info[k];
+                        else if (el.type === 'radio') {
+                            f.querySelectorAll('[name="' + k + '"]').forEach(function(rd) {
+                                rd.checked = (rd.value == info[k]);
+                            });
+                        } else el.value = info[k] || '';
+                    }
+                });
+                // 显示只读字段
+                document.getElementById('admin_last_time_display').value = info.admin_last_time ? mac_day(info.admin_last_time, '') : '-';
+                document.getElementById('admin_login_num_display').value = info.admin_login_num || 0;
+                layui.use('form', function() { layui.form.render(); });
+            }
+        });
+    }
+
+    loadDetail();
+
+    bindForm('editForm', '/admin/admin/save', function(r) {
+        if (!itemId && r.data && r.data.admin_id) {
+            itemId = r.data.admin_id;
+            document.getElementById('admin_id').value = itemId;
+            window.history.replaceState({}, '', 'info.html?id=' + itemId);
+        }
+    });
+</script>
+</body>
+</html>

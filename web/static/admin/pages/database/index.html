@@ -10,61 +10,181 @@
 <body>
 <div class="page-container p10">
     <div class="my-toolbar-box">
-        <div class="center mb10">
-            <form class="layui-form" id="searchForm">
-                <div class="layui-input-inline"><input type="text" autocomplete="off" placeholder="关键词" class="layui-input" name="wd"></div>
-                <button type="button" class="layui-btn mgl-20" onclick="doSearch()">搜索</button>
-            </form>
-        </div>
         <div class="layui-btn-group">
-            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="window.location.href='info.html'"><i class="layui-icon">&#xe654;</i>添加</a>
-            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="batchDel()"><i class="layui-icon">&#xe640;</i>删除</a>
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="batchOptimize()"><i class="layui-icon">&#xe62c;</i>优化表</a>
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="batchRepair()"><i class="layui-icon">&#xe60c;</i>修复表</a>
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="batchBackup()"><i class="layui-icon">&#xe61e;</i>备份选中</a>
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="backupAll()"><i class="layui-icon">&#xe61e;</i>备份全部</a>
+            <a href="javascript:;" class="layui-btn layui-btn-primary" onclick="loadBackups()"><i class="layui-icon">&#xe621;</i>查看备份</a>
         </div>
     </div>
     <form class="layui-form" id="pageListForm">
         <table class="layui-table" lay-size="sm">
             <thead><tr>
                 <th width="25"><input type="checkbox" lay-skin="primary" lay-filter="allChoose"></th>
-                <th width="40">ID</th><th>名称</th>
-                <th width="120">更新时间</th><th width="200">操作</th>
+                <th>表名</th>
+                <th width="100">引擎</th>
+                <th width="100">行数</th>
+                <th width="100">大小</th>
+                <th>备注</th>
+                <th width="200">操作</th>
             </tr></thead>
             <tbody id="tableBody"></tbody>
         </table>
-        <div id="pages" class="center"></div>
     </form>
 </div>
+
 <script type="text/javascript" src="../../layui/layui.js"></script>
 <script type="text/javascript" src="../../js/app.js"></script>
 <script type="text/javascript">
-    var currentPage=1,pageLimit=20;
-    function loadData(page){
-        currentPage=page||1;
-        var fd={};new FormData(document.getElementById('searchForm')).forEach(function(v,k){if(v)fd[k]=v;});
-        fd.page=currentPage;fd.limit=pageLimit;
-        var qs=Object.keys(fd).map(function(k){return k+'='+encodeURIComponent(fd[k]);}).join('&');
-        API.get('/admin/database/list?'+qs).then(function(r){
-            if(r.code===1){renderTable(r.data.list||[]);renderPag(r.data.total||0);}
+    var allTables = [];
+
+    function loadData() {
+        API.get('/admin/database/list').then(function(r) {
+            if (r.code === 1) {
+                allTables = r.data.list || [];
+                renderTable(allTables);
+            }
         });
     }
-    function renderTable(list){
-        var h='';
-        list.forEach(function(vo){
-            h+='<tr><td><input type="checkbox" name="ids[]" value="'+vo.database_id+'" class="layui-checkbox checkbox-ids" lay-skin="primary"></td>';
-            h+='<td>'+vo.database_id+'</td><td>'+htmlspecialchars(vo.database_name||'')+'</td>';
-            
-            h+='<td>'+mac_day(vo.database_time||vo.update_time,'color')+'</td>';
-            h+='<td><a href="javascript:;" class="layui-btn layui-btn-primary" onclick="window.location.href=\'info.html?id='+vo.database_id+'\'">编辑</a> ';
-            h+='<a href="javascript:;" class="layui-btn layui-btn-danger" onclick="delItem('+vo.database_id+')">删除</a></td></tr>';
+
+    function renderTable(list) {
+        var h = '';
+        list.forEach(function(vo) {
+            h += '<tr>';
+            h += '<td><input type="checkbox" name="tables[]" value="' + vo.name + '" class="layui-checkbox checkbox-ids" lay-skin="primary"></td>';
+            h += '<td><strong>' + htmlspecialchars(vo.name || '') + '</strong></td>';
+            h += '<td>' + (vo.engine || '-') + '</td>';
+            h += '<td>' + (vo.rows || 0) + '</td>';
+            h += '<td>' + (vo.size || '-') + '</td>';
+            h += '<td>' + (vo.comment || '-') + '</td>';
+            h += '<td class="mac-table-opt-cell"><div class="mac-table-opt-btns">';
+            h += '<a href="javascript:;" class="layui-btn layui-btn-xs layui-btn-primary" onclick="optimizeTable(\'' + vo.name + '\')">优化</a> ';
+            h += '<a href="javascript:;" class="layui-btn layui-btn-xs layui-btn-primary" onclick="repairTable(\'' + vo.name + '\')">修复</a> ';
+            h += '<a href="javascript:;" class="layui-btn layui-btn-xs layui-btn-normal" onclick="backupTable(\'' + vo.name + '\')">备份</a>';
+            h += '</div></td></tr>';
         });
-        document.getElementById('tableBody').innerHTML=h;
-        layui.use('form',function(){layui.form.render('checkbox');});
+        document.getElementById('tableBody').innerHTML = h;
+        layui.use('form', function() { layui.form.render('checkbox'); });
     }
-    function renderPag(total){layui.use(['laypage'],function(){layui.laypage.render({elem:'pages',count:total,limit:pageLimit,curr:currentPage,layout:['count','prev','page','next','limit','skip'],jump:function(o,f){if(!f)loadData(o.curr);}});});}
-    function doSearch(){loadData(1);}
-    function delItem(id){layui.use('layer',function(){layui.layer.confirm('确定删除？',function(i){API.post('/admin/database/delete',{ids:id.toString()}).then(function(r){layui.layer.msg(r.msg||'操作完成',{time:1500});if(r.code===1)loadData(currentPage);});layui.layer.close(i);});});}
-    function batchDel(){var ids=[];document.querySelectorAll('input.checkbox-ids:checked').forEach(function(e){ids.push(e.value);});if(!ids.length){layui.use('layer',function(){layui.layer.msg('请先选择');});return;}layui.use('layer',function(){layui.layer.confirm('确定删除'+ids.length+'条？',function(i){API.post('/admin/database/delete',{ids:ids.join(',')}).then(function(r){layui.layer.msg(r.msg||'操作完成',{time:1500});if(r.code===1)loadData(currentPage);});layui.layer.close(i);});});}
-    loadData(1);
-    initTable({total:0,limit:pageLimit,page:1,onPageChange:function(p,l){pageLimit=l;loadData(p);}});
+
+    function getSelectedTables() {
+        var tables = [];
+        document.querySelectorAll('input.checkbox-ids:checked').forEach(function(e) { tables.push(e.value); });
+        return tables;
+    }
+
+    function optimizeTable(name) {
+        layui.use('layer', function() {
+            layui.layer.msg('正在优化...', {time: 30000});
+            API.post('/admin/database/optimize', { tables: [name] }).then(function(r) {
+                layui.layer.closeAll();
+                layui.layer.msg(r.msg || '操作完成', {time: 2000});
+            });
+        });
+    }
+
+    function repairTable(name) {
+        layui.use('layer', function() {
+            layui.layer.msg('正在修复...', {time: 30000});
+            API.post('/admin/database/repair', { tables: [name] }).then(function(r) {
+                layui.layer.closeAll();
+                layui.layer.msg(r.msg || '操作完成', {time: 2000});
+            });
+        });
+    }
+
+    function backupTable(name) {
+        layui.use('layer', function() {
+            layui.layer.msg('正在备份...', {time: 30000});
+            API.post('/admin/database/backup', { tables: [name] }).then(function(r) {
+                layui.layer.closeAll();
+                layui.layer.msg(r.msg || '操作完成', {time: 2000});
+            });
+        });
+    }
+
+    function batchOptimize() {
+        var tables = getSelectedTables();
+        if (!tables.length) { layui.use('layer', function() { layui.layer.msg('请先选择要优化的表'); }); return; }
+        layui.use('layer', function() {
+            layui.layer.confirm('确定要优化选中的 ' + tables.length + ' 张表吗？', function(i) {
+                layui.layer.close(i);
+                layui.layer.msg('正在优化...', {time: 30000});
+                API.post('/admin/database/optimize', { tables: tables }).then(function(r) {
+                    layui.layer.closeAll();
+                    layui.layer.msg(r.msg || '操作完成', {time: 2000});
+                });
+            });
+        });
+    }
+
+    function batchRepair() {
+        var tables = getSelectedTables();
+        if (!tables.length) { layui.use('layer', function() { layui.layer.msg('请先选择要修复的表'); }); return; }
+        layui.use('layer', function() {
+            layui.layer.confirm('确定要修复选中的 ' + tables.length + ' 张表吗？', function(i) {
+                layui.layer.close(i);
+                layui.layer.msg('正在修复...', {time: 30000});
+                API.post('/admin/database/repair', { tables: tables }).then(function(r) {
+                    layui.layer.closeAll();
+                    layui.layer.msg(r.msg || '操作完成', {time: 2000});
+                });
+            });
+        });
+    }
+
+    function batchBackup() {
+        var tables = getSelectedTables();
+        if (!tables.length) { layui.use('layer', function() { layui.layer.msg('请先选择要备份的表'); }); return; }
+        layui.use('layer', function() {
+            layui.layer.confirm('确定要备份选中的 ' + tables.length + ' 张表吗？', function(i) {
+                layui.layer.close(i);
+                layui.layer.msg('正在备份...', {time: 60000});
+                API.post('/admin/database/backup', { tables: tables }).then(function(r) {
+                    layui.layer.closeAll();
+                    layui.layer.msg(r.msg || '操作完成', {time: 2000});
+                });
+            });
+        });
+    }
+
+    function backupAll() {
+        layui.use('layer', function() {
+            layui.layer.confirm('确定要备份全部数据库表吗？', function(i) {
+                layui.layer.close(i);
+                layui.layer.msg('正在备份...', {time: 60000});
+                API.post('/admin/database/backup', { tables: [] }).then(function(r) {
+                    layui.layer.closeAll();
+                    layui.layer.msg(r.msg || '操作完成', {time: 2000});
+                });
+            });
+        });
+    }
+
+    function loadBackups() {
+        API.get('/admin/database/backups').then(function(r) {
+            if (r.code === 1 && r.data) {
+                var backups = r.data.list || [];
+                if (backups.length === 0) {
+                    layui.use('layer', function() { layui.layer.msg('暂无备份文件'); });
+                    return;
+                }
+                var html = '<div style="padding:10px;"><table class="layui-table" lay-size="sm"><thead><tr><th>文件名</th><th>大小</th><th>备份时间</th></tr></thead><tbody>';
+                backups.forEach(function(b) {
+                    html += '<tr><td>' + htmlspecialchars(b.name) + '</td><td>' + (b.size || '-') + '</td><td>' + mac_day(b.time) + '</td></tr>';
+                });
+                html += '</tbody></table></div>';
+                layui.use('layer', function() {
+                    layui.layer.open({
+                        type: 1, title: '备份文件列表', area: ['600px', '400px'], content: html
+                    });
+                });
+            }
+        });
+    }
+
+    loadData();
 </script>
 </body>
 </html>

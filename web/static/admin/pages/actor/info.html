@@ -1,9 +1,169 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>actor管理</title><link rel="stylesheet" href="../../layui/css/layui.css"><link rel="stylesheet" href="../../css/admin_style.css"></head><body>
-<div class="page-container p10"><form class="layui-form layui-form-pane" id="editForm"><input type="hidden" name="actor_id" id="actor_id" value="">
-<div class="layui-form-item"><label class="layui-form-label">名称：</label><div class="layui-input-inline w300"><input type="text" class="layui-input" value="" name="actor_name"></div></div>
-<div class="layui-form-item"><label class="layui-form-label">状态：</label><div class="layui-input-inline"><select name="actor_status"><option value="1">开启</option><option value="0">关闭</option></select></div></div>
-<div class="layui-form-item center"><div class="layui-input-block"><button type="submit" class="layui-btn" lay-submit="" lay-filter="formSubmit">保存</button><button type="button" class="layui-btn layui-btn-normal" onclick="history.back()">返回</button></div></div>
-</form></div>
-<script type="text/javascript" src="../../layui/layui.js"></script><script type="text/javascript" src="../../js/app.js"></script><script>
-var itemId=getQueryParam('id');function loadDetail(){if(!itemId)return;API.get('/admin/actor/detail/'+itemId).then(function(r){if(r.code===1&&r.data){var info=r.data,f=document.getElementById('editForm');Object.keys(info).forEach(function(k){var el=f.querySelector('[name="'+k+'"]');if(el){if(el.type==='checkbox')el.checked=!!info[k];else if(el.type==='radio')f.querySelectorAll('[name="'+k+'"]').forEach(function(rd){rd.checked=(rd.value==info[k]);});else el.value=info[k]||'';}});layui.use('form',function(){layui.form.render();});}});}loadDetail();bindForm('editForm','/admin/actor/save',function(r){if(!itemId&&r.data&&r.data.actor_id){itemId=r.data.actor_id;document.getElementById('actor_id').value=itemId;}});
-</script></body></html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>演员管理</title>
+    <link rel="stylesheet" href="../../layui/css/layui.css">
+    <link rel="stylesheet" href="../../css/admin_style.css">
+</head>
+<body>
+<div class="page-container p10">
+
+    <form class="layui-form layui-form-pane" id="editForm">
+        <input type="hidden" name="actor_id" id="actor_id" value="">
+
+        <div class="layui-tab">
+            <ul class="layui-tab-title">
+                <li class="layui-this">基本信息</li>
+                <li>其他信息</li>
+            </ul>
+            <div class="layui-tab-content">
+
+                <div class="layui-tab-item layui-show">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">名称：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" name="actor_name" id="actor_name">
+                        </div>
+                        <label class="layui-form-label">性别：</label>
+                        <div class="layui-input-inline w120">
+                            <select name="actor_sex">
+                                <option value="">请选择</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">地区：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" value="" placeholder="" name="actor_area" id="actor_area">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">生日：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="actor_birthday" id="actor_birthday">
+                        </div>
+                        <label class="layui-form-label">出生地：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="actor_birtharea" id="actor_birtharea">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">身高：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="actor_height" id="actor_height">
+                        </div>
+                        <label class="layui-form-label">体重：</label>
+                        <div class="layui-input-inline">
+                            <input type="text" class="layui-input" value="" placeholder="" name="actor_weight" id="actor_weight">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">图片：</label>
+                        <div class="layui-input-inline w500">
+                            <input type="text" class="layui-input" style="max-width:100%;" value="" placeholder="" id="actor_pic" name="actor_pic">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">简介：</label>
+                        <div class="layui-input-block">
+                            <textarea id="actor_content" name="actor_content" style="width:99%;height:250px"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-tab-item">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">推荐等级：</label>
+                        <div class="layui-input-inline">
+                            <select name="actor_level">
+                                <option value="0">选择推荐</option>
+                                <option value="9">推荐9-幻灯</option>
+                                <option value="1">推荐1</option>
+                                <option value="2">推荐2</option>
+                                <option value="3">推荐3</option>
+                                <option value="4">推荐4</option>
+                                <option value="5">推荐5</option>
+                                <option value="6">推荐6</option>
+                                <option value="7">推荐7</option>
+                                <option value="8">推荐8</option>
+                            </select>
+                        </div>
+                        <label class="layui-form-label">状态：</label>
+                        <div class="layui-input-inline w120">
+                            <select name="actor_status">
+                                <option value="1">已审核</option>
+                                <option value="0">未审核</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layui-form-item center">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="formSubmit">保存</button>
+                <button class="layui-btn layui-btn-warm" type="reset">重置</button>
+                <button type="button" class="layui-btn layui-btn-normal" onclick="history.back()">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/app.js"></script>
+<script type="text/javascript">
+    var itemId = getQueryParam('id');
+
+    // 加载编辑数据
+    function loadDetail() {
+        if (!itemId) return;
+        API.get('/admin/actor/detail/' + itemId).then(function(r) {
+            if (r.code === 1 && r.data) {
+                var info = r.data;
+                var form = document.getElementById('editForm');
+                Object.keys(info).forEach(function(key) {
+                    var el = form.querySelector('[name="' + key + '"]');
+                    if (el) {
+                        if (el.type === 'checkbox') {
+                            el.checked = !!info[key];
+                        } else if (el.type === 'radio') {
+                            form.querySelectorAll('[name="' + key + '"]').forEach(function(radio) {
+                                radio.checked = (radio.value == info[key]);
+                            });
+                        } else {
+                            el.value = info[key] || '';
+                        }
+                    }
+                });
+                if (info.actor_content) {
+                    document.getElementById('actor_content').value = info.actor_content;
+                }
+                layui.use('form', function() { layui.form.render(); });
+            }
+        });
+    }
+
+    // 初始化
+    loadDetail();
+
+    // 表单提交
+    bindForm('editForm', '/admin/actor/save', function(r) {
+        if (!itemId && r.data && r.data.actor_id) {
+            itemId = r.data.actor_id;
+            document.getElementById('actor_id').value = itemId;
+            window.history.replaceState({}, '', 'info.html?id=' + itemId);
+        }
+    });
+</script>
+</body>
+</html>

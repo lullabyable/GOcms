@@ -1,9 +1,112 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><title>link管理</title><link rel="stylesheet" href="../../layui/css/layui.css"><link rel="stylesheet" href="../../css/admin_style.css"></head><body>
-<div class="page-container p10"><form class="layui-form layui-form-pane" id="editForm"><input type="hidden" name="link_id" id="link_id" value="">
-<div class="layui-form-item"><label class="layui-form-label">名称：</label><div class="layui-input-inline w300"><input type="text" class="layui-input" value="" name="link_name"></div></div>
-<div class="layui-form-item"><label class="layui-form-label">状态：</label><div class="layui-input-inline"><select name="link_status"><option value="1">开启</option><option value="0">关闭</option></select></div></div>
-<div class="layui-form-item center"><div class="layui-input-block"><button type="submit" class="layui-btn" lay-submit="" lay-filter="formSubmit">保存</button><button type="button" class="layui-btn layui-btn-normal" onclick="history.back()">返回</button></div></div>
-</form></div>
-<script type="text/javascript" src="../../layui/layui.js"></script><script type="text/javascript" src="../../js/app.js"></script><script>
-var itemId=getQueryParam('id');function loadDetail(){if(!itemId)return;API.get('/admin/link/detail/'+itemId).then(function(r){if(r.code===1&&r.data){var info=r.data,f=document.getElementById('editForm');Object.keys(info).forEach(function(k){var el=f.querySelector('[name="'+k+'"]');if(el){if(el.type==='checkbox')el.checked=!!info[k];else if(el.type==='radio')f.querySelectorAll('[name="'+k+'"]').forEach(function(rd){rd.checked=(rd.value==info[k]);});else el.value=info[k]||'';}});layui.use('form',function(){layui.form.render();});}});}loadDetail();bindForm('editForm','/admin/link/save',function(r){if(!itemId&&r.data&&r.data.link_id){itemId=r.data.link_id;document.getElementById('link_id').value=itemId;}});
-</script></body></html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>友情链接管理</title>
+    <link rel="stylesheet" href="../../layui/css/layui.css">
+    <link rel="stylesheet" href="../../css/admin_style.css">
+</head>
+<body>
+<div class="page-container p10">
+
+    <form class="layui-form layui-form-pane" id="editForm">
+        <input type="hidden" name="link_id" id="link_id" value="">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称：</label>
+            <div class="layui-input-inline w500">
+                <input type="text" class="layui-input" value="" placeholder="" name="link_name" id="link_name">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">URL：</label>
+            <div class="layui-input-inline w500">
+                <input type="text" class="layui-input" value="" placeholder="https://" name="link_url" id="link_url">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">Logo：</label>
+            <div class="layui-input-inline w500">
+                <input type="text" class="layui-input" style="max-width:100%;" value="" placeholder="" id="link_logo" name="link_logo">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">描述：</label>
+            <div class="layui-input-block">
+                <textarea name="link_description" rows="3" class="layui-textarea" placeholder="" style="height:60px;"></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">排序：</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input" value="0" placeholder="" name="link_sort" id="link_sort">
+            </div>
+            <label class="layui-form-label">状态：</label>
+            <div class="layui-input-inline w120">
+                <select name="link_status">
+                    <option value="1">开启</option>
+                    <option value="0">关闭</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-form-item center">
+            <div class="layui-input-block">
+                <button type="submit" class="layui-btn" lay-submit="" lay-filter="formSubmit">保存</button>
+                <button class="layui-btn layui-btn-warm" type="reset">重置</button>
+                <button type="button" class="layui-btn layui-btn-normal" onclick="history.back()">返回</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="../../js/app.js"></script>
+<script type="text/javascript">
+    var itemId = getQueryParam('id');
+
+    // 加载编辑数据
+    function loadDetail() {
+        if (!itemId) return;
+        API.get('/admin/link/detail/' + itemId).then(function(r) {
+            if (r.code === 1 && r.data) {
+                var info = r.data;
+                var form = document.getElementById('editForm');
+                Object.keys(info).forEach(function(key) {
+                    var el = form.querySelector('[name="' + key + '"]');
+                    if (el) {
+                        if (el.type === 'checkbox') {
+                            el.checked = !!info[key];
+                        } else if (el.type === 'radio') {
+                            form.querySelectorAll('[name="' + key + '"]').forEach(function(radio) {
+                                radio.checked = (radio.value == info[key]);
+                            });
+                        } else {
+                            el.value = info[key] || '';
+                        }
+                    }
+                });
+                layui.use('form', function() { layui.form.render(); });
+            }
+        });
+    }
+
+    // 初始化
+    loadDetail();
+
+    // 表单提交
+    bindForm('editForm', '/admin/link/save', function(r) {
+        if (!itemId && r.data && r.data.link_id) {
+            itemId = r.data.link_id;
+            document.getElementById('link_id').value = itemId;
+            window.history.replaceState({}, '', 'info.html?id=' + itemId);
+        }
+    });
+</script>
+</body>
+</html>
