@@ -316,6 +316,31 @@ CREATE TABLE IF NOT EXISTS `mac_migrations` (
   `version` int NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS `mac_collect_source` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL DEFAULT '',
+  `api_url` varchar(500) NOT NULL DEFAULT '',
+  `up_rule` varchar(10) NOT NULL DEFAULT '',
+  `status` tinyint NOT NULL DEFAULT 0,
+  `priority` int NOT NULL DEFAULT 0,
+  `last_sync` bigint NOT NULL DEFAULT 0,
+  `created_at` bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mac_cj_rule` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL DEFAULT '',
+  `source_url` varchar(500) NOT NULL DEFAULT '',
+  `list_rule` text,
+  `detail_rule` text,
+  `type_id` int NOT NULL DEFAULT 0,
+  `status` tinyint NOT NULL DEFAULT 0,
+  `last_run` bigint NOT NULL DEFAULT 0,
+  `created_at` bigint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- 插入默认管理员 (admin / admin123)
 INSERT INTO `mac_admin` (`admin_name`, `admin_pwd`, `admin_role`, `admin_status`) VALUES
 ('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 1, 1);

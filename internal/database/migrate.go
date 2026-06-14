@@ -39,7 +39,12 @@ func (m *Migrator) freshInstall() error {
 	if err != nil {
 		return fmt.Errorf("找不到安装SQL: %w", err)
 	}
-	return m.execSQL(string(sql))
+	if err := m.execSQL(string(sql)); err != nil {
+		return err
+	}
+	// 新安装也要执行所有 upgrade 文件，确保后续新增的表被创建
+	m.setVersion(0)
+	return m.upgrade()
 }
 
 func (m *Migrator) upgrade() error {
