@@ -45,7 +45,7 @@ func AdminAuth(sm *session.Manager) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		path := c.Path()
 		// 登录页面跳过
-		if strings.HasSuffix(path, "/login") || strings.HasSuffix(path, "/captcha") {
+		if strings.HasSuffix(path, "/login") || strings.HasSuffix(path, "/captcha") || strings.HasSuffix(path, "/verify") {
 			return c.Next()
 		}
 

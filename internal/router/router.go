@@ -193,6 +193,10 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	a.Static("/css", "./web/static/admin/css")
 	a.Static("/images", "./web/static/admin/images")
 
+	// 验证码（无需认证）
+	verifyH := admin.NewVerifyHandler()
+	a.Get("/verify", verifyH.Image)
+
 	// SPA 主入口（公开）
 	a.Get("/", func(c *fiber.Ctx) error {
 		return c.SendFile("./web/static/admin/index.html")
@@ -240,6 +244,12 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 		}
 		name := getVal("admin_name")
 		pwd := getVal("admin_pwd")
+		// 验证码校验
+		if vCode := getVal("verify"); vCode != "" {
+			if !verifyH.Check(c, vCode) {
+				return c.JSON(fiber.Map{"code": 0, "msg": "验证码错误"})
+			}
+		}
 		var adm model.Admin
 		if err := db.Where("admin_name = ?", name).First(&adm).Error; err != nil {
 			// 记录失败
@@ -314,6 +324,12 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 		}
 		name := getVal("admin_name")
 		pwd := getVal("admin_pwd")
+		// 验证码校验
+		if vCode := getVal("verify"); vCode != "" {
+			if !verifyH.Check(c, vCode) {
+				return c.JSON(fiber.Map{"code": 0, "msg": "验证码错误"})
+			}
+		}
 		var adm model.Admin
 		if err := db.Where("admin_name = ?", name).First(&adm).Error; err != nil {
 			ban.IP = ip
