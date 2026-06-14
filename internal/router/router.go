@@ -97,6 +97,11 @@ a:hover{background:#4338ca}
 	// 加载已启用的插件
 	pluginMgr.LoadEnabled()
 
+	// 后台公开静态资源（放在 /admin 组外，避免路径解析问题）
+	app.Static("/layui", "./web/static/admin/layui")
+	app.Static("/css", "./web/static/admin/css")
+	app.Static("/images", "./web/static/admin/images")
+
 	// 后台路由
 	setupAdmin(app, sm, db, analyticsSvc, schedulerSvc, urlPushMgr, pluginMgr, aiSvc, paymentSvc, chatSvc, cfg)
 
