@@ -5,11 +5,19 @@
 
 // 统一 API 调用
 var API = {
+    _handle401: function(res) {
+        if (res.status === 401) {
+            window.top.location.href = '/admin/login';
+            throw new Error('未登录');
+        }
+        return res;
+    },
     get: function(url) {
         return fetch(url, {
             headers: { 'Accept': 'application/json' },
             credentials: 'same-origin'
-        }).then(function(res) { return res.json(); });
+        }).then(function(res) { return API._handle401(res); })
+          .then(function(res) { return res.json(); });
     },
     post: function(url, data) {
         return fetch(url, {
@@ -20,7 +28,8 @@ var API = {
             },
             credentials: 'same-origin',
             body: JSON.stringify(data || {})
-        }).then(function(res) { return res.json(); });
+        }).then(function(res) { return API._handle401(res); })
+          .then(function(res) { return res.json(); });
     },
     form: function(url, formData) {
         return fetch(url, {
@@ -28,7 +37,8 @@ var API = {
             body: formData,
             credentials: 'same-origin',
             headers: { 'Accept': 'application/json' }
-        }).then(function(res) { return res.json(); });
+        }).then(function(res) { return API._handle401(res); })
+          .then(function(res) { return res.json(); });
     }
 };
 

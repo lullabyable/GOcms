@@ -201,8 +201,8 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	verifyH := admin.NewVerifyHandler()
 	a.Get("/verify", verifyH.Image)
 
-	// SPA 主入口（公开）
-	a.Get("/", func(c *fiber.Ctx) error {
+	// SPA 主入口（需登录，未登录跳转登录页）
+	a.Get("/", middleware.AdminAuth(sm), func(c *fiber.Ctx) error {
 		return c.SendFile("./web/static/admin/index.html")
 	})
 	a.Get("/login", func(c *fiber.Ctx) error {
