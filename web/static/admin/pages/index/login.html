@@ -85,12 +85,8 @@
             }
         });
 
-        // 检查是否需要验证码
-        API.get('/admin/system/settings').then(function(r) {
-            if (r.code === 1 && r.data && r.data.admin_login_verify !== '0') {
-                document.getElementById('verifyRow').style.display = 'block';
-            }
-        }).catch(function(){});
+        // 显示验证码
+        document.getElementById('verifyRow').style.display = 'block';
 
         // 提交监听
         form.on('submit(sub)', function (data) {
