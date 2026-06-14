@@ -176,7 +176,7 @@
                         select.innerHTML += '<option value="' + vo.type_id + '">' + vo.type_name + '</option>';
                     }
                 });
-                layui.use('form', function() { layui.form.render('select'); });
+                layui.use(['element', 'form'], function() { layui.form.render('select'); });
                 // 如果是编辑模式，重新加载详情以设置选中值
                 if (itemId) loadDetail();
             }
@@ -200,7 +200,7 @@
                         } else el.value = info[k] || '';
                     }
                 });
-                layui.use('form', function() { layui.form.render(); });
+                layui.use(['element', 'form'], function() { layui.form.render(); });
             }
         });
     }

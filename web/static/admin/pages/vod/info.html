@@ -463,6 +463,12 @@
     var downerSelectHtml = '';
     var serverSelectHtml = '';
 
+    // 初始化 layui element 模块（tab 切换需要）
+    layui.use(['element', 'form', 'upload'], function() {
+        var element = layui.element;
+        element.init();
+    });
+
     // 加载分类列表
     function loadTypes() {
         API.get('/admin/type/list?mid=1').then(function(r) {

@@ -177,7 +177,7 @@
                         });
                     }
                 });
-                layui.use('form', function() { layui.form.render('select'); });
+                layui.use(['element', 'form'], function() { layui.form.render('select'); });
             }
         });
     }
@@ -206,7 +206,7 @@
                 if (info.manga_content) {
                     document.getElementById('manga_content').value = info.manga_content;
                 }
-                layui.use('form', function() { layui.form.render(); });
+                layui.use(['element', 'form'], function() { layui.form.render(); });
             }
         });
     }

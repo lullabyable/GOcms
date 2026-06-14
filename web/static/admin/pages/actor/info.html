@@ -148,7 +148,7 @@
                 if (info.actor_content) {
                     document.getElementById('actor_content').value = info.actor_content;
                 }
-                layui.use('form', function() { layui.form.render(); });
+                layui.use(['element', 'form'], function() { layui.form.render(); });
             }
         });
     }
