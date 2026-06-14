@@ -78,3 +78,31 @@ func (h *MangaHandler) Audit(c *fiber.Ctx) error {
 	h.db.Model(&model.Manga{}).Where("manga_id = ?", id).Update("manga_status", status)
 	return c.JSON(fiber.Map{"code": 1, "msg": "操作成功"})
 }
+
+// Batch 漫画批量操作
+func (h *MangaHandler) Batch(c *fiber.Ctx) error {
+	action := c.FormValue("action")
+	ids := c.FormValue("ids")
+	if ids == "" {
+		return c.JSON(fiber.Map{"code": 0, "msg": "缺少参数 ids"})
+	}
+	idList := parseIDList(ids)
+	if len(idList) == 0 {
+		return c.JSON(fiber.Map{"code": 0, "msg": "invalid ids"})
+	}
+
+	switch action {
+	case "delete":
+		h.db.Delete(&model.Manga{}, "manga_id IN ?", idList)
+	case "audit":
+		status, _ := strconv.Atoi(c.FormValue("status"))
+		h.db.Model(&model.Manga{}).Where("manga_id IN ?", idList).Update("manga_status", status)
+	case "type":
+		typeID, _ := strconv.Atoi(c.FormValue("type_id"))
+		h.db.Model(&model.Manga{}).Where("manga_id IN ?", idList).Update("type_id", typeID)
+	default:
+		return c.JSON(fiber.Map{"code": 0, "msg": "未知操作"})
+	}
+
+	return c.JSON(fiber.Map{"code": 1, "msg": "批量操作成功"})
+}

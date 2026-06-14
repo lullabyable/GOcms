@@ -59,6 +59,34 @@ func (h *ArtHandler) Save(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"code": 1, "msg": "保存成功", "data": art})
 }
 
+// Batch 文章批量操作
+func (h *ArtHandler) Batch(c *fiber.Ctx) error {
+	action := c.FormValue("action")
+	ids := c.FormValue("ids")
+	if ids == "" {
+		return c.JSON(fiber.Map{"code": 0, "msg": "缺少参数 ids"})
+	}
+	idList := parseIDList(ids)
+	if len(idList) == 0 {
+		return c.JSON(fiber.Map{"code": 0, "msg": "invalid ids"})
+	}
+
+	switch action {
+	case "delete":
+		h.db.Delete(&model.Art{}, "art_id IN ?", idList)
+	case "audit":
+		status, _ := strconv.Atoi(c.FormValue("status"))
+		h.db.Model(&model.Art{}).Where("art_id IN ?", idList).Update("art_status", status)
+	case "type":
+		typeID, _ := strconv.Atoi(c.FormValue("type_id"))
+		h.db.Model(&model.Art{}).Where("art_id IN ?", idList).Update("type_id", typeID)
+	default:
+		return c.JSON(fiber.Map{"code": 0, "msg": "未知操作"})
+	}
+
+	return c.JSON(fiber.Map{"code": 1, "msg": "批量操作成功"})
+}
+
 func (h *ArtHandler) Delete(c *fiber.Ctx) error {
 	ids := c.Query("ids")
 	if ids == "" {

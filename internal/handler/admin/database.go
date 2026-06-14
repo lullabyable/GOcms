@@ -294,6 +294,30 @@ func (h *DatabaseHandler) Backups(c *fiber.Ctx) error {
 	})
 }
 
+// BackupDelete 删除指定备份文件
+func (h *DatabaseHandler) BackupDelete(c *fiber.Ctx) error {
+	id := c.FormValue("id")
+	if id == "" {
+		return c.JSON(fiber.Map{"code": 0, "msg": "缺少备份文件名"})
+	}
+
+	// 安全检查：防止路径穿越
+	if strings.Contains(id, "..") || strings.Contains(id, "/") || strings.Contains(id, "\\") {
+		return c.JSON(fiber.Map{"code": 0, "msg": "非法文件名"})
+	}
+
+	filePath := filepath.Join("./runtime/backup", id)
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return c.JSON(fiber.Map{"code": 0, "msg": "备份文件不存在"})
+	}
+
+	if err := os.Remove(filePath); err != nil {
+		return c.JSON(fiber.Map{"code": 0, "msg": "删除失败: " + err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"code": 1, "msg": "删除成功"})
+}
+
 // Restore 从备份恢复
 func (h *DatabaseHandler) Restore(c *fiber.Ctx) error {
 	file := c.FormValue("file")

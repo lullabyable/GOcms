@@ -47,6 +47,16 @@ func (h *CJHandler) List(c *fiber.Ctx) error {
 	return response.Page(c, list, total, page, pageSize)
 }
 
+// Detail 采集规则详情
+func (h *CJHandler) Detail(c *fiber.Ctx) error {
+	id, _ := strconv.Atoi(c.Params("id"))
+	var rule CJRule
+	if err := h.db.First(&rule, id).Error; err != nil {
+		return response.Fail(c, "规则不存在")
+	}
+	return response.OK(c, rule)
+}
+
 // Save 保存采集规则
 func (h *CJHandler) Save(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.FormValue("id"))

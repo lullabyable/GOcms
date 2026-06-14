@@ -403,11 +403,13 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	auth.Get("/art/detail/:id", artH.Detail)
 	auth.Post("/art/save", artH.Save)
 	auth.Post("/art/delete", artH.Delete)
+	auth.Post("/art/batch", artH.Batch)
 	auth.Get("/manga/list", mangaH.List)
 	auth.Get("/manga/detail/:id", mangaH.Detail)
 	auth.Post("/manga/save", mangaH.Save)
 	auth.Post("/manga/delete", mangaH.Delete)
 	auth.Post("/manga/audit/:id", mangaH.Audit)
+	auth.Post("/manga/batch", mangaH.Batch)
 	auth.Get("/actor/list", actorH.List)
 	auth.Get("/actor/detail/:id", actorH.Detail)
 	auth.Post("/actor/save", actorH.Save)
@@ -466,6 +468,7 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	auth.Get("/plugin/list", pluginH.List)
 	auth.Post("/plugin/install", pluginH.Install)
 	auth.Post("/plugin/uninstall/:name", pluginH.Uninstall)
+	auth.Post("/plugin/uninstall", pluginH.Uninstall) // 前端兼容（body ids）
 	auth.Post("/plugin/enable/:name", pluginH.Enable)
 	auth.Post("/plugin/disable/:name", pluginH.Disable)
 	auth.Get("/plugin/config/:name", pluginH.Config)
@@ -520,6 +523,7 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 	auth.Post("/database/repair", dbH.Repair)
 	auth.Post("/database/backup", dbH.Backup)
 	auth.Get("/database/backups", dbH.Backups)
+	auth.Post("/database/backup-delete", dbH.BackupDelete)
 	auth.Post("/database/restore", dbH.Restore)
 	auth.Post("/database/sql", dbH.SQL)
 
@@ -571,10 +575,12 @@ func setupAdmin(app *fiber.App, sm *session.Manager, db *gorm.DB,
 
 	// 静态生成
 	auth.Post("/make/start", makeH.Start)
+	auth.Post("/make/run", makeH.Start) // 前端兼容别名
 	auth.Get("/make/status", makeH.Status)
 
 	// 自定义采集
 	auth.Get("/cj/list", cjH.List)
+	auth.Get("/cj/detail/:id", cjH.Detail)
 	auth.Post("/cj/save", cjH.Save)
 	auth.Post("/cj/run", cjH.Run)
 

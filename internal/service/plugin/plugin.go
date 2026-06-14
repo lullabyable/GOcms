@@ -167,6 +167,9 @@ func (m *Manager) SaveConfig(name string, cfg map[string]interface{}) error {
 	return m.db.Model(&model.Plugin{}).Where("name = ?", name).Update("config", string(cfgJSON)).Error
 }
 
+// DB 返回数据库实例
+func (m *Manager) DB() *gorm.DB { return m.db }
+
 // LoadEnabled 加载已启用的插件
 func (m *Manager) LoadEnabled() {
 	var plugins []model.Plugin

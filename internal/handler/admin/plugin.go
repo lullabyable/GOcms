@@ -1,7 +1,10 @@
 package admin
 
 import (
+	"strconv"
+
 	"github.com/gofiber/fiber/v2"
+	"gocms/internal/model"
 	"gocms/internal/service/plugin"
 )
 
@@ -35,11 +38,38 @@ func (h *PluginHandler) Install(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"code": 1, "msg": "安装成功"})
 }
 
-// Uninstall 卸载插件
+// Uninstall 卸载插件（支持 URL :name 参数或 body ids 参数）
 func (h *PluginHandler) Uninstall(c *fiber.Ctx) error {
+	// 优先从 URL 参数取 name
 	name := c.Params("name")
-	if err := h.manager.Uninstall(name); err != nil {
-		return c.JSON(fiber.Map{"code": 0, "msg": err.Error()})
+	if name != "" {
+		if err := h.manager.Uninstall(name); err != nil {
+			return c.JSON(fiber.Map{"code": 0, "msg": err.Error()})
+		}
+		return c.JSON(fiber.Map{"code": 1, "msg": "卸载成功"})
+	}
+
+	// 从 body 取 ids（前端传 {ids: "1,2"}）
+	ids := c.FormValue("ids")
+	if ids == "" {
+		var body struct {
+			IDs string `json:"ids"`
+		}
+		if err := c.BodyParser(&body); err == nil && body.IDs != "" {
+			ids = body.IDs
+		}
+	}
+	if ids == "" {
+		return c.JSON(fiber.Map{"code": 0, "msg": "缺少参数"})
+	}
+
+	idList := parseIDList(ids)
+	for _, id := range idList {
+		// 通过 ID 查插件名
+		var p model.Plugin
+		if err := h.manager.DB().Where("plugin_id = ?", id).First(&p).Error; err == nil {
+			h.manager.Uninstall(p.Name)
+		}
 	}
 	return c.JSON(fiber.Map{"code": 1, "msg": "卸载成功"})
 }
@@ -62,9 +92,19 @@ func (h *PluginHandler) Disable(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"code": 1, "msg": "已禁用"})
 }
 
-// Config 获取插件配置
+// Config 获取插件配置（支持 name 或 ID 查询）
 func (h *PluginHandler) Config(c *fiber.Ctx) error {
 	name := c.Params("name")
+
+	// 如果 name 是纯数字，当作 ID 处理
+	if id, err := strconv.Atoi(name); err == nil {
+		var p model.Plugin
+		if err := h.manager.DB().Where("plugin_id = ?", id).First(&p).Error; err != nil {
+			return c.JSON(fiber.Map{"code": 0, "msg": "插件不存在"})
+		}
+		name = p.Name
+	}
+
 	cfg, err := h.manager.GetConfig(name)
 	if err != nil {
 		return c.JSON(fiber.Map{"code": 0, "msg": err.Error()})
